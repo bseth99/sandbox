@@ -17,8 +17,12 @@ on my pages to organize my pages.  JB already has a template that will render a 
 pages with a specific group so I setup basic path of navigation > projects > projectA and
 put my pages in corresponding directories.
 
-* To see how I set this up in the source, [look at it in GitHub](https://github.com/bseth99/bseth99.github.com/).
-* To learn more about how I setup this site, [look at this blog post](http://benknowscode.wordpress.com/2012/08/29/using-jekyll-to-create-a-site-on-github).
+Addtionally, since I had to add custom plugins to Jekyll, it won't render correctly via the
+hosted GitHub Jekyll so I created a separate repo for the source and then push the generated
+content to my pages repo.
+
+* To see how I set this up in the source, [look at it in GitHub](https://github.com/bseth99/sandbox/).
+* To learn more about how I setup this site, [look at this blog post](http://benknowscode.wordpress.com/2012/08/28/using-jekyll-to-create-a-site-on-github).
 
 ### Current Projects
 
