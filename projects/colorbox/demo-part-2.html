@@ -1,0 +1,263 @@
+---
+layout: page
+title: jQuery UI Demo - Custom ColorBox Widget (Part 2)
+group: colorbox
+tags : [jquery, widget, demo]
+---
+
+{% include JB/setup %}
+
+    <div class="discussion">
+     This page demostrates how to create a simple widget that extends the jQuery UI base Widget class and
+     combines the jQuery UI widgets Draggable and Resizable.  ColorBox creates a square box and constrains
+     drag/resize to 50px increments.  It also adds a color cycle animation public method and fires a moved
+     event after a drag operation ends.  The demo also shows how the different base functions are called
+     during the life-cycle of a widget (ie _create, _init, destroy).  Click the buttons to see this behavior.
+     Use FireBug to set breakpoints to confirm the flow through the code.  This demo is referenced in several
+     of my blog posts related to the jQuery UI Widget series at
+       <a href="http://benknowscode.wordpress.com/category/projects/jquery-ui-widgets/"
+          >BenKnowsCode.wordpress.com</a>
+
+    </div>
+
+
+    <script>
+
+    (function ($)
+    {
+       // Make your own namespace - do not use 'ui'
+       $.widget("sdt.colorbox",
+        {
+          options:
+           {
+              // We're going to have one option for now
+              // to set the color of the box and set the
+              // default to 'green'
+              color: 'green'
+           },
+
+          _create: function()
+           {
+              var self = this;
+
+              // this.options is now set so we can
+              // use it to customize our box.
+              // this.element is a jQuery object
+              // representing the target element(s)
+              // 'this' is the widget object not
+              // a DOM node or jQuery object.
+              // all of our widget state and data
+              // can be stored in this so we have
+              // it throughout the lifecycle of this
+              // widget.
+
+              this.element
+               .css(
+                {
+                   height: '100px',
+                   width: '100px',
+                   border: '2px solid black'
+                })
+               .resizable(
+                {
+                    aspectRatio: true,
+                    maxHeight: 500,
+                    maxWidth: 500,
+                    minHeight: 100,
+                    minWidth: 100,
+                    grid: [50, 50]
+                })
+               .draggable(
+                {
+                  grid: [50, 50],
+                  stack: '.colorbox',
+                  start: function (e, ui)
+                   {
+                      // Remember where we started
+                      self._startPosition = ui.position;
+                   },
+                  stop: function (e, ui)
+                   {
+                      // Add starting position to the UI data
+                      ui.originalPositon = {};
+                      $.extend(ui.originalPositon, self._startPosition);
+
+                      self._trigger('moved', e, ui);
+                      self._startPosition = null;
+                   }
+
+                })
+               .addClass('colorbox');
+           },
+
+          _init: function()
+           {
+              // Each time colorbox() is called on an element,
+              // _init is called.  On the first colorbox() call,
+              // _create is called, then _init.  One time setup
+              // tasks that are not affected by the options,
+              // can go into _create.  Since each call
+              // to colorbox() can change the options, we
+              // need to handle that here:
+
+              this.element
+               .css(
+                {
+                   backgroundColor: this.options.color
+                });
+           },
+
+          _setOption: function(option, value)
+           {
+              // If colorbox('option', 'color', 'newcolor')
+              // is called, its that same as just reinitializing
+              // the widget. Need to call the default behavior first
+              // if we're not doing anything special and
+              // then call init
+
+              $.Widget.prototype._setOption.apply( this, arguments );
+
+              this._init();
+           },
+
+          destroy: function()
+           {
+              // Need to reset this element(s) back to
+              // what they were before we enhanced them.
+              // this includes destorying the other UI
+              // widgets we created.
+
+              this.element
+               .removeClass('colorbox')
+               .css(
+                {
+                   height: '',
+                   width: '',
+                   backgroundColor: '',
+                   border: ''
+                })
+               .resizable('destroy')
+               .draggable('destroy');
+
+              $.Widget.prototype.destroy.call( this );
+            },
+
+           animate: function(colors, speed)
+            {
+               var $el = this.element;
+
+               colors.push(this.options.color);
+
+               $.each(colors, function()
+                 {
+                    $el.animate({backgroundColor: this}, speed);
+                 });
+            }
+
+        });
+
+    }
+    )(jQuery);
+
+    $(function()
+    {
+       $('#create1').click(function ()
+        {
+           // Collection of boxes
+           // will use default color: 'green'
+
+           $('.boxes > div')
+             .colorbox(
+               {
+                 moved: function (e, ui)
+                  {
+                     var $el = $(this),
+                         dist,
+                         start = ui.originalPosition,
+                         end = ui.position;
+
+                     dist = Math.round(
+                              Math.sqrt(
+                                 Math.pow(start.top - end.top, 2)
+                               + Math.pow(start.left - end.left, 2)
+                              )
+                            );
+
+                     alert($el.text() + ' moved ' + dist + ' pixels');
+                  }
+               });
+        });
+
+       $('#destroy1').click(function ()
+        {
+           // Put div's back to original state
+           // elements are not removed from DOM
+           // just the ColorBox enhancements are removed
+
+           $('.boxes > div').colorbox('destroy');
+        });
+
+       $('#option1').click(function ()
+        {
+           // Use option method to change color
+           $('.boxes > div').colorbox('option', 'color', 'blue');
+        });
+
+       $('#init1').click(function ()
+        {
+           // Just call colorbox again with new config
+           // to cause _init to fire
+           $('.boxes > div').colorbox({color: 'orange'});
+        });
+
+       $('#create2').click(function ()
+        {
+           // Dynamically create a div and make it a ColorBox that is 'red'
+
+           if ($('#onebox').length > 0) return;
+
+           var html = '<div id="onebox"><input class="animate-button" type="button" value="Animate"/>Not in the group</div>';
+
+           $(html).appendTo('#dynamic').colorbox({color: 'red'});
+        });
+
+       $('#destroy2').click(function ()
+        {
+           // Completely remove DOM element.  ColorBox.destroy is
+           // automatically called.
+
+           $('#onebox').remove();
+        });
+
+       $(document.body).on('click', '.animate-button', function ()
+        {
+           $(this).parent().colorbox('animate', ['green', 'blue', 'yellow'], 500);
+        });
+    });
+
+   </script>
+
+    <br/><br/>
+    <div class="actions">
+     <input id="create1" type="button" value="Create ColorBox's"/>
+     <input id="destroy1" type="button" value="Destory ColorBox's"/>
+     <input id="option1" type="button" value="Make these Blue"/>
+     <input id="init1" type="button" value="Make these Orange"/>
+    </div>
+
+    <div class="target boxes">
+      <div>Box A</div>
+      <div>Box B</div>
+      <div>Box C</div>
+    </div>
+
+    <br/><br/>
+    <div class="actions">
+     <input id="create2" type="button" value="Create ColorBox Dynamically"/>
+     <input id="destroy2" type="button" value="Destory ColorBox Dynamically"/>
+    </div>
+
+    <div id="dynamic" class="target"></div>
+
+</body>
+</html>

@@ -1,0 +1,50 @@
+---
+layout: page
+title: jQuery UI Demo - Custom ColorBox Widget (Part 1)
+group: colorbox
+tags : [jquery, widget, demo]
+---
+{% include JB/setup %}
+
+    <div class="discussion">
+     This page shows how to chain the built-in jQuery UI widgets Draggable and Resizable to
+     create specific functionality using those simple building blocks.  This demo is referenced in several
+     of my blog posts related to the jQuery UI Widget series at
+       <a href="http://benknowscode.wordpress.com/category/projects/jquery-ui-widgets/"
+          >BenKnowsCode.wordpress.com</a>
+
+    </div>
+
+    <div class="target">
+
+    </div>
+
+<script>
+
+$(function()
+{
+   $('<div>colorbox</div>').appendTo($('.target'))
+        .css(
+         {
+            height: '100px',
+            width: '100px',
+            backgroundColor: 'green'
+         })
+        .resizable(
+         {
+            maxHeight: 500,
+            maxWidth: 500,
+            minHeight: 100,
+            minWidth: 100
+         })
+        .draggable(
+         {
+            grid: [50, 50],
+            stop: function (e, ui)
+             {
+                alert('done dragging!');
+             }
+         });
+});
+
+</script>
