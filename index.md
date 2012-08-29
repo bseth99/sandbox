@@ -24,9 +24,9 @@ content to my pages repo.
 * To see how I set this up in the source, [look at it in GitHub](https://github.com/bseth99/sandbox/).
 * To learn more about how I setup this site, [look at this blog post](http://benknowscode.wordpress.com/2012/08/28/using-jekyll-to-create-a-site-on-github).
 
-### Current Projects
-
-<ul class="posts">
+#### Current Projects  
+  
+<ul class="pages">
    {% assign pages_list = site.pages %}
    {% assign group = 'projects' %}
    {% include JB/pages_list %}

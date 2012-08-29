@@ -6,9 +6,12 @@ group: navigation
 ---
 {% include JB/setup %}
 
-## Project Links
+This is a full list of the projects posted to this site.  All of them are related to
+browser-based technologies like jQuery, CSS, etc.  
 
-<ul class="posts">
+#### Project Links  
+  
+<ul class="pages">
    {% assign pages_list = site.pages %}
    {% assign group = 'projects' %}
    {% include JB/pages_list %}
