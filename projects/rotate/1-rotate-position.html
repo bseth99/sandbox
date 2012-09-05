@@ -1,0 +1,323 @@
+---
+layout: page
+title: CSS3 Rotational Transforms and DOM Positioning
+group: rotate
+tags : [jquery, transform, rotate, alignment]
+---
+{% include JB/setup %}
+
+
+<style>
+
+canvas {
+  border: 1px dotted black;
+}
+
+.wrapper {
+  float: left;
+  margin: 10px;
+}
+
+.box {
+  position: absolute;
+  height: 50px;
+  width: 80px;
+}
+
+.box.r {
+  background-color: red;
+}
+
+.box.a {
+  height: 60px;
+  width: 60px;
+  background-color: blue;
+}
+
+.box.j {
+  height: 5px;
+  width: 5px;
+  background-color: orange;
+}
+
+.box.d {
+  height: 5px;
+  width: 5px;
+  background-color: green;
+}
+
+.box.c {
+  border: 1px dotted black;
+}
+
+</style>
+
+<script>
+
+function drawaxis(canvas)
+{
+   canvas.width = 200;
+   canvas.height = 200;
+
+   var ctx = canvas.getContext( "2d" );
+
+   ctx.fillStyle = "white";
+   ctx.fill();
+
+   ctx.strokeStyle = "black";
+
+   ctx.beginPath();
+   ctx.moveTo(0, 100);
+   ctx.lineWidth = 1;
+   ctx.lineTo(200, 100);
+   ctx.stroke();
+
+
+   ctx.beginPath();
+   ctx.moveTo(100, 0);
+   ctx.lineWidth = 1;
+   ctx.lineTo(100, 200);
+   ctx.stroke();
+}
+
+</script>
+
+  <div class="discussion">
+     The actual position of a rotated element relative to another element depends on the point of
+     origin used to rotate the element.  Additionally, jQuery offset() uses getBoundingClientRect()
+     as a starting point to calculate the top/left point of an element.  For a rotated element, the
+     top/left will not be on the object nor will it be a point used in the positioning of that
+     object when setting CSS styles.
+  </div>
+
+  <div id="r-center" origin="50% 50%" class="clearfix">
+     <div class="wrapper">
+        <canvas>
+
+        </canvas>
+
+        <div class="box r"></div>
+        <div class="box a"></div>
+
+     </div>
+
+     <div class="wrapper">
+        <canvas>
+
+        </canvas>
+
+        <div class="box r"></div>
+        <div class="box a"></div>
+
+     </div>
+
+     <div class="wrapper">
+        <canvas>
+
+        </canvas>
+
+        <div class="box r"></div>
+        <div class="box a"></div>
+
+     </div>
+
+     <div class="wrapper">
+        <canvas>
+
+        </canvas>
+
+        <div class="box r"></div>
+        <div class="box a"></div>
+
+     </div>
+  </div>
+
+  <div id="r-topleft" origin="top left" class="clearfix">
+     <div class="wrapper">
+        <canvas>
+
+        </canvas>
+
+        <div class="box r"></div>
+        <div class="box a"></div>
+
+     </div>
+
+     <div class="wrapper">
+        <canvas>
+
+        </canvas>
+
+        <div class="box r"></div>
+        <div class="box a"></div>
+
+     </div>
+
+     <div class="wrapper">
+        <canvas>
+
+        </canvas>
+
+        <div class="box r"></div>
+        <div class="box a"></div>
+
+     </div>
+
+     <div class="wrapper">
+        <canvas>
+
+        </canvas>
+
+        <div class="box r"></div>
+        <div class="box a"></div>
+
+     </div>
+  </div>
+
+
+  <div id="r-bottomright" origin="bottom right" class="clearfix">
+     <div class="wrapper">
+        <canvas>
+
+        </canvas>
+
+        <div class="box r"></div>
+        <div class="box a"></div>
+
+     </div>
+
+     <div class="wrapper">
+        <canvas>
+
+        </canvas>
+
+        <div class="box r"></div>
+        <div class="box a"></div>
+
+     </div>
+
+     <div class="wrapper">
+        <canvas>
+
+        </canvas>
+
+        <div class="box r"></div>
+        <div class="box a"></div>
+
+     </div>
+
+     <div class="wrapper">
+        <canvas>
+
+        </canvas>
+
+        <div class="box r"></div>
+        <div class="box a"></div>
+
+     </div>
+  </div>
+
+<script>
+
+$(function()
+{
+   // Setup our reference axis
+   $('canvas')
+      .each(function ()
+         {
+            drawaxis(this);
+         });
+
+   $('#r-center, #r-topleft, #r-bottomright')
+      .each(function (rorig, z)
+         {
+            var $ref = $(this),
+                orig = $ref.attr('origin');
+
+            $ref.children()
+              .each(function (i, e)
+                 {
+                     var $q = $(this),
+                         $canvas = $q.children('canvas'),
+                         $r = $q.children('.r'),
+                         $a = $q.children('.a'),
+                         angle = i * 90 + 27,
+                         corner = $canvas.offset(),
+                         center = {top: corner.top + $canvas.outerHeight(true) / 2,
+                                   left: corner.left + $canvas.outerWidth(true) / 2},
+                         offset = {top: $a.outerHeight(true) / 2, left: $a.outerWidth(true) / 2},
+                         pos;
+
+
+                     // Start by aligning a box that is not rotated to the canvas
+                     // center.  This is the blue box.
+                     $a.css({
+                           top: (center.top - offset.top) + 'px',
+                           left: (center.left - offset.left) + 'px'
+                      });
+
+
+                     // Now rotate and align to the reference box
+                     // This tells us how css() will interpret
+                     // the top/left values relative to other
+                     // DOM elements.  This is the red box.
+                     pos = $a.offset();
+
+                     $r.css({
+                           transformOrigin: orig,
+                           transform: 'rotate('+angle+'deg)'
+                      })
+                       .html('rotated');
+
+                     $r.css({
+                           top: (pos.top) + 'px',
+                           left: (pos.left) + 'px'
+                      });
+
+                     // Finally, plot some points of interest:
+
+                     // Where jQuery thinks the top/left of the
+                     // rotated box is
+                     pos = $r.offset();
+
+                     $('<div>').appendTo($q)
+                        .addClass('box j')
+                        .css({
+                           top: pos.top + 'px',
+                           left: pos.left + 'px'
+                      });
+
+                     // Directly from the DOM.
+                     pos = {top: $r[0].offsetTop, left: $r[0].offsetLeft};
+
+                     $('<div>').appendTo($q)
+                        .addClass('box d')
+                        .css({
+                           top: pos.top + 'px',
+                           left: pos.left + 'px'
+                      });
+
+                     // getBoundingClientRect();
+                     box = $r[0].getBoundingClientRect();
+
+                     $('<div>').appendTo($q)
+                        .addClass('box c')
+                        .css({
+                           top: box.top + 'px',
+                           left: box.left + 'px',
+                           height: box.height + 'px',
+                           width: box.width + 'px'
+                      });
+
+                 });
+
+         });
+
+});
+
+</script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,478 @@
+---
+layout: page
+title: CSS3 Rotation Transform - Understanding jQuery Values and Alignment Issues
+group: rotate
+tags : [jquery, transform, rotate, alignment]
+---
+{% include JB/setup %}
+
+
+<script>
+
+function deg2rad(a)
+{
+   return a * Math.PI / 180;
+}
+
+function rotatePoint(pt, a)
+{
+   return {
+        x: pt.x * Math.cos(deg2rad(a)) - pt.y * Math.sin(deg2rad(a)),
+        y: pt.x * Math.sin(deg2rad(a)) + pt.y * Math.cos(deg2rad(a))
+     };
+}
+
+</script>
+
+
+<style>
+
+.pad {
+   margin: 30px;
+   height: 100%;
+}
+
+.spacer {
+   float: left;
+   height: 50px;
+   width: 80px;
+}
+
+.point {
+   position: absolute;
+   height: 3px;
+   width: 3px;
+   background-color: green;
+}
+
+.box {
+   background-color: red;
+   height: 50px;
+   width: 80px;
+}
+
+.letter {
+   float: left;
+   height: 50px;
+   width: 80px;
+   text-align: center;
+   font-size: 16pt;
+   font-weight: bold;
+}
+
+
+</style>
+
+ <div class="discussion">
+   This is a quick demostration of using the CSS transform: rotate style with jQuery.  I wanted to see
+   where the original and new top/left points were and the height/width of the rotated element.
+   Below are the results.  (A) is the starting box I want to rotate.  (B) is rotated using the
+   default origin at the center of the box.  The green dot is where the top/left were before
+   the rotation.  The black box represents the current top/left and height/width using jQuery
+   to retreive that data from the DOM.  (C) is rotated using the top/left as the origin.  Notice
+   that the green dot (the top/left before rotating) is at the same point as the actual top/left
+   corner of the box.  The black box again represents the current top/left/height/width as reported
+   by jQuery.
+ </div>
+
+
+   <div id="test1" class="pad" style="float: left">
+     <div id="box1" class="box"></div>
+   </div>
+
+   <div class="spacer"></div>
+
+   <div id="test2" class="pad" style="float: left">
+     <div id="box2" class="box"></div>
+   </div>
+
+   <div class="spacer"></div>
+
+   <div id="test3" class="pad" style="float: left">
+      <div id="box3" class="box"></div>
+   </div>
+
+ <div style="clear: both"></div>
+
+ <br/>
+
+ <div class="pad">
+   <div class="letter">A</div>
+
+   <div class="spacer"></div>
+   <div class="spacer"></div>
+
+   <div class="letter">B</div>
+
+   <div class="spacer"></div>
+
+   <div class="letter">C</div>
+ </div>
+
+ <div style="clear: both"></div>
+ <br/>
+
+<script>
+
+$(function()
+{
+  var p = $('#box2').offset();
+
+  $('<div>').appendTo($('#test2'))
+     .addClass('point')
+     .css({
+        top: p.top,
+        left: p.left
+      });
+
+  $('#box2').css({
+       transform: 'rotate(27deg)'
+    });
+
+  var p = $('#box2').offset();
+
+  $('<div>').appendTo($('#test2'))
+     .css({
+        position: 'absolute',
+        border: '1px solid black',
+        top: p.top,
+        left: p.left,
+        height: $('#box2').outerHeight(true),
+        width: $('#box2').outerWidth(true)
+      });
+
+
+  var p = $('#box3').offset();
+
+  $('<div>').appendTo($('#test3'))
+     .addClass('point')
+     .css({
+        top: p.top,
+        left: p.left
+      });
+
+  $('#box3').css({
+       transformOrigin: 'top left',
+       transform: 'rotate(27deg)'
+    });
+
+  var p = $('#box3').offset();
+
+  $('<div>').appendTo($('#test3'))
+     .css({
+        position: 'absolute',
+        border: '1px solid black',
+        top: p.top,
+        left: p.left,
+        height: $('#box3').outerHeight(true),
+        width: $('#box3').outerWidth(true)
+      });
+
+});
+
+</script>
+
+
+<style>
+
+.box-r {
+   position: absolute;
+   background-color: red;
+   height: 50px;
+   width: 80px;
+}
+
+.box-a {
+   background-color: blue;
+   height: 50px;
+   width: 80px;
+}
+
+</style>
+
+ <div class="discussion">
+   This next series of tests show how the box is aligned when using jQuery.css to set the
+   top/left corner.  The rotation is around the center (default).  (A) shows that when the
+   red box is aligned with the top/left corner of the blue box, the original top/left point
+   of the red box (before rotation) is used to align the elements.  This is a different point
+   than what is reported by jQuery.offset().  The top/left corner of the black rectangle illustrates
+   where offset() reports the top/left corner of the red box.  (B) is an attempt to align the top/middle
+   of the red box to the the bottom/left of the blue box.  You can see this is close, however,
+   the red box has a rotate axis so x/y values do not map to the blue box's coordinates.  (C) Shows how
+   you have to rotate the width / 2 into the red box's coordinates and then use that result as the offset.
+   However, its still not correct because we're measuring out width from the top/left corner and rotating
+   relative to that point.  The box was rotated around the center so our math is still not correct.
+ </div>
+
+ <div id="align1" class="pad" style="float: left">
+   <div id="box5" class="box-r"></div>
+   <div id="box6" class="box-a"></div>
+ </div>
+
+ <div class="spacer"></div>
+
+ <div id="align2" class="pad" style="float: left">
+   <div id="box7" class="box-r"></div>
+   <div id="box8" class="box-a"></div>
+ </div>
+
+
+ <div class="spacer"></div>
+
+ <div id="align3" class="pad" style="float: left">
+   <div id="box9" class="box-r"></div>
+   <div id="box10" class="box-a"></div>
+ </div>
+
+ <div style="clear: both"></div>
+
+
+ <br/>
+ <br/>
+ <br/>
+ <div class="pad" style="clear: both">
+   <div class="letter">A</div>
+
+   <div class="spacer"></div>
+
+   <div class="letter">B</div>
+
+   <div class="spacer"></div>
+   <div class="spacer"></div>
+
+   <div class="letter">C</div>
+ </div>
+
+ <br/>
+ <div style="clear: both"></div>
+
+
+<script>
+
+$(function()
+{
+  var p = $('#box5').offset();
+
+  $('<div>').appendTo($('#align1'))
+     .addClass('point')
+     .css({
+        top: p.top,
+        left: p.left
+      });
+
+  var p = $('#box6').offset();
+
+  $('#box5').css({
+        transform: 'rotate(27deg)',
+        top: p.top,
+        left: p.left
+    });
+
+  var p = $('#box5').offset();
+
+  $('<div>').appendTo($('#align1'))
+     .css({
+        position: 'absolute',
+        border: '1px solid black',
+        top: p.top,
+        left: p.left,
+        height: $('#box5').outerHeight(true),
+        width: $('#box5').outerWidth(true)
+      });
+
+
+
+  var $b8 = $('#box8'),
+      $b7 = $('#box7'),
+      p = $b8.offset();
+
+  $('#box7').css({
+        transform: 'rotate(27deg)',
+        top: p.top + $b8.outerHeight(true),
+        left: p.left - $b7.outerWidth(true) / 2
+    });
+
+  var p = $('#box7').offset();
+
+  $('<div>').appendTo($('#align2'))
+     .css({
+        position: 'absolute',
+        border: '1px solid black',
+        top: p.top,
+        left: p.left,
+        height: $('#box7').outerHeight(true),
+        width: $('#box7').outerWidth(true)
+      });
+
+
+
+  var $br = $('#box9'),
+      $ba = $('#box10'),
+      p = $ba.offset(),
+      t = rotatePoint({x: $br.outerWidth(true) / 2, y: 0}, 27);
+
+  $br.css({
+        transform: 'rotate(27deg)',
+        top: p.top + $ba.outerHeight(true) - t.y,
+        left: p.left - t.x
+    });
+
+  var p = $br.offset();
+
+  $('<div>').appendTo($('#align3'))
+     .css({
+        position: 'absolute',
+        border: '1px solid black',
+        top: p.top,
+        left: p.left,
+        height: $br.outerHeight(true),
+        width: $br.outerWidth(true)
+      });
+
+});
+
+</script>
+
+
+
+ <div class="discussion">
+    Now, (A) uses the top/left corner as the origin for rotation.  (B) shows the attempt to
+    align the boxes without translating to the rotated coordinate system.  And (C) shows that
+    when you rotate everything relative to the same point, you get what you expected.
+ </div>
+
+ <div id="align10" class="pad" style="float: left">
+   <div id="box20" class="box-r"></div>
+   <div id="box21" class="box-a"></div>
+ </div>
+
+ <div class="spacer"></div>
+
+ <div id="align11" class="pad" style="float: left">
+   <div id="box22" class="box-r"></div>
+   <div id="box23" class="box-a"></div>
+ </div>
+
+
+ <div class="spacer"></div>
+
+ <div id="align12" class="pad" style="float: left">
+   <div id="box24" class="box-r"></div>
+   <div id="box25" class="box-a"></div>
+ </div>
+
+ <div style="clear: both"></div>
+
+
+ <br/>
+ <br/>
+ <br/>
+ <div class="pad" style="clear: both">
+   <div class="letter">A</div>
+
+   <div class="spacer"></div>
+
+   <div class="letter">B</div>
+
+   <div class="spacer"></div>
+   <div class="spacer"></div>
+
+   <div class="letter">C</div>
+ </div>
+
+ <br/>
+ <div style="clear: both"></div>
+
+
+<script>
+
+$(function()
+{
+
+  var $br = $('#box20'),
+      $ba = $('#box21');
+
+  var p = $br.offset();
+
+  $('<div>').appendTo($('#align10'))
+     .addClass('point')
+     .css({
+        top: p.top,
+        left: p.left
+      });
+
+  var p = $ba.offset();
+
+  $br.css({
+        transformOrigin: 'top left',
+        transform: 'rotate(27deg)',
+        top: p.top,
+        left: p.left
+    });
+
+  var p = $br.offset();
+
+  $('<div>').appendTo($('#align10'))
+     .css({
+        position: 'absolute',
+        border: '1px solid black',
+        top: p.top,
+        left: p.left,
+        height: $br.outerHeight(true),
+        width: $br.outerWidth(true)
+      });
+
+
+
+  var $br = $('#box22'),
+      $ba = $('#box23'),
+      p = $ba.offset();
+
+  $br.css({
+        transformOrigin: 'top left',
+        transform: 'rotate(27deg)',
+        top: p.top + $ba.outerHeight(true),
+        left: p.left - $br.outerWidth(true) / 2
+    });
+
+  var p = $br.offset();
+
+  $('<div>').appendTo($('#align11'))
+     .css({
+        position: 'absolute',
+        border: '1px solid black',
+        top: p.top,
+        left: p.left,
+        height: $br.outerHeight(true),
+        width: $br.outerWidth(true)
+      });
+
+
+
+  var $br = $('#box24'),
+      $ba = $('#box25'),
+      p = $ba.offset(),
+      t = rotatePoint({x: $br.outerWidth(true) / 2, y: 0}, 27);
+
+  $br.css({
+        transformOrigin: 'top left',
+        transform: 'rotate(27deg)',
+        top: p.top + $ba.outerHeight(true) - t.y,
+        left: p.left - t.x
+    });
+
+  var p = $br.offset();
+
+  $('<div>').appendTo($('#align12'))
+     .css({
+        position: 'absolute',
+        border: '1px solid black',
+        top: p.top,
+        left: p.left,
+        height: $br.outerHeight(true),
+        width: $br.outerWidth(true)
+      });
+
+});
+
+</script>

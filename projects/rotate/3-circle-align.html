@@ -1,0 +1,517 @@
+---
+layout: page
+title: Align Rotated DOM Elements to a Circular Path
+group: rotate
+tags : [jquery, transform, rotate, alignment]
+---
+{% include JB/setup %}
+
+
+    <div class="discussion">
+     This shows the progression of attempts I made to calculate the correct placement
+     of elements along a circle.  The final goal was to rotate each element so the
+     center/bottom point of each element was touching the circle.  Once I know the
+     necessary math to acheive this result, I can calculate a series of points and
+     rotations to animate each element correctly along an imaginary circular path.
+
+     More discussions about the project are on my blog <a href="http://benknowscode.wordpress.com/category/projects/jquery-ui-widgets/"
+          >BenKnowsCode.wordpress.com</a>
+
+    </div>
+
+<style>
+
+.attempt-container {
+   margin: 10px;
+   padding: 60px;
+   float: left;
+   border: 3px solid silver;
+}
+
+.items {
+   margin: 0px;
+   padding: 0px;
+   list-style: none;
+}
+
+.items > li {
+   position: absolute;
+   border: 1px solid red;
+   padding: 3px;
+}
+
+.attempt-discuss {
+   width: 500px;
+   margin: 10px;
+   padding: 5px;
+   float: left;
+   border: 3px solid silver;
+}
+
+</style>
+
+
+<script>
+
+
+function deg2rad(a)
+{
+   return a * Math.PI / 180;
+}
+
+function findPointOnCircle(cx, cy, r, a)
+{
+   // a is in degrees
+
+   return { x: cx + r * Math.cos(deg2rad(a)),
+            y: cy + r * Math.sin(deg2rad(a)) };
+}
+
+function translatePoint(pt, a)
+{
+   return {
+        x: pt.x * Math.cos(deg2rad(a)) - pt.y * Math.sin(deg2rad(a)),
+        y: pt.x * Math.sin(deg2rad(a)) + pt.y * Math.cos(deg2rad(a))
+     };
+}
+
+function setup(canvas, cx, cy, r)
+{
+   // add some padding
+   canvas.width = cx * 2;
+   canvas.height = cy * 2;
+
+   var ctx = canvas.getContext( "2d" );
+
+   ctx.fillStyle = "white";
+   ctx.fill();
+
+   ctx.strokeStyle = "black";
+   ctx.beginPath();
+   ctx.lineWidth = 1;
+
+   // Yes, there is a circle function ... need to test this math:
+   // Don't forget to use radians in cos and sin ...
+   var pt;
+   for (var p=0;p<360;p++)
+   {
+      pt = findPointOnCircle(cx, cy, r, p);
+      ctx.lineTo(pt.x, pt.y);
+   }
+
+   ctx.stroke();
+
+
+}
+
+</script>
+
+<!-- Attempt 1 -->
+
+      <div id="attempt1" class="attempt-container">
+
+        <canvas>
+
+        </canvas>
+
+        <ul class="items">
+          <li><a href="#">Item 1</a></li>
+          <li><a href="#">Item 2</a></li>
+          <li><a href="#">Item 3</a></li>
+          <li><a href="#">Item 4</a></li>
+          <li><a href="#">Item 5</a></li>
+        </ul>
+
+      </div>
+
+
+      <div class="attempt-discuss">
+
+         First, I'd like to make sure the elements line up along the
+         circle as I expect.  Since I know I can draw a circle, I know
+         that if I can figure out the correct angle of where I want each
+         element, I can get a point on the circle to align that element.
+         If I have 5 elements, to even spread them out, I need to position
+         each one 1/5 of the way around the circle.  360 / 5 = 72 degrees
+         so thats the step I'll use to place them.  However, my first
+         element starts at the right side of the circle.  This is because
+         0 degrees results in x = radius, y = 0.  I need to move this counter-clockwise
+         90 degrees to start where I want it.
+
+      </div>
+
+<script>
+
+function attempt1()
+{
+
+   var r = 50, cx = 50, cy = 50,
+       $circle = $('#attempt1 > canvas'),
+       canvas = $circle[0];
+
+   setup(canvas, cx + 2, cy + 2, r);
+
+   cx += 2;
+   cy += 2;
+
+   // Center of the circle relative to the page
+   var cpos = $circle.offset();
+       px = cpos.left + cx,
+       py = cpos.top + cy;
+
+   var $items = $('#attempt1 .items').children(),
+       icnt = $items.length,
+       dstep = 360 / icnt;
+
+   $items.each(function (idx, el)
+     {
+        var $el = $(el),
+            a = dstep * idx,
+            pt = findPointOnCircle(px, py, r, a);
+
+        $el.css({
+             left: (pt.x) + 'px',
+             top: (pt.y) + 'px'
+          });
+
+     });
+
+}
+
+$(function()
+{
+   attempt1();
+});
+</script>
+
+  <div style="clear: both"> </div>
+
+
+<!-- Attempt 2 -->
+      <div id="attempt2" class="attempt-container">
+
+        <canvas>
+
+        </canvas>
+
+        <ul class="items">
+          <li><a href="#">Item 1</a></li>
+          <li><a href="#">Item 2</a></li>
+          <li><a href="#">Item 3</a></li>
+          <li><a href="#">Item 4</a></li>
+          <li><a href="#">Item 5</a></li>
+        </ul>
+
+      </div>
+
+      <div class="attempt-discuss">
+
+         The elements now start in the correct spot.
+         Next, I want to try to align them differently to the circle.
+         I'll start by offsetting the above calculation so the elements
+         are shifted and the circle passes through the center/bottom of each
+         (this is where I want them to touch once rotated).
+         I'm not sure what will happen when I rotate these, but I think
+         some offset to move them into the correct place is required.
+
+      </div>
+
+
+<script>
+function attempt2()
+{
+
+   var r = 50, cx = 50, cy = 50,
+       $circle = $('#attempt2 > canvas'),
+       canvas = $circle[0];
+
+   setup(canvas, cx + 2, cy + 2, r);
+
+   cx += 2;
+   cy += 2;
+
+   // Center of the circle relative to the page
+   var cpos = $circle.offset();
+       px = cpos.left + cx,
+       py = cpos.top + cy;
+
+   var $items = $('#attempt2 .items').children(),
+       icnt = $items.length,
+       dstep = 360 / icnt;
+
+   $items.each(function (idx, el)
+     {
+        var $el = $(el),
+            a = dstep * idx,
+            pt = findPointOnCircle(px, py, r, a - 90);
+
+        $el.css({
+             left: (pt.x - $el.outerWidth(true) / 2) + 'px',
+             top: (pt.y - $el.outerHeight(true)) + 'px'
+          });
+
+     });
+
+}
+
+$(function()
+{
+    attempt2();
+});
+</script>
+
+  <div style="clear: both"> </div>
+
+
+<!-- Attempt 3 -->
+      <div id="attempt3" class="attempt-container">
+
+        <canvas>
+
+        </canvas>
+
+        <ul class="items">
+          <li><a href="#">Item 1</a></li>
+          <li><a href="#">Item 2</a></li>
+          <li><a href="#">Item 3</a></li>
+          <li><a href="#">Item 4</a></li>
+          <li><a href="#">Item 5</a></li>
+        </ul>
+
+      </div>
+
+
+      <div class="attempt-discuss">
+
+         Now, its time to get fancy and use the transform CSS style to
+         rotate each element.  The rotation should be the same as the
+         the angle on the circle (not including the 90 adjustment needed
+         to start from the top).  Its clear that the rotation has resulted in
+         not positioning as I expected using the math from the prior attempt.
+
+      </div>
+
+
+<script>
+function attempt3()
+{
+
+   var r = 50, cx = 50, cy = 50,
+       $circle = $('#attempt3 > canvas'),
+       canvas = $circle[0];
+
+   setup(canvas, cx + 2, cy + 2, r);
+
+   cx += 2;
+   cy += 2;
+
+   // Center of the circle relative to the page
+   var cpos = $circle.offset();
+       px = cpos.left + cx,
+       py = cpos.top + cy;
+
+   var $items = $('#attempt3 .items').children(),
+       icnt = $items.length,
+       dstep = 360 / icnt;
+
+   $items.each(function (idx, el)
+     {
+        var $el = $(el),
+            a = dstep * idx,
+            pt = findPointOnCircle(px, py, r, a - 90);
+
+        $el.css({
+             left: (pt.x - $el.outerWidth(true) / 2) + 'px',
+             top: (pt.y - $el.outerHeight(true)) + 'px',
+             transform: 'rotate('+(a)+'deg)'
+          });
+
+     });
+
+}
+
+$(function()
+{
+   attempt3();
+});
+
+</script>
+
+  <div style="clear: both"> </div>
+
+
+<!-- Attempt 4 -->
+      <div id="attempt4" class="attempt-container">
+
+        <canvas>
+
+        </canvas>
+
+        <ul class="items">
+          <li><a href="#">Item 1</a></li>
+          <li><a href="#">Item 2</a></li>
+          <li><a href="#">Item 3</a></li>
+          <li><a href="#">Item 4</a></li>
+          <li><a href="#">Item 5</a></li>
+        </ul>
+
+      </div>
+
+      <div class="attempt-discuss">
+
+         After some thought, I realized that my offsets needed to be
+         translated with a rotation to match the rotation of the element.
+         The top/left coordinates are no longer where they were after the
+         rotation so calculating a point relative to those old points will
+         do no good.  However, even after doing that, something is not correct.
+         To figure out what happened, I had to do <a href="1-alignment.html">some additional testing</a>.
+      </div>
+
+<script>
+function attempt4()
+{
+
+   var r = 50, cx = 50, cy = 50,
+       $circle = $('#attempt4 > canvas'),
+       canvas = $circle[0];
+
+   setup(canvas, cx + 2, cy + 2, r);
+
+   cx += 2;
+   cy += 2;
+
+   // Center of the circle relative to the page
+   var cpos = $circle.offset();
+       px = cpos.left + cx,
+       py = cpos.top + cy;
+
+   var $items = $('#attempt4 .items').children(),
+       icnt = $items.length,
+       dstep = 360 / icnt;
+
+   $items.each(function (idx, el)
+     {
+        var $el = $(el),
+            a = dstep * idx,
+            pt = findPointOnCircle(px, py, r, a - 90),
+            off = translatePoint({
+                       x: $el.outerWidth(true) / 2,
+                       y: $el.outerHeight(true)}, a);
+
+        $el.css({
+             left: (pt.x - off.x) + 'px',
+             top: (pt.y - off.y) + 'px',
+             transform: 'rotate('+(a)+'deg)'
+          });
+
+     });
+
+}
+
+$(function()
+{
+   attempt4();
+});
+
+</script>
+
+  <div style="clear: both"> </div>
+
+
+<!-- Attempt 5 -->
+
+      <div id="attempt5" class="attempt-container">
+
+        <canvas>
+
+        </canvas>
+
+        <ul class="items">
+          <li><a href="#">Item 1</a></li>
+          <li><a href="#">Item 2</a></li>
+          <li><a href="#">Item 3</a></li>
+          <li><a href="#">Item 4</a></li>
+          <li><a href="#">Item 5</a></li>
+        </ul>
+
+      </div>
+
+      <div class="attempt-discuss">
+
+         The issue is the point of rotation.  By default, the tranform will rotate around
+         the center of the element.  My offsets are being calculated based on the top/left
+         point.  I need to move the rotation to the same point.  The CSS transform-origin style
+         accomplishes this task and now the center/bottom point is rotated
+         to match the rotation of the element.
+
+         This gives us the correct top/left offset to adjust our element so it sits
+         right on the circle.  The green dots represent the top/left corner of each
+         element.  Notice how they are not on the rectangle any longer.  There's now
+         an invisible box that contains the whole element (touches each corner).
+         This is why the translation is necessary - to find the new coordinates and
+         adjust everything based on that new reference point.
+
+      </div>
+<script>
+
+function attempt5()
+{
+
+   var r = 50, cx = 50, cy = 50,
+       $circle = $('#attempt5 canvas'),
+       canvas = $circle[0];
+
+   setup(canvas, cx + 2, cy + 2, r);
+
+   cx += 2;
+   cy += 2;
+
+   // Center of the circle relative to the page
+   var cpos = $circle.offset();
+       px = cpos.left + cx,
+       py = cpos.top + cy;
+
+   var $items = $('#attempt5 .items').children(),
+       icnt = $items.length,
+       dstep = 360 / icnt;
+
+   $items.each(function (idx, el)
+     {
+        var $el = $(el),
+            a = dstep * idx,
+            pt = findPointOnCircle(px, py, r, a - 90),
+            off = translatePoint({
+                       x: $el.outerWidth(true) / 2,
+                       y: $el.outerHeight(true)}, a);
+
+
+        $el.css({
+             left: (pt.x - off.x) + 'px',
+             top: (pt.y - off.y) + 'px',
+             transformOrigin: 'top left',
+             transform: 'rotate('+(a)+'deg)'
+          });
+
+     });
+
+}
+
+$(function()
+{
+   attempt5();
+});
+
+</script>
+
+  <div style="clear: both"> </div>
+
+    <div class="discussion">
+     Now I know the math to use to find my paths.  I can now work on animating
+     the elements.  I'd like to have one alternative alignment that does not use
+     the rotation tranform.  This will ensure the animation will look nice in
+     non-CSS3 browsers (or just as an option).  In those situations, the elements
+     need to be offset differently so an appropriate point on the rectangle touches
+     the circle.  That's a different problem that requires a separate set of attempts
+     to solve.
+    </div>
+
