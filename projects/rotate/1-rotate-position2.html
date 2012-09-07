@@ -87,7 +87,7 @@ function drawaxis(canvas)
      as a starting point to calculate the top/left point of an element.  For a rotated element, the
      top/left will not be on the object nor will it be a point used in the positioning of that
      object when setting CSS styles.  Compare this to
-     <a href="1-rotate-position2.html">using offset() to position a rotated element</a>.
+     <a href="1-rotate-position.html">using css() to position a rotated element</a>.
   </div>
 
   <div id="r-center" origin="50% 50%" class="clearfix">
@@ -269,9 +269,9 @@ $(function()
                       })
                        .html('rotated');
 
-                     $r.css({
-                           top: (pos.top) + 'px',
-                           left: (pos.left) + 'px'
+                     $r.offset({
+                           top: (pos.top) ,
+                           left: (pos.left)
                       });
 
                      // Finally, plot some points of interest:

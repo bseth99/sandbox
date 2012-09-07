@@ -1,0 +1,60 @@
+---
+layout: page
+title: jQuery UI Demo - Overlapping Functionality
+group: colorbox
+tags : [jquery, widget, draggable, sortable]
+---
+
+{% include JB/setup %}
+
+<style>
+   #sortable { list-style-type: none; margin: 0; padding: 0; width: 60%; }
+   #sortable li { margin: 0 3px 3px 3px; padding: 0.4em; padding-left: 1.5em; font-size: 1.4em; height: 18px; }
+   #sortable li span { position: absolute; margin-left: -1.3em; }
+</style>
+
+
+ <div class="discussion">
+   This quick example shows that multiple widgets can interfere with one another
+   if care is not taken to avoid attaching multiple widgets to an element.
+   The Sortable widget provides interaction behaviors on the children of a target
+   element.  If Draggable is attached to those children after Sortable is instantiated,
+   all the functionality of Sortable is lost.  This is probably not an intentional thing to
+   do when constructing a site. However, an incorrect selector can easily grab too many
+   elements and add Draggable which might cause some debugging headaches try to figure out
+   why Sortable is not working as expected.
+ </div>
+
+
+ <br/><br/>
+ <div class="actions">
+    <input id="dragadd" type="button" value="Add Draggable"/>
+    <input id="dragdel" type="button" value="Remove Draggable"/>
+ </div>
+
+ <div class="target">
+
+   <ul id="sortable">
+    <li class="ui-state-default"><span class="ui-icon ui-icon-arrowthick-2-n-s"></span>Item 1</li>
+    <li class="ui-state-default"><span class="ui-icon ui-icon-arrowthick-2-n-s"></span>Item 2</li>
+    <li class="ui-state-default"><span class="ui-icon ui-icon-arrowthick-2-n-s"></span>Item 3</li>
+    <li class="ui-state-default"><span class="ui-icon ui-icon-arrowthick-2-n-s"></span>Item 4</li>
+    <li class="ui-state-default"><span class="ui-icon ui-icon-arrowthick-2-n-s"></span>Item 5</li>
+    <li class="ui-state-default"><span class="ui-icon ui-icon-arrowthick-2-n-s"></span>Item 6</li>
+    <li class="ui-state-default"><span class="ui-icon ui-icon-arrowthick-2-n-s"></span>Item 7</li>
+   </ul>
+ </div>
+
+ <script>
+
+ $(function()
+ {
+       $( "#sortable" ).sortable();
+       $( "#sortable" ).disableSelection();
+
+       $('#dragadd').click(function() {$( "#sortable" ).children().draggable();});
+       $('#dragdel').click(function() {$( "#sortable" ).children().draggable('destroy');});
+ });
+
+</script>
+

@@ -1,0 +1,158 @@
+---
+layout: page
+title: jQuery UI Demo (Part 3) - Proxy Overrides
+group: colorbox
+tags : [jquery, widget, demo, proxy, draggable, resizable]
+---
+
+{% include JB/setup %}
+
+ <div class="discussion">
+   This example shows how to proxy the $.Widget._setOption function to
+   intercept option changes to Draggable and Resizable.  Since there's no
+   way to prevent these calls from being made on an element after ColorBox is
+   created, we want to ensure the options we set are no overidden.  Addtionally,
+   stopImmediatePropagation() is used in the dragstop event to prevent other
+   handlers from being called that might affect the custom handling that ColorBox
+   is providing. This demo is referenced in several of my blog posts related to
+   the jQuery UI Widget series at
+       <a href="{{ site.blog_url }}/category/projects/jquery-ui-widgets/"
+          >BenKnowsCode.wordpress.com</a>
+ </div>
+
+ <div class="target">
+ </div>
+
+
+<script>
+
+(function ($)
+{
+   var _conf =
+     {
+        draggable:
+          {
+            grid: [50, 50]
+          },
+        resizable:
+          {
+            maxHeight: 500,
+            maxWidth: 500,
+            minHeight: 100,
+            minWidth: 100,
+            grid: [50, 50]
+          }
+     };
+
+   function _filter(type, key, value)
+   {
+      if (key in _conf[type])
+         return _conf[type][key];
+      else
+         return value;
+   }
+
+   $.widget("sdt.colorbox",
+    {
+      options:
+       {
+          color: 'green'
+       },
+
+      _create: function()
+       {
+          this.element
+           .addClass('colorbox')
+           .css(
+            {
+               height: '100px',
+               width: '100px',
+               backgroundColor: this.options.color
+            })
+           .resizable(_conf.resizable)
+           .draggable(_conf.draggable)
+           .on('dragstop', $.proxy(function(e) {alert(this.widgetName + ' drag done'); e.stopImmediatePropagation()}, this));
+       },
+
+      _init: function()
+       {
+          this.element
+           .css(
+            {
+               backgroundColor: this.options.color
+            })
+       },
+
+      _setOption: function(option, value)
+       {
+          this._init();
+
+          $.Widget.prototype._setOption.apply( this, arguments );
+       },
+
+      destroy: function()
+       {
+          this.element
+           .removeClass('colorbox')
+           .css(
+            {
+               height: '',
+               width: '',
+               backgroundColor: ''
+            });
+
+          $.Widget.prototype.destroy.call( this );
+       }
+
+    });
+
+   var _draggable_setoption_orig = $.ui.draggable.prototype._setOption;
+   $.ui.draggable.prototype._setOption = function(key, value)
+   {
+      var _value = value;
+
+      if (this.element.data('colorbox'))
+         _value = _filter('draggable', key, _value);
+
+      _draggable_setoption_orig.call(this, key, _value);
+   }
+
+   var _resizable_setoption_orig = $.ui.resizable.prototype._setOption;
+   $.ui.resizable.prototype._setOption = function(key, value)
+   {
+      var _value = value;
+
+      if (this.element.data('colorbox'))
+         _value = _filter('resizable', key, _value);
+
+      _draggable_setoption_orig.call(this, key, _value);
+   }
+
+}
+)(jQuery);
+
+$(function()
+{
+   $('<div>colorbox</div>').appendTo('.target')
+      .colorbox()
+      .draggable(
+        {
+          grid: false
+        }).bind('dragstop', function (e, ui)
+           {
+              alert('outside colorbox');
+           });
+
+   $('<div>not colorbox</div>').appendTo('.target')
+      .css(
+        {
+         height: '100px',
+         width: '100px',
+         backgroundColor: 'red'
+        })
+      .draggable({grid: false});
+});
+
+</script>
+
+
