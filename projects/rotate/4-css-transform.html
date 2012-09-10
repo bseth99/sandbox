@@ -1,0 +1,250 @@
+---
+layout: page
+title: CSS3 Transforms using Sylvester Matices and jQuery
+group: rotate
+tags : [jquery, css-transform, sylvester, matrix, rotate, translate, skew, scale]
+---
+{% include JB/setup %}
+
+<script src="sylvester.js"></script>
+
+<script>
+
+var _T = {
+    rotate: function(deg)
+     {
+        var rad = parseFloat(deg) * (Math.PI/180),
+            costheta = Math.cos(rad),
+            sintheta = Math.sin(rad);
+
+        var a = costheta,
+            b = sintheta,
+            c = -sintheta,
+            d = costheta;
+
+        return $M([
+          [a, c, 0],
+          [b, d, 0],
+          [0, 0, 1]
+        ]);
+     },
+
+    skew: function(dx, dy)
+     {
+        var radX = parseFloat(dx) * (Math.PI/180),
+            radY = parseFloat(dy) * (Math.PI/180),
+            c = Math.tan(radX),
+            b = Math.tan(radY);
+
+
+        return $M([
+          [1, c, 0],
+          [b, 1, 0],
+          [0, 0, 1]
+        ]);
+     },
+
+    translate: function(x, y)
+     {
+        var e = x || 0,
+            f = y || 0;
+
+        return $M([
+          [1, 0, e],
+          [0, 1, f],
+          [0, 0, 1]
+        ]);
+     },
+
+    scale: function(x, y)
+     {
+        var a = x || 0,
+            d = y || 0;
+
+        return $M([
+          [a, 0, 0],
+          [0, d, 0],
+          [0, 0, 1]
+        ]);
+     },
+
+    toString: function (m)
+     {
+        var s = 'matrix(',
+            r, c;
+
+        for (c=1;c<=3;c++)
+        {
+           for (r=1;r<=2;r++)
+              s += m.e(r,c)+', ';
+        }
+
+        s = s.substr(0, s.length-2) + ')';
+
+        return s;
+     },
+
+    fromString: function (s)
+     {
+        var t = /^matrix\((\S*), (\S*), (\S*), (\S*), (\S*), (\S*)\)$/g.exec(s),
+            a = parseFloat(!t ? 1 : t[1]),
+            b = parseFloat(!t ? 0 : t[2]),
+            c = parseFloat(!t ? 0 : t[3]),
+            d = parseFloat(!t ? 1 : t[4]),
+            e = parseFloat(!t ? 0 : t[5]),
+            f = parseFloat(!t ? 0 : t[6]);
+
+        return $M([
+          [a, c, e],
+          [b, d, f],
+          [0, 0, 1]
+        ]);
+     }
+};
+
+</script>
+
+<style>
+
+.wrapper {
+   margin: 75px;
+}
+
+#debug {
+   font-size: 8pt;
+   padding: 5px;
+}
+
+#myDiv {
+   background-color: lightblue;
+   border: 1px solid dimgray;
+   height: 50px;
+   width: 80px;
+}
+
+input[type=text] {
+   width: 25px;
+}
+
+input[type=button] {
+   margin-right: 10px;
+}
+
+</style>
+
+<div class="discussion">
+   This example illustrates how to use jQuery with the matrix representation of the CSS transform style.
+   Several transforms are setup and
+   <a href="http://sylvester.jcoglan.com/api/matrix.html" title="Sylvester - Matrix Math for Javascript">Sylvester</a>
+   is used to represent the matrices and do the math.  One
+   problem with additive rotations is "gimble lock".  If you attempt to rotate the div by 10 degrees
+   over and over again, it will get stuck just shy of 90 degrees.  This behavior is not exactly consistent,
+   you can skew it slightly and then it will unlock and rotate again.
+</div>
+
+<br/>
+<br/>
+<div>
+   <span style="font-weight: bold">Angle: </span>
+   <input id="angle" type="text" value="10" size="4"/>
+   <input id="rotate" type="button" value="Rotate"/>
+
+   <span style="font-weight: bold">Distance: </span>
+   <input id="distance" type="text" value="10" size="4"/>
+   <input id="move" type="button" value="Move"/>
+
+   <span style="font-weight: bold">Size: </span>
+   <input id="size" type="text" value="2" size="4"/>
+   <input id="scale" type="button" value="Scale"/>
+
+   <span style="font-weight: bold">Angle: </span>
+   <input id="sangle" type="text" value="2" size="5"/>
+   <input id="skew" type="button" value="Skew"/>
+
+   <input id="reset" type="button" value="Reset"/>
+</div>
+
+<div id="debug">
+   &nbsp;
+</div>
+
+<div class="wrapper">
+   <div id="myDiv">transform me</div>
+</div>
+
+<script>
+$(function()
+{
+
+   $('#rotate').click(function ()
+    {
+       var a = +$('#angle')[0].value,
+           t = _T.rotate(a),
+           c = _T.fromString($('#myDiv').css('transform')),
+           n = c.x(t),
+           css = _T.toString(n);
+
+       $('#myDiv').css({
+             transform: css
+           });
+
+       $('#debug').html(css);
+
+    });
+
+   $('#move').click(function ()
+    {
+       var d = +$('#distance')[0].value,
+           t = _T.translate(d, d),
+           c = _T.fromString($('#myDiv').css('transform')),
+           n = c.x(t),
+           css = _T.toString(n);
+
+       $('#myDiv').css({
+             transform: css
+           });
+
+       $('#debug').html(css);
+    });
+
+   $('#scale').click(function ()
+    {
+       var s = +$('#size')[0].value,
+           t = _T.scale(s, s),
+           c = _T.fromString($('#myDiv').css('transform')),
+           n = c.x(t),
+           css = _T.toString(n);
+
+       $('#myDiv').css({
+             transform: css
+           });
+
+       $('#debug').html(css);
+    });
+
+   $('#skew').click(function ()
+    {
+       var a = +$('#sangle')[0].value,
+           t = _T.skew(a, a),
+           c = _T.fromString($('#myDiv').css('transform')),
+           n = c.x(t),
+           css = _T.toString(n);
+
+       $('#myDiv').css({
+             transform: css
+           });
+
+       $('#debug').html(css);
+    });
+
+   $('#reset').click(function ()
+    {
+       $('#myDiv').css({
+             transform: ''
+           });
+
+       $('#debug').html('&nbsp;');
+    });
+
+});
+</script>

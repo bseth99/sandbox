@@ -1,8 +1,8 @@
 ---
 layout: page
-title: CSS3 Rotation Transform - Understanding jQuery Values and Alignment Issues
+title: CSS3 Rotation Transform - Coordinate Space and Alignment Issues
 group: rotate
-tags : [jquery, transform, rotate, alignment]
+tags : [jquery, css-transform, rotate, alignment]
 ---
 {% include JB/setup %}
 
@@ -22,312 +22,115 @@ function rotatePoint(pt, a)
      };
 }
 
+
 </script>
 
 
 <style>
 
-.pad {
-   margin: 30px;
-   height: 100%;
-}
 
-.spacer {
-   float: left;
-   height: 50px;
-   width: 80px;
-}
-
-.point {
-   position: absolute;
-   height: 3px;
-   width: 3px;
-   background-color: green;
+.wrapper {
+  float: left;
+  margin: 50px;
+  width: 150px;
+  height: 150px;
+  border-top: 1px dotted black;
+  border-left: 1px dotted black;
 }
 
 .box {
-   background-color: red;
-   height: 50px;
-   width: 80px;
+  border-top: 1px solid black;
+  position: absolute;
+  height: 60px;
+  width: 80px;
 }
 
-.letter {
-   float: left;
-   height: 50px;
-   width: 80px;
-   text-align: center;
-   font-size: 16pt;
-   font-weight: bold;
+.box.r {
+  background-color: red;
 }
 
+.box.a {
+  height: 30px;
+  width: 90px;
+  background-color: blue;
+}
 
 </style>
 
- <div class="discussion">
-   This is a quick demostration of using the CSS transform: rotate style with jQuery.  I wanted to see
-   where the original and new top/left points were and the height/width of the rotated element.
-   Below are the results.  (A) is the starting box I want to rotate.  (B) is rotated using the
-   default origin at the center of the box.  The green dot is where the top/left were before
-   the rotation.  The black box represents the current top/left and height/width using jQuery
-   to retreive that data from the DOM.  (C) is rotated using the top/left as the origin.  Notice
-   that the green dot (the top/left before rotating) is at the same point as the actual top/left
-   corner of the box.  The black box again represents the current top/left/height/width as reported
-   by jQuery.
- </div>
+  <div class="discussion">
+   The following examples demostrate how to align rotated elements to other elements.  It
+   identifies some issues you might encounter along the way and how you can work around them.
 
+   <h5>Align One Rotated Element to Something not Rotated</h5>
+   In the first series of examples, we start by trying to align one rotated element (red box) to
+   a non-rotated element (blue box).  The goal is to get the red box's top/middle point to
+   align with the bottom/left corner of the blue box.  The first example shows the elements
+   after their initial rotation, the second shows what happens if you try to align the elements
+   without translating the height and width to the elements rotated space.  The third example
+   shows that after correcting for the rotated coordinates, the elements can be align properly.
+  </div>
 
-   <div id="test1" class="pad" style="float: left">
-     <div id="box1" class="box"></div>
-   </div>
+  <div id="align1" class="clearfix">
+     <div class="wrapper a">
 
-   <div class="spacer"></div>
+        <div class="box r"></div>
+        <div class="box a"></div>
 
-   <div id="test2" class="pad" style="float: left">
-     <div id="box2" class="box"></div>
-   </div>
+     </div>
 
-   <div class="spacer"></div>
+     <div class="wrapper b">
 
-   <div id="test3" class="pad" style="float: left">
-      <div id="box3" class="box"></div>
-   </div>
+        <div class="box r"></div>
+        <div class="box a"></div>
 
- <div style="clear: both"></div>
+     </div>
 
- <br/>
+     <div class="wrapper c">
 
- <div class="pad">
-   <div class="letter">A</div>
+        <div class="box r"></div>
+        <div class="box a"></div>
 
-   <div class="spacer"></div>
-   <div class="spacer"></div>
+     </div>
 
-   <div class="letter">B</div>
-
-   <div class="spacer"></div>
-
-   <div class="letter">C</div>
- </div>
-
- <div style="clear: both"></div>
- <br/>
+  </div>
 
 <script>
 
 $(function()
 {
-  var p = $('#box2').offset();
 
-  $('<div>').appendTo($('#test2'))
-     .addClass('point')
-     .css({
-        top: p.top,
-        left: p.left
-      });
+   var $wr = $('#align1'),
+       $tr, $r, $a,
+       pos;
 
-  $('#box2').css({
-       transform: 'rotate(27deg)'
-    });
+   $wr.find('.r')
+      .css({
+         transformOrigin: 'top left',
+         transform: 'rotate(27deg)'
+       });
 
-  var p = $('#box2').offset();
+   $tr = $wr.find('> .b');
+   $r = $tr.children('.r');
+   $a = $tr.children('.a');
 
-  $('<div>').appendTo($('#test2'))
-     .css({
-        position: 'absolute',
-        border: '1px solid black',
-        top: p.top,
-        left: p.left,
-        height: $('#box2').outerHeight(true),
-        width: $('#box2').outerWidth(true)
-      });
+   pos = $a.offset();
+   $r.css({
+         top: (pos.top + $a.outerHeight(true)) + 'px',
+         left: (pos.left - $r.outerWidth(true) / 2) + 'px'
+       });
 
 
-  var p = $('#box3').offset();
+   $tr = $wr.find('> .c');
+   $r = $tr.children('.r');
+   $a = $tr.children('.a');
 
-  $('<div>').appendTo($('#test3'))
-     .addClass('point')
-     .css({
-        top: p.top,
-        left: p.left
-      });
+   pos = $a.offset();
+   off = rotatePoint({x: $r.outerWidth(true) / 2, y: 0}, 27);
 
-  $('#box3').css({
-       transformOrigin: 'top left',
-       transform: 'rotate(27deg)'
-    });
-
-  var p = $('#box3').offset();
-
-  $('<div>').appendTo($('#test3'))
-     .css({
-        position: 'absolute',
-        border: '1px solid black',
-        top: p.top,
-        left: p.left,
-        height: $('#box3').outerHeight(true),
-        width: $('#box3').outerWidth(true)
-      });
-
-});
-
-</script>
-
-
-<style>
-
-.box-r {
-   position: absolute;
-   background-color: red;
-   height: 50px;
-   width: 80px;
-}
-
-.box-a {
-   background-color: blue;
-   height: 50px;
-   width: 80px;
-}
-
-</style>
-
- <div class="discussion">
-   This next series of tests show how the box is aligned when using jQuery.css to set the
-   top/left corner.  The rotation is around the center (default).  (A) shows that when the
-   red box is aligned with the top/left corner of the blue box, the original top/left point
-   of the red box (before rotation) is used to align the elements.  This is a different point
-   than what is reported by jQuery.offset().  The top/left corner of the black rectangle illustrates
-   where offset() reports the top/left corner of the red box.  (B) is an attempt to align the top/middle
-   of the red box to the the bottom/left of the blue box.  You can see this is close, however,
-   the red box has a rotate axis so x/y values do not map to the blue box's coordinates.  (C) Shows how
-   you have to rotate the width / 2 into the red box's coordinates and then use that result as the offset.
-   However, its still not correct because we're measuring out width from the top/left corner and rotating
-   relative to that point.  The box was rotated around the center so our math is still not correct.
- </div>
-
- <div id="align1" class="pad" style="float: left">
-   <div id="box5" class="box-r"></div>
-   <div id="box6" class="box-a"></div>
- </div>
-
- <div class="spacer"></div>
-
- <div id="align2" class="pad" style="float: left">
-   <div id="box7" class="box-r"></div>
-   <div id="box8" class="box-a"></div>
- </div>
-
-
- <div class="spacer"></div>
-
- <div id="align3" class="pad" style="float: left">
-   <div id="box9" class="box-r"></div>
-   <div id="box10" class="box-a"></div>
- </div>
-
- <div style="clear: both"></div>
-
-
- <br/>
- <br/>
- <br/>
- <div class="pad" style="clear: both">
-   <div class="letter">A</div>
-
-   <div class="spacer"></div>
-
-   <div class="letter">B</div>
-
-   <div class="spacer"></div>
-   <div class="spacer"></div>
-
-   <div class="letter">C</div>
- </div>
-
- <br/>
- <div style="clear: both"></div>
-
-
-<script>
-
-$(function()
-{
-  var p = $('#box5').offset();
-
-  $('<div>').appendTo($('#align1'))
-     .addClass('point')
-     .css({
-        top: p.top,
-        left: p.left
-      });
-
-  var p = $('#box6').offset();
-
-  $('#box5').css({
-        transform: 'rotate(27deg)',
-        top: p.top,
-        left: p.left
-    });
-
-  var p = $('#box5').offset();
-
-  $('<div>').appendTo($('#align1'))
-     .css({
-        position: 'absolute',
-        border: '1px solid black',
-        top: p.top,
-        left: p.left,
-        height: $('#box5').outerHeight(true),
-        width: $('#box5').outerWidth(true)
-      });
-
-
-
-  var $b8 = $('#box8'),
-      $b7 = $('#box7'),
-      p = $b8.offset();
-
-  $('#box7').css({
-        transform: 'rotate(27deg)',
-        top: p.top + $b8.outerHeight(true),
-        left: p.left - $b7.outerWidth(true) / 2
-    });
-
-  var p = $('#box7').offset();
-
-  $('<div>').appendTo($('#align2'))
-     .css({
-        position: 'absolute',
-        border: '1px solid black',
-        top: p.top,
-        left: p.left,
-        height: $('#box7').outerHeight(true),
-        width: $('#box7').outerWidth(true)
-      });
-
-
-
-  var $br = $('#box9'),
-      $ba = $('#box10'),
-      p = $ba.offset(),
-      t = rotatePoint({x: $br.outerWidth(true) / 2, y: 0}, 27);
-
-  $br.css({
-        transform: 'rotate(27deg)',
-        top: p.top + $ba.outerHeight(true) - t.y,
-        left: p.left - t.x
-    });
-
-  var p = $br.offset();
-
-  $('<div>').appendTo($('#align3'))
-     .css({
-        position: 'absolute',
-        border: '1px solid black',
-        top: p.top,
-        left: p.left,
-        height: $br.outerHeight(true),
-        width: $br.outerWidth(true)
-      });
+   $r.css({
+         top: (pos.top + $a.outerHeight(true) - off.y) + 'px',
+         left: (pos.left - off.x) + 'px'
+       });
 
 });
 
@@ -335,143 +138,341 @@ $(function()
 
 
 
- <div class="discussion">
-    Now, (A) uses the top/left corner as the origin for rotation.  (B) shows the attempt to
-    align the boxes without translating to the rotated coordinate system.  And (C) shows that
-    when you rotate everything relative to the same point, you get what you expected.
- </div>
 
- <div id="align10" class="pad" style="float: left">
-   <div id="box20" class="box-r"></div>
-   <div id="box21" class="box-a"></div>
- </div>
+  <div class="discussion">
+   <h5>Align One Rotated Element to Something not Rotated (variation)</h5>
+   Repeat the above exercise but with a larger angle to verify it still works.
+  </div>
 
- <div class="spacer"></div>
+  <div id="align2" class="clearfix">
+     <div class="wrapper a">
 
- <div id="align11" class="pad" style="float: left">
-   <div id="box22" class="box-r"></div>
-   <div id="box23" class="box-a"></div>
- </div>
+        <div class="box r"></div>
+        <div class="box a"></div>
 
+     </div>
 
- <div class="spacer"></div>
+     <div class="wrapper b">
 
- <div id="align12" class="pad" style="float: left">
-   <div id="box24" class="box-r"></div>
-   <div id="box25" class="box-a"></div>
- </div>
+        <div class="box r"></div>
+        <div class="box a"></div>
 
- <div style="clear: both"></div>
+     </div>
 
+     <div class="wrapper c">
 
- <br/>
- <br/>
- <br/>
- <div class="pad" style="clear: both">
-   <div class="letter">A</div>
+        <div class="box r"></div>
+        <div class="box a"></div>
 
-   <div class="spacer"></div>
+     </div>
 
-   <div class="letter">B</div>
-
-   <div class="spacer"></div>
-   <div class="spacer"></div>
-
-   <div class="letter">C</div>
- </div>
-
- <br/>
- <div style="clear: both"></div>
-
+  </div>
 
 <script>
 
 $(function()
 {
 
-  var $br = $('#box20'),
-      $ba = $('#box21');
+   var $wr = $('#align2'),
+       $tr, $r, $a,
+       pos;
 
-  var p = $br.offset();
+   $wr.find('.r')
+      .css({
+         transformOrigin: 'top left',
+         transform: 'rotate(107deg)'
+       });
 
-  $('<div>').appendTo($('#align10'))
-     .addClass('point')
-     .css({
-        top: p.top,
-        left: p.left
-      });
+   $tr = $wr.find('> .b');
+   $r = $tr.children('.r');
+   $a = $tr.children('.a');
 
-  var p = $ba.offset();
-
-  $br.css({
-        transformOrigin: 'top left',
-        transform: 'rotate(27deg)',
-        top: p.top,
-        left: p.left
-    });
-
-  var p = $br.offset();
-
-  $('<div>').appendTo($('#align10'))
-     .css({
-        position: 'absolute',
-        border: '1px solid black',
-        top: p.top,
-        left: p.left,
-        height: $br.outerHeight(true),
-        width: $br.outerWidth(true)
-      });
+   pos = $a.offset();
+   $r.css({
+         top: (pos.top + $a.outerHeight(true)) + 'px',
+         left: (pos.left - $r.outerWidth(true) / 2) + 'px'
+       });
 
 
+   $tr = $wr.find('> .c');
+   $r = $tr.children('.r');
+   $a = $tr.children('.a');
 
-  var $br = $('#box22'),
-      $ba = $('#box23'),
-      p = $ba.offset();
+   pos = $a.offset();
+   off = rotatePoint({x: $r.outerWidth(true) / 2, y: 0}, 107);
 
-  $br.css({
-        transformOrigin: 'top left',
-        transform: 'rotate(27deg)',
-        top: p.top + $ba.outerHeight(true),
-        left: p.left - $br.outerWidth(true) / 2
-    });
+   $r.css({
+         top: (pos.top + $a.outerHeight(true) - off.y) + 'px',
+         left: (pos.left - off.x) + 'px'
+       });
 
-  var p = $br.offset();
+});
 
-  $('<div>').appendTo($('#align11'))
-     .css({
-        position: 'absolute',
-        border: '1px solid black',
-        top: p.top,
-        left: p.left,
-        height: $br.outerHeight(true),
-        width: $br.outerWidth(true)
-      });
+</script>
 
 
 
-  var $br = $('#box24'),
-      $ba = $('#box25'),
-      p = $ba.offset(),
-      t = rotatePoint({x: $br.outerWidth(true) / 2, y: 0}, 27);
+  <div class="discussion">
 
-  $br.css({
-        transformOrigin: 'top left',
-        transform: 'rotate(27deg)',
-        top: p.top + $ba.outerHeight(true) - t.y,
-        left: p.left - t.x
-    });
+   <h5>Align Two Rotated Elements - jQuery Issues</h5>
 
-  var p = $br.offset();
+   Now, try to align two rotated elements.  Again, the first example shows the initial rotation.
+   The second example shows an attempt to align the red box to the blue box by only translating
+   the red box's coordinate space.  The third example shows the alignment once both boxes
+   coordinates are translated.  However, they do not align properly because jQuery.offset()
+   (read <a href="/projects/rotate/1-rotate-position.html">more about that issue</a>)
+   returns the bounding box top/left of the blue box which will cause the red box to be offset
+   to far to the top/left.
+  </div>
 
-  $('<div>').appendTo($('#align12'))
-     .css({
-        position: 'absolute',
-        border: '1px solid black',
-        top: p.top,
-        left: p.left,
-        height: $br.outerHeight(true),
-        width: $br.outerWidth(true)
-      });
+  <div id="align3" class="clearfix" style="margin-top: 50px">
+     <div class="wrapper a">
+
+        <div class="box r"></div>
+        <div class="box a"></div>
+
+     </div>
+
+     <div class="wrapper b">
+
+        <div class="box r"></div>
+        <div class="box a"></div>
+
+     </div>
+
+     <div class="wrapper c">
+
+        <div class="box r"></div>
+        <div class="box a"></div>
+
+     </div>
+
+  </div>
+
+<script>
+
+$(function()
+{
+
+   var $wr = $('#align3'),
+       $tr, $r, $a,
+       pos, off, off2;
+
+   $wr.find('.r')
+      .css({
+         transformOrigin: 'top left',
+         transform: 'rotate(107deg)'
+       });
+
+   $wr.find('.wrapper .a')
+      .css({
+         transformOrigin: 'top left',
+         transform: 'rotate(319deg)'
+       });
+
+   $tr = $wr.find('> .b');
+   $r = $tr.children('.r');
+   $a = $tr.children('.a');
+
+   pos = $a.offset();
+   off = rotatePoint({x: $r.outerWidth(true) / 2, y: 0}, 107);
+
+   $r.css({
+         top: (pos.top + $a.outerHeight(true) - off.y) + 'px',
+         left: (pos.left - off.x) + 'px'
+       });
+
+
+   $tr = $wr.find('> .c');
+   $r = $tr.children('.r');
+   $a = $tr.children('.a');
+
+   pos = $a.offset();
+   off = rotatePoint({x: $r.outerWidth(true) / 2, y: 0}, 107);
+   off2 = rotatePoint({x: 0, y: $a.outerHeight(true)}, 319);
+
+   $r.css({
+         top: (pos.top + off2.y - off.y) + 'px',
+         left: (pos.left + off2.x - off.x) + 'px'
+       });
+
+
+});
+
+</script>
+
+
+
+
+  <div class="discussion">
+   <h5>Align Two Rotated Elements - Workaround 1</h5>
+
+   This examples shows how to work around offset() returning the bounding box.  Call offset()
+   before rotating the elements, rotate them, then align them using the rotational adjustments
+   to translate the height/width values into the correct coordinate spaces.
+  </div>
+
+  <div id="align4" class="clearfix" style="margin-top: 50px">
+     <div class="wrapper a">
+
+        <div class="box r"></div>
+        <div class="box a"></div>
+
+     </div>
+
+     <div class="wrapper b">
+
+        <div class="box r"></div>
+        <div class="box a"></div>
+
+     </div>
+
+     <div class="wrapper c">
+
+        <div class="box r"></div>
+        <div class="box a"></div>
+
+     </div>
+
+  </div>
+
+<script>
+
+$(function()
+{
+
+   var $wr = $('#align4'),
+       $tr, $r, $a,
+       pos, off, off2;
+
+
+   $tr = $wr.find('> .b');
+   $r = $tr.children('.r');
+   $a = $tr.children('.a');
+
+   pos = $a.offset();
+   off = rotatePoint({x: $r.outerWidth(true) / 2, y: 0}, 107);
+
+   $r.css({
+         top: (pos.top + $a.outerHeight(true) - off.y) + 'px',
+         left: (pos.left - off.x) + 'px'
+       });
+
+
+   $tr = $wr.find('> .c');
+   $r = $tr.children('.r');
+   $a = $tr.children('.a');
+
+   pos = $a.offset();
+   off = rotatePoint({x: $r.outerWidth(true) / 2, y: 0}, 107);
+   off2 = rotatePoint({x: 0, y: $a.outerHeight(true)}, 319);
+
+   $r.css({
+         top: (pos.top + off2.y - off.y) + 'px',
+         left: (pos.left + off2.x - off.x) + 'px'
+       });
+
+
+   $wr.find('.r')
+      .css({
+         transformOrigin: 'top left',
+         transform: 'rotate(107deg)'
+       });
+
+   $wr.find('.wrapper .a')
+      .css({
+         transformOrigin: 'top left',
+         transform: 'rotate(319deg)'
+       });
+
+});
+
+</script>
+
+
+
+
+
+
+  <div class="discussion">
+   <h5>Align Two Rotated Elements - Workaround 2</h5>
+
+   This final example shows an alternative to calculating the rotated height/width adjustments
+   the prior example used.  Instead, it uses the CSS3 tranform's translate() function to move
+   the elements inside their tranformed coordinate space.  In this case, you don't have to do
+   any math - the rendering engine does it for you.  Notice how the top/left of both elements
+   are not moved in this example.  Instead, the tranform space is adjusted to move the elements
+   so they will align correctly inside the DOM space.  Also, notice how the elements align differently
+   to the two reference lines in the prior example and this example.
+  </div>
+
+  <div id="align5" class="clearfix" style="margin-top: 50px">
+     <div class="wrapper a">
+
+        <div class="box r"></div>
+        <div class="box a"></div>
+
+     </div>
+
+     <div class="wrapper b">
+
+        <div class="box r"></div>
+        <div class="box a"></div>
+
+     </div>
+
+     <div class="wrapper c">
+
+        <div class="box r"></div>
+        <div class="box a"></div>
+
+     </div>
+
+  </div>
+
+<script>
+
+$(function()
+{
+
+   var $wr = $('#align5'),
+       $tr, $r, $a,
+       pos, off, off2;
+
+
+   $wr.find('.r')
+      .css({
+         transformOrigin: 'top left',
+         transform: 'rotate(107deg)'
+       });
+
+   $wr.find('.wrapper .a')
+      .css({
+         transformOrigin: 'top left',
+         transform: 'rotate(319deg)'
+       });
+
+   $tr = $wr.find('> .b');
+   $r = $tr.children('.r');
+   $a = $tr.children('.a');
+
+   $r.css({
+         transform: 'rotate(107deg) translate(-' + ($r.outerWidth(true) / 2) + 'px, 0px)'
+       });
+
+
+   $tr = $wr.find('> .c');
+   $r = $tr.children('.r');
+   $a = $tr.children('.a');
+
+   $r.css({
+         transform: 'rotate(107deg) translate(-' + ($r.outerWidth(true) / 2) + 'px, 0px)'
+       });
+
+   $a.css({
+         transform: 'rotate(319deg) translate(0px, -' + $a.outerHeight(true) + 'px)'
+       });
+
 
 });
 

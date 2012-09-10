@@ -10,7 +10,7 @@ find points on that rotated element, align it with another element, and create a
 path.  The studies are the ground work for another project which will leverage the knowledge obtained from
 these tests.
 
-You can read more about this project [on my blog](http://benknowscode.wordpress.com/category/projects/jquery-ui-widgets/)
+You can read more about this these tests [on my blog]({{ site.blog_url}}). 
 
 #### Demo Pages  
   
