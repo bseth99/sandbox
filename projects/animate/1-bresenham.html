@@ -1,0 +1,140 @@
+---
+layout: page
+title: Bresenham's Algorithm Javascript Implementation Test
+group: animate
+tags : [bresenham, algorithm, javascript, shapes]
+---
+{% include JB/setup %}
+
+<script src="bresenham.js"></script>
+
+<style>
+canvas {
+   border: 1px dotted black;
+}
+
+span {
+   display: inline-block;
+   width: 200px;
+   margin: 1px;
+}
+
+.shape-label {
+   text-align: center;
+   font-weight: bold;
+}
+
+</style>
+
+<div>
+  Several different shapes calcuated using Bresenham's Algorithm.
+</div>
+<br/>
+
+<div id="step1-label">
+<span class="shape-label">Line</span>
+<span class="shape-label">Circle</span>
+<span class="shape-label">Ellipse</span>
+<span class="shape-label">Bezier</span>
+</div>
+
+<div id="step1" step="1">
+<canvas class="line"></canvas>
+<canvas class="circle"></canvas>
+<canvas class="elipse"></canvas>
+<canvas class="bazier"></canvas>
+</div>
+
+<div id="step1-text">
+<span class="line-text"></span>
+<span class="circle-text"></span>
+<span class="elipse-text"></span>
+<span class="bazier-text"></span>
+</div>
+
+<br/><br/>
+
+<div>
+  This time try to limit the number of points returned.
+</div>
+<br/>
+
+<div id="step5-label">
+<span class="shape-label">Line</span>
+<span class="shape-label">Circle</span>
+<span class="shape-label">Ellipse</span>
+<span class="shape-label">Bezier</span>
+</div>
+
+<div id="step5" step="5">
+<canvas class="line"></canvas>
+<canvas class="circle"></canvas>
+<canvas class="elipse"></canvas>
+<canvas class="bazier"></canvas>
+</div>
+
+<div id="step5-text">
+<span class="line-text"></span>
+<span class="circle-text"></span>
+<span class="elipse-text"></span>
+<span class="bazier-text"></span>
+</div>
+
+
+<script>
+
+   $('canvas').each(function()
+     {
+        var $pn = $(this).parent(),
+            cn = this.className,
+            step = +$pn.attr('step'),
+            pts, p, ctx;
+
+        this.height = 200;
+        this.width = 200;
+
+        switch (cn)
+        {
+
+           case 'line' :
+              pts = plotLine(25, 45, 155, 180, step);
+              break;
+
+           case 'circle' :
+              pts = plotCircle(100, 100, 90, step);
+              break;
+
+           case 'elipse' :
+              pts = plotEllipseRect(50, 80, 150, 120, step);
+              break;
+
+           case 'bazier' :
+              pts = plotBasicBezier(25, 45, 100, 60, 155, 180, step);
+              break;
+
+        }
+
+        ctx = this.getContext('2d');
+
+        ctx.fillStyle = 'white';
+        ctx.fill();
+
+        ctx.strokeStyle = 'black';
+        ctx.beginPath();
+        ctx.lineWidth = 1;
+
+        var sel = '#'+$pn[0].id+'-text > .'+cn+'-text';
+        $(sel).html('Points: ' + pts.length);
+
+        for (p=0;p<pts.length;p++)
+        {
+           ctx.moveTo(pts[p].x, pts[p].y);
+           ctx.arc(pts[p].x, pts[p].y, 1, 0, 2 * Math.PI, true);
+           ctx.fill();
+        }
+
+        ctx.stroke();
+
+     });
+
+</script>
