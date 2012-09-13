@@ -1,0 +1,254 @@
+---
+layout: page
+title: Path Interpolation Using Cubic Bezier and Control Point Estimation in Javascript
+group: animate
+tags : [bezier, algorithm, javascript, interpolation]
+---
+{% include JB/setup %}
+
+
+<style>
+canvas {
+  border: 1px dotted black;
+}
+</style>
+
+<div class="discussion">
+  A demonstration of interpolating cubic Bezier curves by estimating the control points from
+  plotted anchor points.  Click inside the box below to create points.  After plotting the
+  third point, the curve will be drawn.  Click the "New" to finish one continous curve and
+  start another.  View the page source to see the code.
+  <a href="{{ site.blog_url }}">A detailed explanation of the algorithm is available on my blog</a>.
+</div>
+
+<br/>
+<div class="actions">
+ <input id="new" type="button" value="New"/>
+</div>
+
+<br/>
+<canvas></canvas>
+
+<script>
+
+$(function()
+{
+   var canvas = $('canvas'),
+       ctx;
+
+   canvas = canvas[0];
+   canvas.height = 600;
+   canvas.width = $('canvas').parent().width();
+
+   ctx = canvas.getContext('2d');
+
+   ctx.fillStyle = 'white';
+   ctx.fill();
+
+   ctx.strokeStyle = 'black';
+   ctx.lineWidth = 1;
+
+   function plotPoint(p, r, c)
+   {
+      ctx.strokeStyle = c;
+      ctx.fillStyle = c;
+
+      ctx.beginPath();
+
+      ctx.moveTo(p.x, p.y);
+      ctx.arc(p.x, p.y, r, 0, 2 * Math.PI, true);
+      ctx.closePath();
+
+      ctx.fill();
+      ctx.stroke();
+   }
+
+   function plotLine(p1, p2, c)
+   {
+      ctx.strokeStyle = c;
+      ctx.fillStyle = c;
+
+      ctx.beginPath();
+
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+
+      ctx.stroke();
+   }
+
+   function plotSquare(p1, s, c)
+   {
+      ctx.strokeStyle = c;
+      ctx.fillStyle = c;
+
+      ctx.fillRect(p1.x-s/2, p1.y-s/2, s, s);
+   }
+
+   function plotTrangle(p1, s, c)
+   {
+      var x = p1.x, y = p1.y;
+
+      ctx.strokeStyle = c;
+      ctx.fillStyle = c;
+
+      ctx.beginPath();
+
+      y -= s/2;
+      ctx.moveTo(x, y);
+
+      x += s/2, y += s;
+      ctx.lineTo(x, y);
+
+      x -= s;
+      ctx.lineTo(x, y);
+
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.stroke();
+   }
+
+   function findControlPoints(s1, s2, s3)
+   {
+       var dx1 = s1.x - s2.x, dy1 = s1.y - s2.y,
+           dx2 = s2.x - s3.x, dy2 = s2.y - s3.y,
+
+           l1 = Math.sqrt(dx1*dx1 + dy1*dy1),
+           l2 = Math.sqrt(dx2*dx2 + dy2*dy2),
+
+           m1 = {x: (s1.x + s2.x) / 2.0, y: (s1.y + s2.y) / 2.0},
+           m2 = {x: (s2.x + s3.x) / 2.0, y: (s2.y + s3.y) / 2.0},
+
+           dxm = (m1.x - m2.x),
+           dym = (m1.y - m2.y),
+
+           k = l2 / (l1 + l2),
+           cm = {x: m2.x + dxm*k, y: m2.y + dym*k},
+           tx = s2.x - cm.x, ty = s2.y - cm.y,
+
+           c1 = {x: m1.x + tx, y: m1.y + ty},
+           c2 = {x: m2.x + tx, y: m2.y + ty};
+
+       plotLine(s1, s2, 'gold');
+       plotLine(s2, s3, 'gold');
+
+       plotPoint(m1, 1, 'green');
+       plotPoint(m2, 1, 'green');
+       plotLine(m1, m2, 'PaleGreen');
+       plotPoint(cm, 1, 'blue');
+
+       return {c1: c1, c2: c2, l1: Math.floor(l1), l2: Math.floor(l2)};
+   }
+
+   function plotBezierQuad(s1, s2, s3, s4, step)
+   {
+       var step = step || 5,
+
+           S1 = findControlPoints(s1, s2, s3),
+           S2 = findControlPoints(s2, s3, s4),
+
+           ctr = Math.floor(( (S1.l1 || S1.l2) + (S2.l2 || S2.l1) ) / step),
+
+           p1 = s2,
+           p2 = S1.c2,
+           p3 = S2.c1,
+           p4 = s3,
+
+           // Now do actual bezier math
+
+           dx1 = p2.x - p1.x, dy1 = p2.y - p1.y,
+           dx2 = p3.x - p2.x, dy2 = p3.y - p2.y,
+           dx3 = p4.x - p3.x, dy3 = p4.y - p3.y,
+
+           ss  = 1.0 / (ctr + 1), ss2 = ss*ss, ss3 = ss2*ss,
+
+           pre1 = 3.0 * ss,
+           pre2 = 3.0 * ss2,
+           pre4 = 6.0 * ss2,
+           pre5 = 6.0 * ss3,
+
+           tmp1x = p1.x - p2.x * 2.0 + p3.x,
+           tmp1y = p1.y - p2.y * 2.0 + p3.y,
+
+           tmp2x = (p2.x - p3.x)*3.0 - p1.x + p4.x,
+           tmp2y = (p2.y - p3.y)*3.0 - p1.y + p4.y,
+
+           pf = p1,
+
+           dfx = (p2.x - p1.x)*pre1 + tmp1x*pre2 + tmp2x*ss3,
+           dfy = (p2.y - p1.y)*pre1 + tmp1y*pre2 + tmp2y*ss3,
+
+           ddfx = tmp1x*pre4 + tmp2x*pre5,
+           ddfy = tmp1y*pre4 + tmp2y*pre5,
+
+           dddfx = tmp2x*pre5,
+           dddfy = tmp2y*pre5,
+
+           out = [];
+
+       plotTrangle(p2, 3, 'red');
+       plotLine(p1, p2, 'pink');
+
+       plotSquare(p3, 3, 'red');
+       plotLine(p3, p4, 'pink');
+
+
+       while(ctr--)
+       {
+           pf = {x: pf.x + dfx, y: pf.y + dfy};
+
+           dfx  += ddfx;
+           dfy  += ddfy;
+           ddfx += dddfx;
+           ddfy += dddfy;
+
+           plotPoint(pf, 1, 'MidnightBlue');
+           out.push(pf);
+       }
+
+       out.push({x: p4.x, y: p4.y});
+       plotPoint(p4, 1, 'MidnightBlue'); // Last step must go exactly to x4, y4
+
+       return out;
+   }
+
+   var pts = [],
+       init = true;
+
+   $('canvas').click(function (e)
+    {
+       var  pos = $(this).offset(),
+            p = {x: e.pageX-pos.left, y: e.pageY-pos.top};
+
+       plotPoint(p, 2, 'Black');
+
+       pts.push(p);
+
+       if (pts.length >= 3)
+       {
+          if (init)
+             pts.unshift(pts[0]);
+
+          plotBezierQuad.apply(this, pts);
+          pts.shift();
+
+          init = false;
+       }
+
+    });
+
+   $('#new').click(function (e)
+    {
+       if (pts.length == 3)
+       {
+          pts.push(pts[2]);
+          plotBezierQuad.apply(this, pts);
+       }
+
+       pts = [];
+       init = true;
+    });
+
+});
+
+</script>
