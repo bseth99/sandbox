@@ -1,0 +1,112 @@
+---
+layout: page
+title: Extending jQuery Animation - Custom Property "Size"
+group: animate
+tags : [jquery, javascript, animate, custom]
+---
+{% include JB/setup %}
+
+<script>
+(function($)
+{
+
+   $.fx.step['size'] = function(fx)
+   {
+      if ( !fx._sizeInit )
+      {
+         var $el = $(fx.elem),
+             c = fx.end.center || {top: 0, left: 0};
+
+         fx.start = $el.offset();
+         $.extend(fx.start, {width: $el.width(), height: $el.height()});
+
+         fx._sizer = {};
+
+         fx._sizer.topDelta = c.top - (c.top * fx.end.height / fx.start.height);
+         fx._sizer.leftDelta = c.left - (c.left * fx.end.width / fx.start.width);
+         fx._sizer.widthDelta = fx.end.width - fx.start.width;
+         fx._sizer.heightDelta = fx.end.height - fx.start.height;
+
+         fx._sizeInit = true;
+      }
+
+      fx.elem.style.top = fx.start.top + Math.floor(fx._sizer.topDelta * fx.pos) + 'px';
+      fx.elem.style.left = fx.start.left + Math.floor(fx._sizer.leftDelta * fx.pos) + 'px';
+      fx.elem.style.width = fx.start.width + Math.floor(fx._sizer.widthDelta * fx.pos) + 'px';
+      fx.elem.style.height = fx.start.height + Math.floor(fx._sizer.heightDelta * fx.pos) + 'px';
+
+   }
+
+})(jQuery);
+</script>
+
+<style>
+.wrapper {
+   margin: 25px;
+   height: 400px;
+}
+
+.box {
+   position: absolute;
+   background-color: red;
+   height: 50px;
+   width: 80px;
+}
+
+input[type=text] {
+   width: 30px;
+}
+
+</style>
+
+<div class="discussion">
+  This example illustrates how to extend the jQuery fx.step object to add custom properties that
+  can be animated with jQuery.animate().  In this demonstration, I have created a "size" property
+  that allows you to animate the height and width around a given origin.  The box will animate
+  to the entered parameters and then back to the starting point.
+  <a href="{{ site.blog_url }}">More details about this customization is available on my blog</a>.
+</div>
+
+<br/>
+
+<div class="actions">
+   <div>
+    <u>Size</u><br/>
+    <b>Height:</b> <input id="height" type="text" value="90" />
+    <b>Width:</b> <input id="width" type="text" value="120" />
+   </div>
+
+   <div>
+    <u>Origin</u><br/>
+    <b>Top:</b> <input id="top" type="text" value="25" />
+    <b>Left:</b> <input id="left" type="text" value="40" />
+    <input id="animate" type="button" value="Animate"/>
+   </div>
+</div>
+
+<div class="wrapper">
+ <div class="box"></div>
+</div>
+
+<script>
+$(function()
+{
+   $('#animate').click(function()
+    {
+       var top = parseInt($('#top')[0].value, 10),
+           left = parseInt($('#left')[0].value, 10),
+           height = parseInt($('#height')[0].value, 10),
+           width = parseInt($('#width')[0].value, 10),
+           origpos = $('.box').offset();
+
+       // Animate the using the custom size property.
+       // Then animate back using built-in CSS handling.
+
+       $('.box')
+          .animate({size: {center: {top: top, left: left}, height: height, width: width}}, 'slow')
+          .delay(1000)
+          .animate({top: origpos.top, left: origpos.left, height: 50, width: 80}, 'fast');
+    });
+});
+</script>
+
