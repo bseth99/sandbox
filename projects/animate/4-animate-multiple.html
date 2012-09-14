@@ -1,0 +1,119 @@
+---
+layout: page
+title: jQuery Animation - Multiple Elements Simultaneously
+group: animate
+tags : [jquery, javascript, animate]
+---
+{% include JB/setup %}
+
+<script src="bresenham.js"></script>
+
+<style>
+.wrapper {
+   margin: 30px;
+   height: 500px;
+}
+
+.box {
+   position: absolute;
+   background-color: red;
+   height: 50px;
+   width: 80px;
+}
+</style>
+
+<div class="discussion">
+A quick test to double-check elements will animate the way I expect.  This demo shows how to animate multiple items both iteratively
+with different end-points and in one animate() call to animate everything to the same end-point.
+My concern is that trying to animate several elements at once
+would result in timing issues.  However, because of the single threaded nature of Javascript, the animations won't start until
+the event handler has finished executing.  You can rely on this "feature" to setup all your animations knowing that they will execute
+properly relative to the timing you specify.  The only caveat being that if you take too long to get things running, you risk the
+animations not running at all.
+<ul>
+  <li><b>Synchronized</b> - All the elements will animate outward synchronously and then return back to the start position</li>
+  <li><b>Staggered?</b> - Attempt to desynchronize the animation via a for loop placed after each animate call on each element.
+      All this will do is cause the animation to skip forward.</li>
+  <li><b>Staggered!</b> - Using delay() before each animate is works very nicely to stagger the animations.</li>
+</ul>
+</div>
+
+<br/>
+<div class="actions">
+   <input id="try1" type="button" value="Synchronized" />
+   <input id="try2" type="button" value="Staggered?" />
+   <input id="try3" type="button" value="Staggered!" />
+</div>
+<br/>
+
+<div class="wrapper">
+ <div class="box"></div>
+ <div class="box"></div>
+ <div class="box"></div>
+ <div class="box"></div>
+ <div class="box"></div>
+</div>
+
+<script>
+$(function()
+{
+   var $b = $('.box').css({left: 400, top: 500}),
+       p = $b.offset(),
+       sp = {x: p.left, y: p.top},
+       cc = plotCircle(p.left, p.top, 200),
+       len = cc.length,
+       ep;
+
+   ep = $.map([1,2,3,4,5], function (i,n)
+      {
+         return cc[Math.floor(len * n / 5)];
+      });
+
+   $('#try1').click(function ()
+     {
+        $b.each(function (idx, box)
+           {
+              var $box = $(box);
+
+              $box.animate({left: ep[idx].x, top: ep[idx].y}, 2000, 'easeOutBounce');
+
+           });
+
+        $b.animate({left: sp.x, top: sp.y}, 'slow');
+     });
+
+   $('#try2').click(function ()
+     {
+        $b.each(function (idx, box)
+           {
+              var $box = $(box);
+
+              $box.animate({left: ep[idx].x, top: ep[idx].y}, 2000, 'easeOutBounce');
+
+              var m = 1;
+              for (var i=0;i<100000000;i++) { m *= m;}
+
+           });
+
+        $b.animate({left: sp.x, top: sp.y}, 'slow');
+     });
+
+
+   $('#try3').click(function ()
+     {
+        $b.each(function (idx, box)
+           {
+              var $box = $(box);
+
+              $box.delay(idx*500).animate({left: ep[idx].x, top: ep[idx].y}, 2000, 'easeOutBounce');
+
+           });
+
+        $b.animate({left: sp.x, top: sp.y}, 'slow');
+     });
+
+});
+</script>
+
+</body>
+</html>
