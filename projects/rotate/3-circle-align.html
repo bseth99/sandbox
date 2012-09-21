@@ -116,31 +116,15 @@ $(function()
 
    var r = 50, cx = 150, cy = 150,
        $circle = $('#rotated canvas'),
-       canvas = $circle[0];
+       canvas1 = $circle[0];
 
    // add some padding
-   canvas.width = cx * 2 + 4;
-   canvas.height = cy * 2 + 4;
+   canvas1.width = cx * 2 + 4;
+   canvas1.height = cy * 2 + 4;
 
    // Center of the circle relative to canvas
    cx += 2;
    cy += 2;
-
-   // Center of the circle relative to the page
-   var cpos = $circle.offset();
-       px = cpos.left + cx,
-       py = cpos.top + cy;
-
-   var $items = $('#rotated .items').children(),
-       icnt = $items.length,
-       dstep = 360 / icnt,
-       cpath = PATH([
-                 {fn: 'start', x: px+r, y: py},
-                 {fn: 'circle', radius: r}
-               ]);
-
-   // Move the start of the circle to the top.
-   cpath.rotate(-90, cpath.center());
 
    var drawGuides = true,
        showCorners = true,
@@ -152,13 +136,30 @@ $(function()
 
    function position()
    {
-      var ctx = canvas.getContext( "2d" ),
+
+      // Center of the circle relative to the page
+      var cpos = $circle.offset();
+          px = cpos.left + cx,
+          py = cpos.top + cy;
+
+      var $items = $('#rotated .items').children(),
+          icnt = $items.length,
+          dstep = 360 / icnt,
+          cpath = PATH([
+                    {fn: 'start', x: px+r, y: py},
+                    {fn: 'circle', radius: r}
+                  ]);
+
+      // Move the start of the circle to the top.
+      cpath.rotate(-90, cpath.center());
+
+      var ctx = canvas1.getContext( "2d" ),
           $pts = $('#rotated #points');
 
       ctx.fillStyle = "white";
 
       if (!drawGuides)
-         ctx.clearRect(0, 0, canvas.width, canvas.height);
+         ctx.clearRect(0, 0, canvas1.width, canvas1.height);
 
       $pts.css('display', (showCorners ? 'block' : 'none'));
 
@@ -313,24 +314,11 @@ $(function()
 
    var r = 50, cx = 150, cy = 150,
        $circle = $('#unrotated canvas'),
-       canvas = $circle[0];
+       canvas2 = $circle[0];
 
    // add some padding
-   canvas.width = cx * 2;
-   canvas.height = cy * 2;
-
-   // Center of the circle relative to the page
-   var cpos = $circle.offset();
-       px = cpos.left,
-       py = cpos.top;
-
-   var $items = $('#unrotated .items').children(),
-       icnt = $items.length,
-       dstep = 360 / icnt,
-       cpath = PATH([
-                 {fn: 'start', x: cx+r, y: cy},
-                 {fn: 'circle', radius: r}
-               ]);
+   canvas2.width = cx * 2;
+   canvas2.height = cy * 2;
 
    var drawGuides = true,
        doAgn = true,
@@ -340,12 +328,25 @@ $(function()
    function position2()
    {
 
-      var ctx = canvas.getContext( "2d" );
+      // Center of the circle relative to the page
+      var cpos = $circle.offset();
+          px = cpos.left,
+          py = cpos.top;
+
+      var $items = $('#unrotated .items').children(),
+          icnt = $items.length,
+          dstep = 360 / icnt,
+          cpath = PATH([
+                    {fn: 'start', x: cx+r, y: cy},
+                    {fn: 'circle', radius: r}
+                  ]);
+
+      var ctx = canvas2.getContext( "2d" );
 
       ctx.fillStyle = "white";
 
       if (!drawGuides)
-         ctx.clearRect(0, 0, canvas.width, canvas.height);
+         ctx.clearRect(0, 0, canvas2.width, canvas2.height);
 
       $items.each(function (idx, el)
         {
@@ -360,7 +361,7 @@ $(function()
                pt;
 
            if (idx == 0 && doOnce && drawGuides)
-              PATH.adapter.drawCanvas(canvas, align, {fillStyle: 'none'});
+              PATH.adapter.drawCanvas(canvas2, align, {fillStyle: 'none'});
 
            if (doAgn)
               pt = align.step((a + aOff) / 360);
