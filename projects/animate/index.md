@@ -1,12 +1,12 @@
 ---
 layout: page
-title: jQuery - Building Non-Linear Path Animations
+title: Exploring Non-Linear Path Animations
 group: projects
 ---
 {% include JB/setup %}
 
 The project has various demos designed to explore building components to support
-a custom animation extention for jQuery to provide non-linear path animations.
+a custom animations with various animation engines over large sets of elements on non-linear paths.
 
 You can read more about this these tests [on my blog]({{ site.blog_url}}). 
 

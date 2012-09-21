@@ -1,0 +1,118 @@
+---
+layout: page
+title: TweenLite Animation Test
+group: animate
+tags : [javascript, animate, tweenlite]
+---
+{% include JB/setup %}
+
+
+
+<script src="tweenlite/TweenLite.min.js"></script>
+<script src="tweenlite/easing/EasePack.min.js"></script>
+<script src="tweenlite/plugins/CSSPlugin.min.js"></script>
+
+<style>
+
+.wrapper {
+   position: relative;
+   margin: 10px;
+   height: 500px;
+}
+
+.box {
+   position: absolute;
+   height: 50px;
+   width: 80px;
+   background-color: red;
+}
+</style>
+
+<div class="discussion">
+This is a quick demo the TweenLite animation engine.  This demo uses the CSSPlugin and EasePack to
+illustrate the different easing functions and CSS3 transform capabilities.  Addtionally, the demo
+hooks into the onAnimate callback to print the time index in each box, the onComplete callback to
+reverse the animation back to the starting point, and the onReverseComplete to reset the content of
+the box labels.  The main purpose was to see the similarities and difference to jQuery.animate() and
+how to use jQuery selectors with TweenLite.  TweenLite offers significant performance increases in animating
+over a large set of elements (<a href="http://www.greensock.com/js/speed.html">see the speed test</a>) so
+I was curious how easy it would be to use in some of my projects.
+</div>
+<br/>
+
+<div class="actions">
+<select id="easing-function" >
+</select>
+
+<select id="easing-direction" >
+  <option>easeIn</option>
+  <option>easeOut</option>
+  <option>easeInOut</option>
+</select>
+
+<input id="animate" type="button" value="Animate" />
+</div>
+<br/>
+
+<div class="wrapper">
+ <div id="box1" class="box">Box 1</div>
+ <div id="box2" class="box">Box 2</div>
+ <div id="box3" class="box">Box 3</div>
+</div>
+
+<script>
+
+$(function ()
+{
+   var $fn = $('#easing-function'),
+       $dr = $('#easing-direction');
+
+   $.each(window.com.greensock.easing, function (fn, obj)
+     {
+        if (obj.easeIn)
+           $('<option>').appendTo($fn).text(fn);
+     });
+
+   $('.box').each(function (i, el)
+      {
+         $(el).css('top', i*60)
+              .css('transform-origin', 'top left');
+      });
+
+   $('#animate').click(function ()
+     {
+         var esFn = $fn[0].options[$fn[0].selectedIndex].value,
+             esDr = $dr[0].options[$dr[0].selectedIndex].value,
+             esOb = window.com.greensock.easing[esFn],
+             esDo = esOb ? esOb[esDr] : Linear.easeNone;
+
+         $('.box').each(function (i, el)
+            {
+               var t =
+                  TweenLite.to(el, 2, {
+                       ease: (esDo || Linear.easeNone),
+                       css: {
+                           width: 150,
+                           height: 100,
+                           top: i*200,
+                           transform: 'translate('+((i+1)*150)+'px, 0px) rotate('+((i+1)*75)+'deg)'
+                         },
+                       onUpdate: function () {
+                            var pos = this.time(),
+                                elem = this.target;
+
+                            elem.innerHTML = Math.round(pos*1000)/1000;
+                         },
+                       onComplete: function () {
+                            t.reverse();
+                         },
+                       onReverseComplete: function () {
+                            this.target.innerHTML = 'Box '+(i+1);
+                         }
+                   });
+            });
+      });
+});
+
+</script>
+
