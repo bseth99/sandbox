@@ -1,9 +1,12 @@
 ---
-layout: page
+layout: default
 title: jQuery UI Demo - Custom ColorBox Widget
 group: projects
 ---
 {% include JB/setup %}
+
+<h3>{{ page.title }}</h3>
+<br/>
 
 ColorBox is a simple jQuery UI based widget to demostrate the how to construct a custom
 UI widget from the jQuery UI framework.  Each part progresses to add functionality and

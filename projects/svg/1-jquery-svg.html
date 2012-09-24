@@ -1,0 +1,125 @@
+---
+layout: page
+title: SVG Creation and Animation with jQuery and jQuerySVG
+group: svg
+tags : [jquery, svg, jquery-svg, animate]
+---
+{% include JB/setup %}
+
+
+<script type="text/javascript" src="jquery.svg.js"></script>
+<script type="text/javascript" src="jquery.svganim.js"></script>
+
+<style>
+.wrapper {
+   float: left;
+   margin: 10px;
+   padding: 3px;
+   height: 300px;
+   width: 300px;
+   border: 1px dotted black;
+}
+
+</style>
+
+<div class="discussion">
+A comparison of using jQuery to create and animation SVG object versus using
+jQuerySVG.  Using jQuery along is possible with some work-arounds, however,
+there are some convenience features in jQuerySVG that make various tasks
+easier.  <a href="{{ site.blog_url }}">See the blog post for more.</a>
+</div>
+
+{{ page.url }}
+
+<div id="jqonly" class="wrapper">
+ <div>jQuery Only - <a href="#" id="jqo-animate">Animate</a></div>
+</div>
+
+
+<script>
+function SVG(tag)
+{
+   return document.createElementNS('http://www.w3.org/2000/svg', tag);
+}
+
+function Animate(options)
+{
+   var a = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
+
+   for (var o in options)
+      a.setAttribute(o, options[o]);
+
+   return a;
+}
+
+$(function()
+{
+   var $svg = $(SVG('svg')).appendTo($('#jqonly'))
+                        .attr('height', $('#jqonly').height())
+                        .attr('width', $('#jqonly').width());
+
+   var $mr =
+     $(SVG('rect'))
+       .attr('x', 25)
+       .attr('y', 25)
+       .attr('width', 150)
+       .attr('height', '25%')
+       .attr('fill', 'white')
+       .attr('stroke', 'blue')
+       .attr('stroke-width', 3)
+       .appendTo($svg);
+
+   $('#jqo-animate').click(function ()
+     {
+         $mr.animate({tabIndex: 0},
+             {
+                duration: 2000,
+                step: function (now, fx)
+                   {
+                      $(this)
+                         .attr('width', 150 + Math.round(50 * fx.pos))
+                         .attr('height', 25 + Math.round(25 * fx.pos)+'%')
+                         // .attr('stroke', 'aqua')  Need color transistion helper to make this happen
+                         .attr('stroke-width', 3 + Math.round(7 * fx.pos));
+                   }
+             });
+
+      });
+
+   $mr.click(function () {alert('You clicked me!'); });
+
+});
+</script>
+
+
+
+<div id="jqsvg" class="wrapper">
+  <div>jQuerySVG Plugin - <a href="#" id="jqs-animate">Animate</a></div>
+</div>
+
+<script>
+$(function()
+{
+
+   var svg = $('#jqsvg').svg().svg('get');
+
+   var sr = svg.rect(25, 25, 150, '25%', 0, 0,
+       {fill: 'white', stroke: 'blue', strokeWidth: 3});
+
+
+   $('#jqs-animate').click(function ()
+     {
+         $(sr).animate({
+                svgWidth: 200,
+                svgHeight: '50%',
+                svgStrokeWidth: '+=7',
+                svgStroke: 'aqua'
+             }, 2000);
+
+     });
+
+});
+</script>
+
+</body>
+</html>

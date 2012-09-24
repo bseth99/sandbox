@@ -26,8 +26,9 @@ author :
 # Else if you are pushing to username.github.com, replace with your username.
 # Finally if you are pushing to a GitHub project page, include the project name at the end.
 #
-production_url : http://bseth99.github.com
+production_url: http://bseth99.github.com
 blog_url: http://benknowscode.wordpress.com
+git_url: https://github.com/bseth99/sandbox/blob/master
 
 # All Jekyll-Bootstrap specific configurations are namespaced into this hash
 #
