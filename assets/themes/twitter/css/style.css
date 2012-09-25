@@ -3,12 +3,12 @@ html, body {
   background-color: #eee;
 }
 .navbar {
-  margin-bottom: 0;
+  margin-bottom: -20px;
 }
-.container > footer {
-  margin-top: 20px;
+.container {
+  margin-bottom: 20px;
 }
-.container > footer p {
+.content > footer p {
   text-align: center; /* center align it with the container */
 }
 
@@ -27,7 +27,7 @@ html, body {
 
 /* Page header tweaks */
 .page-header {
-  background-color: #f5f5f5;
+  background-color: #ffffff;
   padding: 20px 20px 10px;
   margin: -20px -20px 20px;
 }
@@ -40,32 +40,31 @@ html, body {
 /* tag_box ======================================================== */
 
 .tag_box {
-	list-style:none;
-	margin:0;
-	padding:5px 0 ;
-	overflow:hidden;
+   list-style:none;
+   margin:0;
+   padding:5px 0 ;
+   overflow:hidden;
 }
 .tag_box li {
-	line-height:28px;
+   line-height:28px;
 }
 .tag_box.inline li {
-	float:left;
+   float:left;
 }
 .tag_box a {
-	padding: 3px 6px;
-	margin: 2px;
-	background: #eee;
-	color:#005F6B;
-	border-radius: 3px;
-	text-decoration:none;
+   padding: 3px 6px;
+   margin: 2px;
+   background: #eee;
+   color:#005F6B;
+   border-radius: 3px;
+   text-decoration:none;
 }
 .tag_box a span{
-	vertical-align:super;
-	font-size:0.8em;
+   vertical-align:super;
+   font-size:0.8em;
 }
 .tag_box a.active {
-	background:#57A957;
-	border:1px solid #4C964D;
-	color:#FFF;
+   background:#57A957;
+   border:1px solid #4C964D;
+   color:#FFF;
 }
-	

@@ -1,0 +1,250 @@
+---
+layout: page
+title: jQuery, CSS3, and SVG Progress Bar Animation Comparison
+group: svg
+tags : [jquery, svg, css3, transition, animate]
+---
+{% include JB/setup %}
+
+
+
+<style>
+.wrapper {
+   float: left;
+   margin-left: 5px;
+   padding: 3px;
+   height: 300px;
+   width: 300px;
+   border: 1px dotted black;
+}
+
+.jq-container {
+   width: 300px;
+   height: 100px;
+}
+
+.jq-outer {
+   position: relative;
+   top: 25px;
+   left: 5px;
+   height: 46px;
+   width: 284px;
+   border: 3px solid dimgray;
+}
+
+.jq-inner {
+   position: absolute;
+   height: 46px;
+   width: 50px;
+   background-color: red;
+}
+
+</style>
+
+<div class="discussion">
+This is an animation demo using jQuery.animate(), CSS3 transitions, and SVG animate to create a
+progress bar.  The goal is to see how much of the animation can be pushed to the features
+available in CSS3 and SVG but still maintain control of the animation.  The demo is further
+intended to ensure these features work amoung all the current browsers (except IE which is already
+know not to work).  Finally, I was curious to see if animations would continue
+while Javascript was executing (click the Do Something button).
+See my blog article on this topic for more information.
+</div>
+<br/>
+
+<div class="actions">
+ <input id="nonsense" type="button" value="Do something" />
+ <span>Something: <span id="jq-something">0</span></span>
+</div>
+<br/>
+
+<script>
+
+$(function ()
+{
+   $('#nonsense').on('click', function ()
+      {
+         $('#jq-something').html(0);
+
+         var l = 10000000,
+             x = 0, c = 0;
+
+         for (;x<l;x++)
+            c = Math.random() * Math.sqrt(x * Math.PI);
+
+         $('#jq-something').html(c);
+
+      });
+});
+
+</script>
+
+<div id="jquery" class="wrapper">
+ <div>jQuery Animate -
+    <a href="#" id="jq-start">Start</a> |
+    <a href="#" id="jq-stop">Stop</a>
+ </div>
+
+ <div class="jq-container">
+    <div class="jq-outer">
+      <div id="jq-progress" class="jq-inner"></div>
+    </div>
+ </div>
+
+ <div>Repeat Count: <span id="jq-repeat">0</span></div>
+</div>
+
+<script>
+
+$(function ()
+{
+   var jqcnt = 0;
+
+   var doAnimate = function()
+    {
+       $('#jq-progress')
+          .animate({tabIndex: 0},
+           {
+              duration: 1500,
+              easing: 'linear',
+              step: function (now, fx)
+                {
+                   fx.elem.style.left = (47 * Math.floor(6.0 * fx.pos))+'px';
+                },
+              complete: function ()
+                {
+                   $('#jq-repeat').html(++jqcnt);
+                   doAnimate();
+                }
+           });
+    };
+
+   $('#jq-start').on('click', function ()
+      {
+         doAnimate();
+      });
+
+   $('#jq-stop').on('click', function ()
+      {
+         $('#jq-progress').stop(true);
+      });
+
+});
+</script>
+
+
+
+<div id="css3" class="wrapper">
+ <div>CSS3 Animate -
+    <a href="#" id="c3-start">Start</a> |
+    <a href="#" id="c3-stop">Stop</a>
+ </div>
+
+ <div class="jq-container">
+    <div class="jq-outer">
+      <div id="c3-progress" class="jq-inner"></div>
+    </div>
+ </div>
+
+ <div>Repeat Count: <span id="c3-repeat">0</span></div>
+
+</div>
+
+<script>
+
+$(function ()
+{
+   var c3cnt = 0;
+
+   $('#c3-progress').on('transitionend webkitTransitionEnd otransitionend', function ()
+      {
+         $('#c3-repeat').html(++c3cnt);
+
+         $('#c3-progress').css(
+             {
+               transform: '',
+               transition: ''
+             });
+
+         setTimeout(function() {
+            $('#c3-progress').css(
+                {
+                  transform: 'translate(235px,0px)',
+                  transition: '1200ms steps(5, start) 300ms'
+                });
+          }, 1);
+      });
+
+   $('#c3-start').on('click', function ()
+      {
+         $('#c3-progress').css(
+             {
+               transform: 'translate(235px,0px)',
+               transition: '1200ms steps(5, start) 300ms'
+             });
+      });
+
+   $('#c3-stop').on('click', function ()
+      {
+         $('#c3-progress').css(
+             {
+               transform: 'translate(0px,0px)',
+               transition: ''
+             });
+      });
+
+
+
+});
+</script>
+
+
+
+<div id="svg" class="wrapper">
+ <div>SVG Animate -
+    <a href="#" id="svg-start">Start</a> |
+    <a href="#" id="svg-stop">Stop</a>
+ </div>
+
+ <svg width="300" height="100">
+    <rect fill="red" height="50" width="50" y="25" x="5">
+      <animate id="svg-a1" attributeName="x" repeatCount="indefinite" begin="indefinite" values="5;53;101;149;197;245" restart="always" calcMode="discrete" dur="1500ms" fill="freeze"></animate>
+    </rect>
+    <rect stroke-width="3" stroke="dimgray" fill="none" height="50" width="290" y="25" x="5">
+    </rect>
+ </svg>
+
+ <div>Repeat Count: <span id="svg-repeat">0</span></div>
+</div>
+
+
+<script>
+
+$(function ()
+{
+   var svgcnt = 0;
+
+   $('#svg-a1').on('repeatEvent', function ()
+      {
+         $('#svg-repeat').html(++svgcnt);
+      });
+
+   $('#svg-start').on('click', function ()
+      {
+         $('#svg-a1')[0].beginElement();
+      });
+
+   $('#svg-stop').on('click', function ()
+      {
+         $('#svg-a1')[0].endElement();
+      });
+
+});
+</script>
+
+<div style="clear: both">
+</div>
+
+
+</body>
+</html
