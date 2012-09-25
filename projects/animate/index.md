@@ -1,12 +1,9 @@
 ---
-layout: default
+layout: page
 title: Exploring Non-Linear Path Animations
 group: projects
 ---
 {% include JB/setup %}
-
-<h3>{{ page.title }}</h3>
-<br/>
 
 The project has various demos designed to explore building components to support
 a custom animations with various animation engines over large sets of elements on non-linear paths.

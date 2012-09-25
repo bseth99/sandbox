@@ -8,7 +8,8 @@ html, body {
 .container {
   margin-bottom: 20px;
 }
-.content > footer p {
+.container footer p {
+  margin-top: -30px;
   text-align: center; /* center align it with the container */
 }
 
