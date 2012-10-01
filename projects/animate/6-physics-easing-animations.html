@@ -1,0 +1,284 @@
+---
+layout: page
+title: Javascript Physics - Using Easing to Animate Acceleration
+group: animate
+tags : [javascript, animate, easing, physics, jquery, jquery-ui]
+blog: /2012/09/25/fast-javascript-animation-using-greensocks-tweenlite-library/
+---
+{% include JB/setup %}
+
+
+<style>
+.wrapper {
+   position: relative;
+   width: 400px;
+   height: 50px;
+   border: 1px dotted black;
+   margin-left: 15px;
+}
+
+.box {
+   position: absolute;
+   background-color: red;
+   height: 50px;
+   width: 80px;
+}
+
+.markers {
+   display: inline-block;
+   overflow: hidden;
+   white-space: nowrap;
+   padding: 2px;
+   font-size: 7pt;
+   margin: 0px;
+   line-height: 14px;
+}
+
+.controls {
+   padding-top: 5px;
+   font-size: 7pt;
+}
+
+.plot-label {
+   position: absolute;
+   display: inline-block;
+   font-size: 8pt;
+}
+
+.plot-label.y {
+   top: 20px;
+   left: -8px;
+}
+
+.plot-label.x {
+   top: 52px;
+   left: 155px;
+}
+
+h5 {
+   margin: 5px;
+   margin-top: 15px;
+}
+
+</style>
+
+<div class="discussion">
+A quick example of how easing functions can make animating realistic physics effects
+very simple.  The first box is animated using no easing (linear) and all the calculations
+for accelerating and decelerating box are done in the step function.  The second box
+uses the jQuery UI Quad In/Out easing to do the same effect.  Acceleration follows a quadratic
+curve (t^2) when plotting the distance traveled over time.  The curves are plotted below the boxes
+as they animate to show they are the same curves.  You can adjust the slider to manipulate the distance
+accelerated before slowing to the stopping point.
+</div>
+<br/>
+
+<div class="actions">
+ <input id="run" type="button" value="Go" />
+ <input id="reset" type="button" value="Reset" />
+</div>
+<br/>
+
+<div class="wrapper controls">
+   <div id="slider"></div>
+   <div id="marker-labels">
+    <span class="accelerate markers">acc (px/ms^2)</span>
+    <span class="switch markers">pos</span>
+    <span class="decelerate markers">dcc (px/ms^2)</span>
+   </div>
+   <div id="marker-values">
+    <span class="accelerate markers"></span>
+    <span class="switch markers"></span>
+    <span class="decelerate markers"></span>
+   </div>
+</div>
+
+<h5>Calculated</h5>
+<div class="wrapper">
+  <div id="calc" class="box"></div>
+</div>
+
+<div class="wrapper">
+  <canvas id="plotc"></canvas>
+  <span class="plot-label y">d</span>
+  <span class="plot-label x">t</span>
+</div>
+
+<h5>Easing</h5>
+<div class="wrapper">
+  <div id="ease" class="box"></div>
+</div>
+
+<div class="wrapper">
+  <canvas id="plote"></canvas>
+  <span class="plot-label y">d</span>
+  <span class="plot-label x">t</span>
+</div>
+
+
+<script>
+
+$(function()
+{
+   var pos = 100,
+       max = 320,  // track length - box width
+       acc, dcc, vfin, tfin,
+       lt = 0, dd = 0,
+       canvas, etime,
+       mv = {c:{x:0,y:0}, e:{x:0,y:0}};
+
+   canvas = $('#plotc')[0];
+   canvas.height = 50;
+   canvas.width = max;
+
+   mv.c.m = canvas.getContext('2d');
+   mv.c.m.strokeStyle = 'blue';
+   mv.c.m.lineWidth = 1;
+   mv.c.m.fillStyle = 'white';
+   mv.c.m.fill();
+
+   canvas = $('#plote')[0];
+   canvas.height = 50;
+   canvas.width = max;
+
+   mv.e.m = canvas.getContext('2d');
+   mv.e.m.strokeStyle = 'red';
+   mv.e.m.lineWidth = 1;
+   mv.e.m.fillStyle = 'white';
+   mv.e.m.fill();
+
+   function clearCanvas()
+   {
+      mv.c.x = 0, mv.c.y = 0;
+      mv.c.m.moveTo(0, 50);
+      mv.c.m.clearRect(0, 0, max, 50);
+
+      mv.e.x = 0, mv.e.y = 0;
+      mv.e.m.moveTo(0, 50);
+      mv.e.m.clearRect(0, 0, max, 50);
+   }
+
+   function plotMoves(d, t, c)
+   {
+      var l = mv[c],
+          ctx = l.m,
+          ds = d * 50 / 320,
+          ts = t * 320 / 1000;
+
+      ctx.beginPath();
+      ctx.moveTo(l.x, 50-l.y);
+      ctx.lineTo(ts, 50-ds);
+      ctx.stroke();
+
+      l.x = ts, l.y = ds;
+   }
+
+   function calcSlider()
+   {
+      var d, v, t;
+
+      // First, find acceleration phase
+      t = 1000 * pos / max;
+      d = pos;
+      v = d / t;
+      acc = v / t;
+      tfin = t;
+      vfin = v;
+
+      // Now, find deceleration phase
+      t = 1000 * (1 - pos / max);
+      d = max - pos;
+      v = d / t;
+      dcc = v / t;
+
+      $('.accelerate').css('width', pos-15)
+      $('#marker-values .accelerate').html(acc);
+
+      $('#marker-values .switch').html(pos);
+
+      $('.decelerate').css('width', max-pos+15)
+      $('#marker-values .decelerate').html(dcc);
+   }
+
+   $('#slider')
+      .css('width', max)
+      .slider({
+        value: pos,
+        min: 1,
+        max: max,
+        slide: function (e, ui)
+         {
+            pos = ui.value;
+
+            calcSlider();
+         }
+      });
+
+   $('#reset').click(function ()
+      {
+         lt = 0, dd = 0;
+         $('#calc').css('left', 0);
+         $('#ease').css('left', 0);
+         clearCanvas();
+      });
+
+   $('#run').click(function ()
+      {
+         $('#reset').click();
+
+         etime = (new Date()).getTime();
+         $('#ease')
+           .animate({left: pos}, {
+               easing: 'easeInQuad',
+               duration: 1000 * pos / max,
+               step: easePlot
+             })
+           .animate({left: max}, {
+               easing: 'easeOutQuad',
+               duration: 1000 * (1 - pos / max),
+               step: easePlot
+             });
+
+         $('#calc')
+           .animate({tabIndex: 0}, {
+               easing: 'linear',
+               duration: 1000,
+               step: stepCalc
+             });
+      });
+
+   function stepCalc(now, fx)
+   {
+      var n = fx._left || 0,
+          tt = (new Date()).getTime() - etime,
+
+          t1 = tt,
+          t2 = 1000 - tt,
+
+          v1 = acc * t1,
+          v2 = dcc * t2,
+
+          d1 = v1 * t1,
+          d2 = max - v2 * t2,
+
+          d = (n <= pos ? d1 : d2);
+
+      fx._left = d;
+
+      fx.elem.style.left = fx._left+'px';
+
+      plotMoves(d, tt, 'c');
+   }
+
+   function easePlot(now, fx)
+   {
+      var tt = (new Date()).getTime() - etime;
+      plotMoves(now, tt, 'e');
+   }
+
+   calcSlider();
+
+});
+</script>
+
+<br/><br/><br/>
