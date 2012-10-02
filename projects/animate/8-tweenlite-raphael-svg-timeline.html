@@ -1,0 +1,260 @@
+---
+layout: page
+title: Using TweenLite Timelines and Raphael Plugin to Animate SVG Elements
+group: animate
+tags : [javascript, animate, tweenlite, timelinelite, raphael, svg]
+---
+{% include JB/setup %}
+
+
+<script src="raphael.min.js"></script>
+
+<script src="tweenlite/TimelineLite.min.js"></script>
+<script src="tweenlite/TweenLite.min.js"></script>
+<script src="tweenlite/easing/EasePack.min.js"></script>
+<script src="tweenlite/plugins/RaphaelPlugin.min.js"></script>
+
+
+<style>
+svg {
+   position: absolute;
+   left: 0px;
+   top: 0px;
+   z-index: 1000px;
+}
+
+.fall-under {
+   background-color: linen;
+   border: 3px solid black;
+}
+
+</style>
+
+<div class="discussion">
+This demo illustrates the following concepts:
+<ul>
+ <li>
+   How to use Raphael to create and manage SVG objects.  This demo still uses jQuery to
+   attach events to the SVG element.  However, Raphael is used to create the circles and
+   maintain the settings of those elements.
+ </li>
+ <li>
+   How to use the TweenLite Raphael plugin to animate SVG objects.  SVG objects require using
+   attributes to set the visual styles so the CSS plugin won't provide the required behavior.
+   The plugin utilizes the Raphael Element.attr() and Element.transform() functions to manipulate
+   the SVG elements.
+ </li>
+ <li>
+   How to use TimelineLite to easily build very customizable animation sequences.  Since the timeline
+   object allows for labels, animations, and functions to be added to the timeline.  You have incredible
+   flexibility to create very complex sequences with very little code.
+ </li>
+ <li>
+   This demo has the same functionality of the jQuery version.  I wanted to compare the readability the
+   TweenLite and jQuery implementations.  The code is clear split between the animation definition and
+   the actual control logic.  This makes it very easy to see how the animations are sequenced and allows
+   for better documenation of those sequences.  The control logic becomes very simple and only needs to
+   move the play head to the correct label to control the animations.
+ </li>
+</ul>
+
+Hold the mouse down anywhere on the page to charge the wave.  Release the mouse to emit the pulse wave outward
+from the selected charging point.
+</div>
+
+<br/><br/><br/><br/><br/>
+
+<script>
+
+$(function()
+{
+   var MAX_R = 25,
+
+       paper = Raphael(0, 0, $(window).width(), $(window).height()),
+       $svg = $('svg'),
+
+       wave = paper.circle(-1, -1, 1)
+                    .attr('id', 'wave')
+                    .attr('stroke', 'black')
+                    .attr('fill-opacity', 0.4)
+                    .attr('stroke-opacity', 0.3)
+                    .hide(),
+
+       charge = paper.circle(-1, -1, 1)
+                      .attr('id', 'charge')
+                      .attr('fill', 'red')
+                      .attr('stroke', 'none')
+                      .attr('fill-opacity', 0.4)
+                      .hide(),
+
+       pulse_x, pulse_y, intensity,
+       timeline, pulse;
+
+   timeline = new TimelineLite({
+             paused: true
+         });
+
+/*
+  Setup the timeline.  There are 4 distinct phases to
+  out pulse animation:
+  1 - MouseDown Initial charging - wave expands out to MAX_R
+  2 - Mouse still down and fully charged, show pulsing red circle
+  3 - Mouse up - collapse wave back to 0 radius
+  4 - Release the wave expanding it until it animates off the screen
+
+  Each part has a label so we can move the play head to that
+  part of the animation.  Additionally, a functions are added to
+  the timeline to setup, repeat, or complete various stages of the
+  animation.
+*/
+   timeline.insertMultiple(
+       [
+
+      /*
+         Part 1: Charge the wave.
+          * Add the label for playback control
+          * Add function to reset wave attributes and show
+          * Add the animation
+          * Add a function to show the pulsing circle
+      */
+
+          'charging',
+          function ()
+           {
+              wave
+                 .attr('fill', 'white')
+                 .attr('fill-opacity', 0.4)
+                 .attr('stroke-opacity', 0.3)
+                 .show();
+           },
+
+          TweenLite.fromTo(wave, 0.5, {
+                 raphael: {
+                     r: 1,
+                     'stroke-width': 1
+                   }
+             }, {
+                 ease: Linear.easeNone,
+                 raphael: {
+                     r: MAX_R,
+                     'stroke-width': 5
+                   }
+             }),
+
+          function () {charge.show();},
+
+      /*
+         Part 2: Charged and waiting.
+          * Add the label for playback control
+          * Add the animation
+          * Add a function to repeat the animation
+      */
+
+          'charged',
+          TweenLite.fromTo(charge, 0.5, {
+                 raphael: {
+                     r: 1,
+                     'fill-opacity': 0.8
+                   }
+             }, {
+                 ease: Linear.easeNone,
+                 raphael: {
+                     r: MAX_R,
+                     'fill-opacity': 0.05
+                   }
+             }),
+
+          function () {timeline.play('charged')},
+
+      /*
+         Part 3: Start discharge process.
+          * Add the label for playback control
+          * Add function to hide the pulsing circle
+          * Add the animation
+      */
+
+          'discharge',
+          function () {charge.hide();},
+
+          TweenLite.to(wave, 0.25, {
+                 ease: Linear.easeNone,
+                 raphael: {
+                     r: 1,
+                     'fill-opacity': 0,
+                     'stroke-width': 1
+                   }
+             }),
+
+      /*
+         Part 3: Emit the wave.
+          * Add the label for playback control
+          * Add the animation - save a reference for later
+          * Add function to hide everything
+      */
+
+          'pulse',
+          (pulse = TweenLite.fromTo(wave, 0.15, {
+                 raphael: {
+                     r: 1,
+                     'stroke-width': 1,
+                     'stroke-opacity': 0.3
+                   },
+             }, {
+                 ease: Linear.easeNone,
+                 raphael: {
+                     r: 1000,
+                     'stroke-width': 100,
+                     'stroke-opacity': 0.1
+                   }
+             })),
+
+          function ()
+           {
+              charge.hide();
+              wave.hide();
+
+              pulse_x = -1;
+              pulse_y = -1;
+           }
+
+       ], 0, 'sequence', 0);
+
+   $svg
+      .mousedown(function (e)
+        {
+           var pos = $(document.body).offset();
+
+           pulse_x = e.pageX - pos.left;
+           pulse_y = e.pageY - pos.top;
+
+           wave
+              .attr('cx', pulse_x)
+              .attr('cy', pulse_y);
+
+           charge
+              .attr('cx', pulse_x)
+              .attr('cy', pulse_y);
+
+           timeline.play('charging');
+
+        })
+       .mouseup(function (e)
+        {
+           intensity = wave.attr('r') / MAX_R;
+
+           /*
+             Update target values based on run-time
+             intensity calculation.  Need to use invalidate
+             to clean out any caching and force recalculation
+           */
+
+           pulse.invalidate();
+           pulse.vars.raphael['stroke-width'] = 100*intensity;
+           pulse.vars.raphael['stroke-opacity'] = 0.3*intensity;
+
+           timeline.play('discharge');
+        });
+
+});
+</script>
+

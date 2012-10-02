@@ -1,0 +1,224 @@
+---
+layout: page
+title: Sequencing Animations in jQuery
+group: animate
+tags : [javascript, animate, jquery, svg]
+---
+{% include JB/setup %}
+
+<style>
+.svg-wrapper {
+   position: absolute;
+   left: 0px;
+   top: 0px;
+   z-index: 1000px;
+}
+
+.fall-under {
+   background-color: linen;
+   border: 3px solid black;
+}
+
+</style>
+
+<div class="discussion">
+This demo illustrates the following concepts:
+<ul>
+ <li>
+   How to use SVG to create visual objects not easily create with standard DOM elements and how to
+   use them in conjunction with other elements inside the page.
+ </li>
+ <li>
+   How to create and manipulate SVG elements with jQuery.  You must create the element outside of
+   jQuery using document.createElementNS().  This object can be passed used with jQuery to create
+   a jQuery object and then all the jQuery functions can be used on the element (attach events, animate,
+   selectors, etc).
+ </li>
+ <li>
+   How to use jQuery to animate SVG elements without any other plugins.  The animate function is not
+   natively capable of animating SVG attributes so the step callback is required to manually
+   calculate and set the attributes.  The fx.pos value provides the means to find the in-between values
+   in the animation and jQuery.attr() can be used to set the value.
+ </li>
+ <li>
+   How to create sequenced animations using the jQuery animate function.  This demo has several stages to
+   create the pulse wave effect.  First, the wave is charged by expending the radius of the circle.  Once
+   charged, as long as the mouse button is held, a red pulsing circle is shown to indicate the pulse is fully
+   charged.  After the mouse is release, the wave contracts to begin the discharge and, finally, the pulse
+   is released by expending the circle of the page.  Each stage is started via the mouse event or the completion
+   of one of the other animations.
+ </li>
+</ul>
+
+Hold the mouse down anywhere on the page to charge the wave.  Release the mouse to emit the pulse wave outward
+from the selected charging point.
+</div>
+
+<svg class="svg-wrapper">
+</svg>
+
+<br/><br/><br/><br/><br/><br/><br/>
+
+<script>
+function SVG(tag)
+{
+   return document.createElementNS('http://www.w3.org/2000/svg', tag);
+}
+
+$(function()
+{
+   var MAX_R = 25,
+       $svg = $('svg'),
+
+       $wave = $(SVG('circle'))
+                    .attr('id', 'wave')
+                    .attr('stroke', 'black')
+                    .attr('fill-opacity', 0.4)
+                    .appendTo($svg),
+
+       $charge = $(SVG('circle'))
+                    .attr('id', 'charge')
+                    .attr('fill', 'red')
+                    .appendTo($svg),
+
+       pulse_x, pulse_y, intensity;
+
+   var charging = function (now, fx)
+     {
+         $wave
+           .attr('r', Math.round(25*fx.pos))
+           .attr('stroke-width', Math.round(5*fx.pos));
+     };
+
+   var charged = function (now, fx)
+     {
+        if (fx)
+        {
+           $charge
+              .attr('r', Math.round(MAX_R*fx.pos))
+              .attr('fill-opacity', Math.round(8*(1-fx.pos)) / 10);
+
+        }
+        else
+        {
+           $charge
+              .attr('r', 1)
+              .attr('fill-opacity', 0.7)
+              .css('display', 'block');
+
+           $(this)
+               .stop(true)
+               .animate({tabIndex: 0},
+                  {
+                     duration: 500,
+                     easing: 'linear',
+                     step: charged,
+                     complete: charged
+                  });
+
+        }
+     };
+
+   var discharge = function (now, fx)
+     {
+         $wave
+           .attr('r', Math.round(MAX_R*(1-fx.pos)))
+           .attr('stroke-width', Math.round(5*(1-fx.pos)));
+     };
+
+   var pulse = function (now, fx)
+     {
+        if (fx)
+        {
+           $wave
+              .attr('r', Math.round(1000*fx.pos))
+              .attr('stroke-width', Math.round(100*intensity*fx.pos)+1)
+              .attr('stroke-opacity', Math.round(3*intensity*(1-fx.pos)+0.05) / 10);
+
+        }
+        else
+        {
+           $wave
+              .css('display', 'block')
+              .attr('fill', 'none')
+              .attr('r', 1);
+
+           $(this)
+               .stop(true)
+               .animate({tabIndex: 0},
+                  {
+                     duration: 300,
+                     easing: 'linear',
+                     step: pulse,
+                     complete: finished
+                  });
+
+        }
+     };
+
+   var finished = function ()
+     {
+        $svg.find('circle').css('display', 'none');
+
+        pulse_x = -1;
+        pulse_y = -1;
+     };
+
+   $svg
+      .css({height: $(window).height(), width: $(window).width()})
+      .find('circle').css('display', 'none')
+      .end()
+      .mousedown(function (e)
+        {
+           var pos = $(document.body).offset();
+
+           pulse_x = e.pageX - pos.left;
+           pulse_y = e.pageY - pos.top;
+
+           $(this).stop(true);
+
+           $wave
+              .attr('cx', pulse_x)
+              .attr('cy', pulse_y)
+              .attr('r', 1)
+              .attr('fill', 'white')
+              .attr('stroke-width', 1)
+              .attr('stroke-opacity', 0.3)
+              .css('display', 'block');
+
+           $charge
+              .attr('cx', pulse_x)
+              .attr('cy', pulse_y);
+
+           $(this)
+               .animate({tabIndex: 0},
+                  {
+                     duration: 500,
+                     easing: 'linear',
+                     step: charging,
+                     complete: charged
+                  });
+
+        })
+       .mouseup(function (e)
+        {
+           intensity = $wave.attr('r') / MAX_R;
+
+           $(this).stop(true);
+
+           $charge
+              .css('display', 'none');
+
+           $(this)
+               .animate({tabIndex: 0},
+                  {
+                     duration: 100,
+                     easing: 'linear',
+                     step: discharge,
+                     complete: pulse
+                  });
+        });
+
+});
+</script>
+
