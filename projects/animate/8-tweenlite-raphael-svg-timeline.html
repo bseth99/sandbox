@@ -174,19 +174,18 @@ $(function()
       */
 
           'discharge',
-          function () {charge.hide();},
-
           TweenLite.to(wave, 0.25, {
                  ease: Linear.easeNone,
                  raphael: {
                      r: 1,
                      'fill-opacity': 0,
                      'stroke-width': 1
-                   }
+                   },
+                 onStart: function () {charge.hide();}
              }),
 
       /*
-         Part 3: Emit the wave.
+         Part 4: Emit the wave.
           * Add the label for playback control
           * Add the animation - save a reference for later
           * Add function to hide everything
