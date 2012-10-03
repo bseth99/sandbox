@@ -219,7 +219,7 @@ $(function()
        ], 0, 'sequence', 0);
 
    $svg
-      .mousedown(function (e)
+      .on('mousedown touchstart', function (e)
         {
            var pos = $(document.body).offset();
 
@@ -237,7 +237,7 @@ $(function()
            timeline.play('charging');
 
         })
-       .mouseup(function (e)
+       .on('mouseup touchend', function (e)
         {
            intensity = wave.attr('r') / MAX_R;
 

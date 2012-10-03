@@ -1,0 +1,219 @@
+---
+layout: page
+title: Managing Animation Sequences in jQuery
+group: animate
+tags : [javascript, animate, jquery]
+---
+{% include JB/setup %}
+
+<style>
+
+.wrapper {
+   position: relative;
+   height: 400px;
+   border: 1px dotted green;
+}
+
+.box {
+   position: absolute;
+   background-color: red;
+   height: 50px;
+   width: 80px;
+   border: 1px solid black;
+}
+
+</style>
+
+<div class="discussion">
+   This demo investigates how to best manage the code that controls the
+   animation sequence of multiple elements.  The goal was to find a readable
+   and maintainable approach that would benefit more complex animations.  The
+   source has 3 equivalent implementations.  The demo is running using option C.
+   Even though its longer, I find it easier to read and like the modularity of the
+   sequence so its easily reusable and changable.  Click anywhere inside the dotted
+   box below to see the animation.
+</div>
+<br/>
+
+<div id="goDiv" class="wrapper">
+ <div id="myDiv1" class="box"></div>
+ <div id="myDiv2" class="box"></div>
+</div>
+
+<script>
+/*
+
+Option A:
+
+$(function()
+{
+  $('.box').css('display', 'none');
+
+  $('#goDiv').click(function (e) {
+
+     var pos = $(this).offset();
+
+     $('#myDiv1')
+        .stop(true)
+        .css({left: e.pageX-pos.left, top: e.pageY-pos.top})
+        .show(250)
+        .animate({left: 0}, {
+              duration: 1000,
+              complete: function () {
+                     $('#myDiv2')
+                         .stop(true)
+                         .css({left: e.pageX-pos.left, top: e.pageY-pos.top})
+                         .show(250)
+                         .animate({top: 0}, 1000)
+                         .delay(1000)
+                         .animate({left: 0}, {
+                             duration: 1000,
+                             complete: function () {
+                                  $(this).hide(250);
+                             }
+                      });
+                 }
+            })
+        .delay(1000)
+        .animate({top: 0}, {
+              duration: 1000,
+              complete: function () {
+                     $(this).hide(250);
+                 }
+            });
+
+  });
+});
+*/
+
+/*
+
+Option B:
+$(function()
+{
+  $('.box').css('display', 'none');
+
+  $('#goDiv').click(function (e) {
+
+     var pos = $(this).offset();
+
+     $('#myDiv1')
+        .stop(true)
+        .css({left: e.pageX-pos.left, top: e.pageY-pos.top})
+        .show(250)
+        .animate({left: 0}, 1000)
+        .delay(1000)
+        .animate({top: 0}, {
+              duration: 1000,
+              complete: function () {
+                     $(this).hide(250);
+                 }
+      });
+
+     $('#myDiv2')
+        .stop(true)
+        .css({left: e.pageX-pos.left, top: e.pageY-pos.top})
+        .delay(1000)
+        .show(250)
+        .animate({top: 0}, 1000)
+        .delay(1000)
+        .animate({left: 0}, {
+            duration: 1000,
+            complete: function () {
+                 $(this).hide(250);
+            }
+      });
+
+  });
+});
+*/
+
+/*
+
+Option C:
+*/
+
+$(function()
+{
+  $('.box').css('display', 'none');
+
+  function div1Show()
+  {
+     $('#myDiv1').show(250, div1Left);
+  }
+
+  function div1Left()
+  {
+     $('#myDiv1').animate({left: 0}, {
+           duration: 1000,
+           complete: function ()
+             {
+                div2Show();
+                div1Top();
+             }
+        });
+  }
+
+  function div2Show()
+  {
+     $('#myDiv2').show(250, div2Top);
+  }
+
+  function div2Top()
+  {
+     $('#myDiv2').animate({top: 0}, {
+           duration: 1000,
+           complete: div2Left
+        });
+  }
+
+  function div1Top()
+  {
+     $('#myDiv1')
+        .delay(1000)
+        .animate({top: 0}, {
+           duration: 1000,
+           complete: div1Hide
+        });
+  }
+
+  function div1Hide()
+  {
+     $('#myDiv1').hide(250);
+  }
+
+  function div2Left()
+  {
+     $('#myDiv2')
+        .delay(1000)
+        .animate({left: 0}, {
+           duration: 1000,
+           complete: div2Hide
+        });
+  }
+
+  function div2Hide()
+  {
+     $('#myDiv2').hide(250);
+  }
+
+
+  $('#goDiv').click(function (e) {
+
+     var pos = $(this).offset();
+
+     $('#myDiv1')
+        .stop(true)
+        .css({left: e.pageX-pos.left, top: e.pageY-pos.top});
+
+     $('#myDiv2')
+        .stop(true)
+        .css({left: e.pageX-pos.left, top: e.pageY-pos.top});
+
+      div1Show();
+
+  });
+});
+
+
+</script>

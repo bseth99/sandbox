@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Sequencing Animations in jQuery
+title: Animating SVG in jQuery - The Impulse Wave Example
 group: animate
 tags : [javascript, animate, jquery, svg]
 ---
@@ -12,11 +12,6 @@ tags : [javascript, animate, jquery, svg]
    left: 0px;
    top: 0px;
    z-index: 1000px;
-}
-
-.fall-under {
-   background-color: linen;
-   border: 3px solid black;
 }
 
 </style>
@@ -168,7 +163,7 @@ $(function()
       .css({height: $(window).height(), width: $(window).width()})
       .find('circle').css('display', 'none')
       .end()
-      .mousedown(function (e)
+      .on('mousedown touchstart', function (e)
         {
            var pos = $(document.body).offset();
 
@@ -200,7 +195,7 @@ $(function()
                   });
 
         })
-       .mouseup(function (e)
+       .on('mouseup touchend', function (e)
         {
            intensity = $wave.attr('r') / MAX_R;
 

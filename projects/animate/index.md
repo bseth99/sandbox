@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Exploring Non-Linear Path Animations
+title: Animating the DOM in Javascript
 group: projects
 ---
 {% include JB/setup %}
