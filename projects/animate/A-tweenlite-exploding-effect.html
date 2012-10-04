@@ -1,0 +1,552 @@
+---
+layout: page
+title: Javascript Physics - Creating an Explosion Effect
+group: animate
+tags : [javascript, animate, tweenlite, physics]
+---
+{% include JB/setup %}
+
+<script src="tweenlite/TimelineLite.min.js"></script>
+<script src="tweenlite/TweenLite.min.js"></script>
+<script src="tweenlite/easing/EasePack.min.js"></script>
+<script src="tweenlite/plugins/CSSPlugin.min.js"></script>
+
+<style>
+body {
+   overflow: hidden;
+}
+
+.wrapper {
+   z-index: 0;
+   position: relative;
+   width: 800px;
+   height: 400px;
+}
+
+.debug, .key {
+   position: absolute;
+   padding: 5px;
+   font-size: 8pt;
+   background-color: white;
+}
+
+.key {
+   z-index: 1000;
+}
+
+.box {
+   position: absolute;
+   background-color: red;
+   border: 1px solid black;
+}
+
+.watching {
+   border: 1px solid yellow;
+   background-color: pink;
+}
+
+#params, #controls {
+   z-index: 2000;
+}
+
+#center {
+   z-index: 1000;
+   position: absolute;
+   height: 10px;
+   width: 10px;
+   background-color: lightgreen;
+}
+
+.actions {
+   width: 750px;
+}
+
+.actions div {
+   margin: 5px;
+}
+
+input[type=text] {
+   width: 45px;
+}
+
+hr {
+   margin: 0px;
+}
+
+#params, #controls {
+   float: left;
+}
+
+</style>
+
+
+<div class="discussion">
+  This is a fun demo of an explosion effect using the TweenLite animation library.
+  (<a href="#">more</a>)
+
+  <div>
+     The green square can be repositioned to set the center of the force that will eminate outward
+     at the rate entered in the Speed box (px/s).  The wave will have a starting intensity based
+     on the value in the Intensity box (kg*px^2/s^2).  The Drag field will control the deacceleration (px/s^s)
+     of each box.  This demo makes heavy use of the TimelineLite object to control the timing of the
+     animation.  You can step through the animation one "frame" at a time, run it in slow-motion, or
+     use the slider control to move through the sequence.  Please read my blog post for a detailed look
+     at how this demo was created.
+  </div>
+
+</div>
+</br>
+
+<div class="actions">
+   <div id="params">
+    Intensity: <input id="intensity" type="text" size="5" value="100000" />
+    Speed: <input id="speed" type="text" size="5" value="3000" />
+    Drag: <input id="drag" type="text" size="5" value="10" />
+   </div>
+
+   <div id="controls">
+    <input id="step" type="button" value="Step" />
+    <input id="run" type="button" value="Run" />
+    <input id="slow" type="button" value="Slow" />
+    <input id="reset" type="button" value="Reset" />
+    Time Index: <span id="timeindex">0</span> seconds
+   </div>
+
+   <div style="clear: both"></div>
+
+   <div id="timeline"></div>
+</div>
+
+<div class="debug">
+  <div>
+    <b>Debug</b>
+    (<a id="akey" href="#">key</a>)
+  </div>
+  <hr/>
+  <div id="calcs" class="output"></div>
+  <hr/>
+  <div id="watch" class="output"></div>
+</div>
+
+<div class="key">
+ <div style="font-weight: bold">Key:</div>
+   <hr/>
+   area:area of box<br/>
+   mass:fictional mass of box<br/>
+   surf:perimeter of box<br/>
+   dx:x-delta from epicenter<br/>
+   dy:y-delta from epicenter<br/>
+   dr:distance (radius) from epicenter<br/>
+   sst:time of wave impact<br/>
+   mmt:fully accelerated time<br/>
+   eet:time of complete stop<br/>
+   osd:speed at mmt<br/>
+   md:distance during acceleration<br/>
+   td:distance during deacceleration<br/>
+   mx:accerating X-delta<br/>
+   my:accerating Y-delta<br/>
+   fx:final X-delta<br/>
+   fy:final Y-delta<br/>
+   rota:rotation during acceleration<br/>
+   rotb:rotation during deacceleration<br/>
+   <hr/>
+   cx:box x-coord<br/>
+   cy:box y-coord<br/>
+   total:total time of animation<br/>
+</div>
+
+<div class="wrapper">
+   <div id="center"></div>
+</div>
+
+<script>
+
+$(function()
+{
+
+/****************************************************************************************
+
+  Make the boxes.  Nothing fancy here ... keep scrolling for the good parts.
+
+*****************************************************************************************/
+
+
+   var sz,
+       row = 5,
+       mrow = row,
+       col = 5,
+       s1 = 5,
+       s2 = 35,
+       num = 200;
+
+   for (var i=0;i<num;i++)
+   {
+      sz = Math.round(s1 + Math.random() * s2);
+
+      $('<div>')
+          .addClass('box')
+          .css({
+                top: row,
+                left: col,
+                height: sz,
+                width: sz
+             })
+          .appendTo('.wrapper');
+
+      col += sz + 5;
+      if (col > 700)
+      {
+         col = 5;
+         row = mrow + 5;
+         mrow = row;
+      }
+      else
+      {
+         mrow = Math.max(mrow, row + sz);
+      }
+   }
+
+
+/****************************************************************************************
+
+  Global variables, UI setup, debug functions, and other menial tasks
+
+*****************************************************************************************/
+
+   var $zn = $('.wrapper'),
+       $bd = $zn.children(':not(#center)'),
+       $watch = $bd.first(),
+       r = {x: $zn.outerWidth() / 2, y: $zn.outerHeight() / 2},
+       cof = 1,      // Deacceleration (px/ms^2)
+       pin = 200,    // Pulse intensity - force (m*px/ms^2)
+       psd = 100,    // Pulse speed (px/ms)
+       now = 0,      // Current time
+       total = 0,
+       scaled = 0,
+       init = false;
+
+   function updateParams()
+   {
+      switch (this.id)
+      {
+         case 'intensity' :
+            pin = +this.value;
+            break;
+
+         case 'speed' :
+            psd = +this.value;
+            break;
+
+         case 'drag' :
+            cof = +this.value;
+            break;
+      }
+
+      initialize();
+      refreshDebug();
+   }
+
+   function refreshDebug()
+   {
+      var dbg, pos, o;
+
+      if ($watch)
+      {
+          dbg = '';
+          o = $watch.data('calcs');
+          for (var m in o)
+             dbg += m+':'+o[m]+'<br/>';
+
+          $('.debug #calcs').html(dbg);
+
+          pos = $watch.position();
+          dbg = 'cx: '+pos.top+'<br/>cy: '+pos.left+'<br/>';
+          dbg += 'total: '+total+'<br/>';
+
+          $('.debug #watch').html(dbg);
+      }
+   }
+
+   $('#center')
+      .css({top: r.y, left: r.x})
+      .draggable({
+            containment: 'parent',
+            stop: function (e, ui)
+             {
+                r = {x: ui.position.left, y: ui.position.top};
+
+                initialize();
+                refreshDebug();
+             }
+         });
+
+   $zn.on('click', function (e)
+     {
+        $watch = null;
+
+        $bd.removeClass('watching');
+        $('.debug .output').html('');
+     });
+
+   $bd.on('click', function (e)
+     {
+        var $el = $(this);
+
+        $el.addClass('watching')
+           .siblings()
+              .removeClass('watching');
+
+        $watch = $el;
+
+        refreshDebug();
+
+        e.stopPropagation();
+     });
+
+   var znp = $zn.offset(),
+       atn = $('.actions').offset();
+
+   $('.debug').css({
+        top: atn.top,
+        left: znp.left + $zn.outerWidth(true)
+      });
+
+   $('.key').css({
+           top: atn.top,
+           left: znp.left + $zn.outerWidth(true) - $('.key').outerWidth(true),
+           display: 'none'
+         });
+
+   $('#akey').click(function (e)
+     {
+        if ($('.key').css('display') == 'none')
+           $('.key').css('display', 'block');
+        else
+           $('.key').css('display', 'none');
+     });
+
+   $('.discussion div').hide();
+   $('.discussion a').click(function (e)
+     {
+        if (this.innerHTML == 'more')
+        {
+           this.innerHTML = 'less'
+           $('.discussion div').show();
+        }
+        else
+        {
+           this.innerHTML = 'more'
+           $('.discussion div').hide();
+        }
+     });
+
+/****************************************************************************************
+
+  Animation control logic and UI updates.  The fun is getting closer ...
+
+*****************************************************************************************/
+
+   var timeline = new TimelineLite({
+             paused: true,
+             onStart: refreshDebug,
+             onUpdate: refreshTimeControl,
+             onComplete: refreshDebug
+         });
+
+
+   function updateTracking()
+   {
+      $('#timeline').slider('option', 'value', now * scaled);
+      $('#timeindex').text(Math.round(now * 1000) / 1000);
+   }
+
+   function refreshTimeControl()
+   {
+      now = this.time();
+      updateTracking();
+      if (now * scaled > 1000)
+         timeline.stop();
+   }
+
+   $('#timeline').slider({
+       max: 100,
+       animate: true,
+       slide: function(event, ui)
+         {
+            now = ui.value / scaled;
+            timeline.pause();
+            timeline.seek(now, true);
+            refreshDebug();
+            updateTracking();
+         }
+     });
+
+   $('#step').click(function ()
+      {
+         now += 1 / scaled;
+         timeline.seek(now);
+         refreshDebug();
+         updateTracking();
+      });
+
+   $('#reset').click(function ()
+      {
+         timeline.pause();
+         timeline.seek(0);
+         now=0;
+         refreshDebug();
+         updateTracking();
+      });
+
+   $('#run').click(function ()
+      {
+         if (!init)
+            initialize();
+
+         timeline.duration(total);
+         timeline.resume();
+      });
+
+   $('#slow').click(function ()
+      {
+         if (!init)
+            initialize();
+
+         timeline.duration(total * 10);
+         timeline.resume();
+   });
+
+
+/****************************************************************************************
+
+  Do the math and create the timeline.  This is the magic.
+
+*****************************************************************************************/
+
+   function initialize()
+   {
+      timeline.pause();
+      timeline.seek(0);
+      timeline.clear();
+
+      $bd.each(function (i, b)
+       {
+          var $b = $(this),
+              off = $b.position(),
+              ct = {x: $b.width() / 2 + off.left, y: $b.height() / 2 + off.top},
+              area = $b.width() * $b.height(),
+              surf = 2 * ($b.width() + $b.height()),
+              mass = area / 100,
+              rot = (Math.random() * 5 - 2.5),
+              o = {area: 0, mass: 0, surf:0,
+                   dx: 0, dy: 0, dr: 0,
+                   sst: 0, mmt: 0, eet: 0,
+                   osd: 0, md: 0, td: 0,
+                   mx: 0, my: 0, fx: 0, fy: 0,
+                   rota: 0, rotb: 0};
+
+          // Need to know at which point in time the
+          // wave will hit the box.  Although not perfect,
+          // use the distance from center of the box shape
+          // to r.  Do some triangle math to find the hypotenuse
+          // and then find the start time by dividing the distance
+          // by the speed of the wave.
+
+          o.dx = ct.x-r.x;
+          o.dy = ct.y-r.y;
+          o.dr = Math.sqrt(o.dx*o.dx+o.dy*o.dy);
+          o.sst = o.dr / psd;
+
+          o.area = area;
+          o.surf = surf;
+          o.mass = mass;
+
+          // Now figure out the maximum speed of the object.
+          // This is based on the amount of enery remaining in the
+          // the wave at dr, how long the wave is in contact with the
+          // box, and how heavy the box is.
+
+          o.osd = (pin * 5000 / (o.dr * o.dr)) * (o.surf / psd) / o.mass;
+
+          // Now that we know how fast the box will be moving, we
+          // can solve for how long it will to each part of the
+          // speeding up and slowing down.  There's a few intermediate
+          // variables.
+
+          // The important ones are the **t (time) and *x/*y (distance deltas)
+
+          o.mmt = o.sst + (o.surf / psd);
+          o.md = (o.mmt - o.sst) * o.osd;
+
+          o.mx = o.dx * o.md / o.dr;
+          o.my = o.dy * o.md / o.dr;
+
+          o.eet = o.mmt + o.osd / cof;
+          o.td = (o.eet - o.mmt) * o.osd;
+
+          o.fx = o.mx + o.dx * o.td / o.dr;
+          o.fy = o.my + o.dy * o.td / o.dr;
+
+          // Assign a random rotational velocity to each shape
+          // Use the distance traveled as a scaling metric.
+
+          o.rota = Math.round(rot * o.md);
+          o.rotb = Math.round(o.rota + rot * o.td);
+
+          // Save for debugging display
+          $b.data('calcs', o);
+
+          // The easing function will take care of
+          // acceleration/deacceleration.  We just
+          // need to know how long and how far.
+          // TweenLite does the rest.
+
+          timeline.insertMultiple(
+             [
+                TweenLite.to(this, (o.mmt - o.sst), {
+                       ease: Power2.easeIn,
+                       css: {
+                           top: off.top+o.my,
+                           left: off.left+o.mx,
+                           rotation: o.rota+'deg'
+                         }
+                   }),
+
+                TweenLite.to(this, (o.eet - o.mmt), {
+                       ease: Power2.easeOut,
+                       css: {
+                           top: off.top+o.fy,
+                           left: off.left+o.fx,
+                           rotation: o.rotb+'deg'
+                         }
+                   })
+             ], o.sst, 'sequence', 0);
+      });
+
+      init = true;
+      total = timeline.totalDuration();
+
+      // 90% of what happens will occur at the very beginning of the animations
+      // However, the boxes closest to the origin of the wave will fly off the
+      // screen at such a high velocity that they will likely take 700 seconds
+      // to come to a complete stop.  I'll use exponential scaling of the animation
+      // so to give us the "good part" that can be stepped through and tracked
+      // with the progress bar.
+
+      scaled = Math.log(total) * 10;
+   }
+
+
+/****************************************************************************************
+
+  Grab the current input values and get everything running ...
+
+*****************************************************************************************/
+
+   $('#params input')
+      .each(updateParams)
+      .on('change', updateParams);
+
+});
+</script>
+

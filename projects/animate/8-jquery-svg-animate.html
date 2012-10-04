@@ -163,7 +163,7 @@ $(function()
       .css({height: $(window).height(), width: $(window).width()})
       .find('circle').css('display', 'none')
       .end()
-      .on('mousedown touchstart', function (e)
+      .on('mousedown', function (e)
         {
            var pos = $(document.body).offset();
 
@@ -195,7 +195,7 @@ $(function()
                   });
 
         })
-       .on('mouseup touchend', function (e)
+       .on('mouseup', function (e)
         {
            intensity = $wave.attr('r') / MAX_R;
 
