@@ -1,0 +1,487 @@
+---
+layout: page
+title: Cracked Glass Effect Using an HTML5 Canvas
+group: canvas
+tags : [javascript, html5, canvas, effect, algorithm]
+---
+{% include JB/setup %}
+
+
+<style>
+.wrapper {
+   position: relative;
+   height: 500px;
+}
+
+.wrapper * {
+   position: absolute;
+}
+
+</style>
+
+<div class="discussion">
+This demo contains an image and HTML5 Canvas element positioned over the image
+which contains the actual cracks.  The image is unaffected.  You can hide the image
+to see the canvas overlay.  Click the "Add Cracks" to draw the whole crack effect.
+Click the "Add Single Crack" to see what the crackedLineSegment() function does
+for one cracked line.
+</div>
+<br/>
+
+<div class="actions">
+ <input id="toggle-image" type="button" value="Show/Hide Image" />
+ <input id="single-image" type="button" value="Add Single Crack" />
+ <input id="crack-image" type="button" value="Add Cracks" />
+</div>
+<br/>
+
+<div class="wrapper">
+ <img id="image" src="flowers.jpg" />
+ <canvas id="crack"></canvas>
+</div>
+
+<script>
+
+
+var _RAD = Math.PI / 180;
+
+function findPointOnCircle(c, r, a)
+{
+   return {
+       x: c.x + r * Math.cos(a*_RAD) - r * Math.sin(a*_RAD),
+       y: c.y + r * Math.sin(a*_RAD) + r * Math.cos(a*_RAD)
+     };
+}
+
+function addNoise(ctx, xx, yy, ww, hh, freq)
+{
+   var h = hh,
+       w = ww,
+       clr, alp, x, y, pos, cnt;
+
+   ctx.lineWidth = 1;
+
+   for (y=yy;y<h+yy;y++)
+   {
+      for (x=xx;x<w+xx;x++)
+      {
+         if (Math.random() < freq)
+         {
+            pos = y-Math.floor(Math.random()*2+0.5);
+            cnt = Math.floor(Math.random()*4+0.5);
+            if (pos < 0) pos = 0;
+            if (cnt > h) cnt = h;
+
+            while (cnt >= 0)
+            {
+               clr = Math.round(Math.random() * 50 + 200);
+               alp = Math.round(Math.random() * 10 + 2) / 30;
+               ctx.strokeStyle = 'rgba('+clr+','+clr+','+clr+','+alp+')';
+
+               ctx.beginPath();
+               ctx.moveTo(x - Math.floor(Math.random()*3+0.5), pos);
+               ctx.lineTo(x + Math.floor(Math.random()*3+0.5), pos);
+               ctx.stroke();
+
+               cnt--;
+               pos++;
+            }
+         }
+      }
+   }
+}
+
+function crackedLineSegment(ctx, img, p1, p2, pw)
+{
+   var dx = (p2.x - p1.x),
+       dy = (p2.y - p1.y),
+       dl = Math.sqrt(dx*dx + dy*dy),
+
+       ns = 1,
+       tx = dy / dl,
+       ty = dx / dl,
+
+       td = 5,
+       ax = Math.abs(tx),
+       ay = Math.abs(ty),
+
+       co = 1 / Math.log(pw+Math.E),
+       step = Math.floor(Math.log(dl < 10 ? 10 : dl)),
+       cm = 15/pw+1,
+       dd = dl/step,
+
+       sx = dx / dl,
+       sy = dy / dl,
+       lp, cp, dp,
+       cw, lw, lrw1, lrw2, crw1, crw2,
+       rfl,
+
+       //Curvature
+       mpp = Math.random() * 0.5 + 0.3,
+       mp1 = dl * mpp,
+       mp2 = dl - mp1,
+       cma = Math.random() * dd / 4 - dd / 4,
+       cdt, clr,
+
+       pc = {x: p1.x + sx*mp1 + tx*cma, y: p1.y + sy*mp1 - ty*cma},
+
+       // Area to grab from image
+       x1 = Math.max(-td*tx, Math.min(p1.x, p2.x, pc.x)-ns),
+       y1 = Math.max(td*ty, Math.min(p1.y, p2.y, pc.y)-ns),
+       x2 = Math.max(td, Math.max(p1.x, p2.x, pc.x)+ns),
+       y2 = Math.max(td, Math.max(p1.y, p2.y, pc.y)+ns),
+       w = x2 - x1,
+       h = y2 - y1;
+
+   // Define clipping region which follows the curvature
+   // calculated above.
+
+   ctx.save();
+
+   ctx.beginPath();
+   ctx.moveTo(p1.x+ns*tx, p1.y-ns*ty);
+   ctx.lineTo(pc.x+ns*tx, pc.y-ns*ty);
+   ctx.lineTo(p2.x+ns*tx, p2.y-ns*ty);
+   ctx.lineTo(p2.x-ns*tx, p2.y+ns*ty);
+   ctx.lineTo(pc.x-ns*tx, pc.y+ns*ty);
+   ctx.lineTo(p1.x-ns*tx, p1.y+ns*ty);
+   ctx.closePath();
+   ctx.clip();
+
+   // Now copy a chunk of the image into the clipped region
+   // Shift it slightly to create a minor refraction in the
+   // image.
+
+   try
+   {
+      ctx.drawImage(img, x1+td*tx, y1-td*ty, w, h, x1, y1, w, h);
+   }
+   catch (e)
+   {
+      // Bounds debugging
+      console.log('cma:'+cma+',x1:'+x1+',mx:'+td*tx+',y1:'+y1+',my:'+td*ty+',w:'+w+',h:'+h);
+   }
+
+   ctx.restore();
+
+   /*
+   * Time to draw the crack.  Three parts:
+   * 1 - a light line that varies in width along the crack path
+   * 2 - a darker line that traces along the lighter line
+   * 3 - smaller perpendicular lines eminating from the main line
+   *
+   * The first 2 steps are drawn in random lengths which will
+   * result in the lighter line appearing like thinner/wider
+   * sections.  The width is designed to be thinner in the middle
+   * of the crack and wider at the ends.
+   *
+   * The third step occurs more frequently at the ends of the
+   * crack segment to create small fractures that might occur
+   * at intersecting points or the start of more cracks
+   */
+
+   lp = p2;
+   lrw1 = Math.random();
+   lrw2 = Math.random();
+
+   // How wide the crack segment should be drawn
+   // Short segments are wider than long segments
+   lw = 50/Math.log(dl+10);
+
+   while (dd > 0)
+   {
+      // Find deviation from straight line to a
+      // random inflexion point.  Cracks are always
+      // perfectly straight.
+      if (dd*step < mpp*dl)
+         cdt = cma * (1-Math.pow((mp1-dd*step)/mp1, 2));
+      else
+         cdt = cma * (1-Math.pow((mp2-(dl-dd*step))/mp2, 2));
+
+      // Where are we on the crack line
+      cp = {x: p1.x + dd*sx*step + tx*cdt, y: p1.y + dd*sy*step - ty*cdt};
+
+      // Find the ends of the crack to determine cutoff for
+      // drawing part 3
+      dp = Math.pow((dl/step - dd*2) / dl * step, 2);
+
+      // Adjust width based on position -
+      // wider at ends
+      cw = Math.ceil(dp*lw)+2;
+
+      if (Math.random() > co || dd - 1 <= 0)
+      {
+         // Mostly a rectangle based on lw
+         clr = Math.round(Math.random() * 15 + 240);
+
+         rfl = ctx.createRadialGradient(
+                        (lp.x+cp.x)/2 - lw*sx,
+                        (lp.y+cp.y)/2 - lw*sy,
+                        1,
+                        (lp.x+cp.x)/2 + lw*sx,
+                        (lp.y+cp.y)/2 + lw*sy,
+                        cw);
+
+         rfl.addColorStop(0, 'rgba('+clr+','+clr+','+clr+', 1)');
+         rfl.addColorStop(0.7, 'rgba('+clr+','+clr+','+clr+', 0.3)');
+         rfl.addColorStop(1, 'rgba('+clr+','+clr+','+clr+', 0)');
+
+         ctx.fillStyle = rfl;
+
+         cw *= 2;
+
+         crw1 = Math.random();
+         crw2 = Math.random();
+
+         ctx.lineWidth = 1;
+         ctx.beginPath();
+         //ctx.moveTo(lp.x + lw*sx, lp.y - lw*sy);
+         ctx.moveTo(lp.x + lrw1*cw*tx, lp.y - lrw1*cw*ty);
+         ctx.lineTo(cp.x + crw2*cw*tx, cp.y - crw2*cw*ty);
+         //ctx.lineTo(cp.x - lw*sx, cp.y + lw*sy);
+         ctx.lineTo(cp.x - crw2*cw*tx, cp.y + crw2*cw*ty);
+         ctx.lineTo(lp.x - lrw1*cw*tx, lp.y + lrw1*cw*ty);
+         ctx.closePath();
+         ctx.fill();
+
+         // Trace along edge of the rectangle with dark line
+         ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+         ctx.lineWidth = 1;
+         ctx.beginPath();
+         ctx.moveTo(lp.x, lp.y);
+         ctx.lineTo(cp.x, cp.y);
+         ctx.stroke();
+
+         lp = {x: cp.x, y: cp.y};
+         lrw1 = crw1;
+         lrw2 = crw2;
+      }
+
+      if (Math.random() > co)
+      {
+         // Perpendicular lines add some fractures to the main
+         // crack line.
+
+         cw /= 2;
+         clr = Math.round(Math.random() * 50 + 200);
+         ctx.strokeStyle = 'rgba('+clr+','+clr+','+clr+', 0.4)';
+         ctx.lineWidth = 1;
+         ctx.beginPath();
+         ctx.moveTo(cp.x + Math.random()*cw + Math.floor(Math.random()*2-1)*cm*tx, cp.y - Math.random()*cw + Math.floor(Math.random()*2-1)*cm*ty);
+         ctx.lineTo(cp.x - Math.random()*cw + Math.floor(Math.random()*2-1)*cm*tx, cp.y + Math.random()*cw + Math.floor(Math.random()*2-1)*cm*ty);
+         ctx.stroke();
+      }
+
+      dd--;
+   }
+
+   if (pw > 2)
+      addNoise(ctx, x1, y1, w, h, 1/(h+w));
+
+/*
+   debugging for clipping area
+
+   ctx.strokeStyle = 'red';
+   ctx.lineWidth = 1;
+   ctx.beginPath();
+   ctx.moveTo(p1.x+ns*tx, p1.y-ns*ty);
+   ctx.lineTo(pc.x+ns*tx, pc.y-ns*ty);
+   ctx.lineTo(p2.x+ns*tx, p2.y-ns*ty);
+   ctx.lineTo(p2.x-ns*tx, p2.y+ns*ty);
+   ctx.lineTo(pc.x-ns*tx, pc.y+ns*ty);
+   ctx.lineTo(p1.x-ns*tx, p1.y+ns*ty);
+   ctx.closePath();
+   ctx.stroke();
+
+   ctx.strokeStyle = 'green';
+   ctx.rect(x1, y1, w, h);
+   ctx.stroke();
+*/
+
+}
+
+function addImageCrack($canvas, $image)
+{
+   var imx = 0,
+       imy = 0,
+       imw = $image.outerWidth(true),
+       imh = $image.outerHeight(true),
+       ctx,
+       main = [[]],
+       level = 1,
+       maxl = 0,
+       r = 10,
+       c = {x: imw/2+Math.random()*200-100, y: imh/2+Math.random()*200-100},
+       pt1, pt2, ang, num, num2;
+
+   ctx = $canvas[0].getContext('2d');
+
+   ctx.clearRect(0,0,imw,imh);
+   ctx.fillStyle = 'rgba(80,80,80,0.1)';
+   ctx.fillRect(0,0,imw,imh);
+
+   /*
+   * Part 1: Create a table of points that we can use to draw crack segments
+   * between.  First, we need to find the number of lines that will run
+   * outward from the center of the crack.  Each of these lines will be
+   * staggered at various angles.  The points will be placed on these
+   * lines at different intervals defined by the concentric circles
+   * created by incrementing the starting radius.
+   */
+
+   num = Math.round(Math.random() * 3) + 15;
+   ang = 360/num+5;
+
+   while (main[0].length < num)
+   {
+      num2 = ang*main[0].length+Math.round(Math.random() * 20 - 10);
+      pt2 = findPointOnCircle(c, r-5*Math.random(), num2);
+      main[0].push({angle: num2, point: pt2});
+   }
+
+   while(r < 500)
+   {
+      main[level]=[];
+      for (num2=0;num2<num;num2++)
+      {
+         pt1 = main[level-1][num2];
+         main[level][num2] = null;
+
+         if (pt1)
+         {
+            if ((pt1.point.x > imx && pt1.point.x < imw) && (pt1.point.y > imy && pt1.point.y < imh))
+            {
+               ang = pt1.angle;
+               pt1 = pt1.point;
+
+               pt2 = findPointOnCircle(c, r, ang);
+
+               pt2.x = Math.max(imx, Math.min(imw, pt2.x));
+               pt2.y = Math.max(imy, Math.min(imh, pt2.y));
+
+               main[level][num2] = {angle: ang, point: {x: pt2.x, y: pt2.y}};
+            }
+            else if (maxl == 0)
+            {
+               maxl = level;
+            }
+         }
+      }
+
+      level++;
+      r *= Math.random()*1.5 + 1;
+   }
+
+   /*
+   * Part 2: Draw the actual cracks.  There are three lines that can be
+   * drawn.
+   *   a) The original lines from the center radiating out to the
+   *      edges.  These are always drawn
+   *   b) Lines connecting two adjacent points on the same circle
+   *   c) Lines connecting two adjacent points on different circles
+   *
+   *   b & c are only drawn based a on random interval.  These
+   *   lines create the web effect of the cracking.
+   */
+
+   if (maxl == 0) maxl = level;
+
+   var l=1, g=0, co, stg=0;
+
+   for (;l<level;l++)
+   {
+      co = 1 / Math.log(l+Math.E);
+      stg = 10 * l*l;
+      for (g=0;g<num;g++)
+      {
+         pt1 = main[l-1][g];
+         pt2 = main[l][g];
+
+         if (pt1 && pt2)
+         {
+
+            crackedLineSegment(
+                      ctx,
+                      $image[0],
+                      {x:pt1.point.x, y:pt1.point.y},
+                      {x:pt2.point.x, y:pt2.point.y}, l
+                    );
+
+            if (l < maxl-1 && Math.random() < co)
+            {
+               pt1 = main[l][(g+1)%num];
+               if (pt1)
+               {
+                  crackedLineSegment(
+                            ctx,
+                            $image[0],
+                            {x:pt2.point.x, y:pt2.point.y},
+                            {x:pt1.point.x, y:pt1.point.y},
+                            l+2
+                          );
+               }
+            }
+
+            if (l < maxl-2 && Math.random() < co)
+            {
+               pt1 = main[l+1][(g+1)%num];
+               if (pt1)
+               {
+                  crackedLineSegment(
+                            ctx,
+                            $image[0],
+                            {x:pt2.point.x, y:pt2.point.y},
+                            {x:pt1.point.x, y:pt1.point.y},
+                            l+2
+                          );
+               }
+            }
+         }
+      }
+   }
+
+}
+
+$(function()
+{
+   var $canvas = $('#crack'),
+       $image = $('#image'),
+       c = {x: 200, y: 200},
+       mx = -1, my = -1;
+
+   $canvas[0].height = $image.outerHeight(true);
+   $canvas[0].width = $image.outerWidth(true);
+
+   $('#toggle-image').click(function() { $image.toggle(); } );
+
+   $('#single-image').click(function()
+     {
+         var ctx = $canvas[0].getContext('2d');
+         ctx.globalAlpha = 0.7;
+
+         crackedLineSegment(ctx, $image[0], c, {x: 200+mx*200, y: 200+my*200}, 2);
+
+         if (my == 1 && mx == 1)
+         {
+            mx = -1, my = -1;
+         }
+         else if (mx == 1)
+         {
+            mx = -1;
+            my++;
+         }
+         else
+         {
+            mx = my == 0 ? mx + 2 : mx + 1;
+         }
+     });
+
+   $('#crack-image').click(function()
+     {
+         addImageCrack($canvas, $image);
+     });
+
+});
+
+</script>
+
