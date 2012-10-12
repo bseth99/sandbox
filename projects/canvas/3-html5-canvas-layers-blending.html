@@ -1,0 +1,485 @@
+---
+layout: page
+title: HTML5 Canvas Layers and Pixel Blending Modes
+group: canvas
+tags : [javascript, html5, canvas, blending, algorithm]
+---
+
+{% include JB/setup %}
+
+<!--
+Copyright (c) 2012 Ben Olson
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+-->
+
+<style>
+.wrapper {
+   position: relative;
+}
+
+.wrapper > * {
+   position: absolute;
+}
+
+#controls {
+   position: relative;
+   left: 400px;
+   width: 150px;
+}
+
+.layer-container {
+   border: 1px dotted black;
+   padding: 2px;
+   margin: 5px;
+   width: 120px;
+   height: 100px;
+}
+
+.layer-container img {
+   cursor: move;
+}
+
+.layer-slider {
+   display: inline-block;
+   margin-left: 10px;
+   height: 98px;
+   font-size: 6pt;
+}
+</style>
+
+<div class="discussion">
+This demo shows how to work with several canvases to layer image data.  There are four canvas objects
+with various image data drawn below.  The image data has been copied into the thumbnails on the right.
+These are setup to use jQuery UI Sortable so you can rearrange the layers.  Additionally, the slider allows you
+to adjust the opacity of each layer (I placed the letter M under the canvases to illustrate the opacity better).
+The "Merge w/ drawImage" button merges the four canvases using
+drawImage() to create a final image object.  The result of the merge is place in the image below.
+The runtime of the operation is shown to the right of all the buttons.  The "Merge w/ ImageData" allows for a
+different blend mode to be selected and will perform the merge using the ImageData context object.  That
+runtime is also displayed to the right of the buttons.  The pixel level blending provides more flexibility
+but has reduced performance while the canvas drawImage() is much faster but only perform standard blending.
+</div>
+<br/>
+
+<img id="baseimg" src="flowers.jpg" style="display:none" />
+
+<div class="actions" style="line-height:1">
+   <div id="drawing" class="wrapper">
+     <div style="font-size: 64pt;margin:5px">M</div>
+     <canvas id="flowers"></canvas>
+     <canvas id="gradient"></canvas>
+     <canvas id="circle"></canvas>
+     <canvas id="inverted"></canvas>
+
+   </div>
+   <div id="controls"></div>
+</div>
+
+<br/>
+<div class="actions">
+ <input id="merge-canvas" type="button" value="Merge w/ drawImage"/>
+  <b>||| Mode:</b>
+ <select id="merge-mode">
+  <option>Normal</option>
+  <option>Screen</option>
+  <option>Multiply</option>
+  <option>Overlay</option>
+  <option>Soft Light</option>
+  <option>Hard Light</option>
+  <option>Dodge</option>
+  <option>Burn</option>
+  <option>Difference</option>
+ </select>
+
+ <input id="merge-direct" type="button" value="Merge w/ ImageData"/>
+ <span>Time: </span><span id="timer"></span><span>ms</span>
+</div>
+
+<br/>
+<div class="actions" style="line-height:1; height: 420px">
+   <div class="wrapper">
+    <div style="font-size: 64pt;margin:5px">M</div>
+    <img id="mergeimg" style="display:none"/>
+   </div>
+</div>
+
+<script>
+
+function invert(ctx)
+{
+   var imd = ctx.getImageData(0,0,ctx.canvas.width,ctx.canvas.height),
+       imp = imd.data,
+       len = imp.length;
+
+   for (var i=0;i<len;i+=4)
+   {
+      imp[i] = 255 - imp[i];
+      imp[i+1] = 255 - imp[i+1];
+      imp[i+2] = 255 - imp[i+2];
+   }
+
+   ctx.putImageData(imd,0,0);
+}
+
+function merge(layers, mode)
+{
+   var tmpc = $('<canvas>')[0],
+       mode = mode || 'normal',
+       dstc, dstd, dstpx, dsta,
+       tmpm, len, srcpx, alppx,
+       h = layers[0].height,
+       w = layers[0].width,
+       i, l, cnt, wt, srca, outa,
+       srcr, srcg, srcb,
+       dstr, dstg, dstb,
+       newr, newg, newb;
+
+   tmpc.height = h;
+   tmpc.width = w;
+   dstc = tmpc.getContext('2d');
+
+   dstc.createImageData(w,h);
+   dstd = dstc.getImageData(0,0,w,h);
+   dstpx = dstd.data;
+
+   len = dstpx.length;
+   tmpm = new Array(4);
+
+   cnt = layers.length;
+   srcpx = new Array(cnt);
+   alppx = new Array(cnt);
+
+   layers.each(function (idx)
+    {
+       var ctx = this.getContext('2d'),
+           imd = ctx.getImageData(0,0,w,h);
+
+       srcpx[idx] = imd.data;
+       alppx[idx] = +$(this).css('opacity');
+    });
+
+   for (i=0;i<len;i+=4)
+   {
+      // Seed with first layer
+      tmpm[0] = srcpx[0][i];
+      tmpm[1] = srcpx[0][i+1];
+      tmpm[2] = srcpx[0][i+2];
+      tmpm[3] = srcpx[0][i+3] * alppx[0];
+
+      /*
+          Now merge each layer from the bottom up:
+          1) Find the each alpha value (convert to 0-1)
+          2) Perform blend mode calculation on each channel
+          3) Perform alpha compositing between current background and new RGB values
+          5) Clip (if necessary) and set final color and alpha
+      */
+
+      for (l=1;l<cnt;l++)
+      {
+         srca = srcpx[l][i+3] / 255 * alppx[l];
+         dsta = tmpm[3] / 255*(1-srca);
+         outa = (srca + tmpm[3]*(1-srca)/255);
+
+         srcr = srcpx[l][i];
+         srcg = srcpx[l][i+1];
+         srcb = srcpx[l][i+2];
+
+         dstr = tmpm[0];
+         dstg = tmpm[1];
+         dstb = tmpm[2];
+
+         switch (mode)
+         {
+            case 'normal' :
+
+               newr = srcr;
+               newg = srcg;
+               newb = srcb;
+               break;
+
+            case 'multiply' :
+
+               newr = srcr * dstr / 255;
+               newg = srcg * dstg / 255;
+               newb = srcb * dstb / 255;
+               break;
+
+            case 'screen' :
+
+               newr = 255 - ( ( (255 - srcr) * (255 - dstr) ) / 255);
+               newg = 255 - ( ( (255 - srcg) * (255 - dstg) ) / 255);
+               newb = 255 - ( ( (255 - srcb) * (255 - dstb) ) / 255);
+               break;
+
+            case 'overlay' :
+
+               newr = dstr < 128 ? (2 * srcr * dstr / 255) : (255 - ( ( 2 * (255 - srcr) * (255 - dstr) ) / 255));
+               newg = dstg < 128 ? (2 * srcg * dstg / 255) : (255 - ( ( 2 * (255 - srcg) * (255 - dstg) ) / 255));
+               newb = dstb < 128 ? (2 * srcb * dstb / 255) : (255 - ( ( 2 * (255 - srcb) * (255 - dstb) ) / 255));
+               break;
+
+            case 'soft light' :
+
+               newr = dstr < 128 ? (2 * (srcr>>1+64) * dstr / 255) : (255 - ( ( 2 * (255 - (srcr>>1+64)) * (255 - dstr) ) / 255));
+               newg = dstg < 128 ? (2 * (srcg>>1+64) * dstg / 255) : (255 - ( ( 2 * (255 - (srcg>>1+64)) * (255 - dstg) ) / 255));
+               newb = dstb < 128 ? (2 * (srcb>>1+64) * dstb / 255) : (255 - ( ( 2 * (255 - (srcb>>1+64)) * (255 - dstb) ) / 255));
+               break;
+
+            case 'hard light' :
+
+               newr = srcr < 128 ? (2 * srcr * dstr / 255) : (255 - ( ( 2 * (255 - srcr) * (255 - dstr) ) / 255));
+               newg = srcg < 128 ? (2 * srcg * dstg / 255) : (255 - ( ( 2 * (255 - srcg) * (255 - dstg) ) / 255));
+               newb = srcb < 128 ? (2 * srcb * dstb / 255) : (255 - ( ( 2 * (255 - srcb) * (255 - dstb) ) / 255));
+               break;
+
+            case 'dodge' :
+
+               newr = srcr + dstr;
+               newg = srcg + dstg;
+               newb = srcb + dstb;
+               break;
+
+            case 'burn' :
+
+               newr = srcr + dstr - 255;
+               newg = srcg + dstg - 255;
+               newb = srcb + dstb - 255;
+               break;
+
+            case 'difference' :
+
+               newr = Math.abs(srcr - dstr);
+               newg = Math.abs(srcg - dstg);
+               newb = Math.abs(srcb - dstb);
+               break;
+         }
+
+         newr = newr*srca + dstr*dsta;
+         newg = newg*srca + dstg*dsta;
+         newb = newb*srca + dstb*dsta;
+
+         newr = outa == 0 ? 0 : newr/outa;
+         newg = outa == 0 ? 0 : newg/outa;
+         newb = outa == 0 ? 0 : newb/outa;
+
+         tmpm[0] = (newr > 255) ? 255 : ( (newr < 0) ? 0 : newr ) | 0;
+         tmpm[1] = (newg > 255) ? 255 : ( (newg < 0) ? 0 : newg ) | 0;
+         tmpm[2] = (newb > 255) ? 255 : ( (newb < 0) ? 0 : newb ) | 0;
+         tmpm[3] = (255*outa) | 0;
+
+      }
+
+      dstpx[i] = tmpm[0];
+      dstpx[i+1] = tmpm[1];
+      dstpx[i+2] = tmpm[2];
+      dstpx[i+3] = tmpm[3];
+   }
+
+   dstc.putImageData(dstd,0,0);
+   return tmpc;
+}
+
+function merge2(layers)
+{
+   var tmpc = $('<canvas>')[0],
+       dstc = tmpc.getContext('2d'),
+       h = layers[0].height,
+       w = layers[0].width;
+
+   tmpc.height = h;
+   tmpc.width = w;
+   dstc = tmpc.getContext('2d');
+
+   layers.each(function (idx)
+    {
+       dstc.globalAlpha = +$(this).css('opacity');
+       dstc.drawImage(this, 0, 0);
+    });
+
+   return tmpc;
+}
+
+function go()
+{
+   var $canvas = $('canvas'),
+       $controls = $('#controls'),
+       ctx,
+       h = 400,
+       w = 400;
+
+   $canvas.each(function()
+     {
+        this.height = h;
+        this.width = w;
+     });
+
+// Setup background
+// -----------------------------------------------------
+   ctx = $canvas[0].getContext('2d');
+   ctx.drawImage($('#baseimg')[0], 0, 0, w, h);
+
+
+// Add a fill layer
+// -----------------------------------------------------
+   ctx = $canvas[1].getContext('2d');
+
+   grd = ctx.createLinearGradient(100,100,150,300);
+
+   grd.addColorStop(0, 'rgba(0,255,0,0)');
+   grd.addColorStop(1, 'rgba(0,0,255,1)');
+
+   ctx.fillStyle = grd;
+   ctx.fillRect(0,0,w,h);
+
+
+// Add a shape layer
+// -----------------------------------------------------
+   ctx = $canvas[2].getContext('2d');
+
+   ctx.fillStyle = 'yellow';
+   ctx.strokeStyle = 'black';
+   ctx.lineWidth = 1;
+   ctx.shadowColor = 'purple';
+   ctx.shadowBlur = 15;
+   ctx.shadowOffsetX = -5;
+   ctx.shadowOffsetY = 5;
+
+   ctx.beginPath();
+   ctx.arc(200,200,100,0,2*Math.PI);
+   ctx.stroke();
+   ctx.fill();
+
+   ctx.lineWidth = 3;
+   ctx.shadowColor = 'white';
+   ctx.shadowBlur = 1;
+   ctx.shadowOffsetX = 2;
+   ctx.shadowOffsetY = 2;
+
+   ctx.beginPath();
+   ctx.moveTo(0,150);
+   ctx.lineTo(250,0);
+   ctx.stroke();
+
+
+// Add a layer, copy part of image and invert it
+// -----------------------------------------------------
+   ctx = $canvas[3].getContext('2d');
+
+   ctx.drawImage($('#baseimg')[0], 200, 200, 200, 200, 200, 200, 200, 200);
+   invert(ctx);
+
+
+// Setup layer controls
+// -----------------------------------------------------
+
+   function updateAlpha()
+   {
+      var idx = $(this).parent().attr('layer-index');
+
+      $canvas.eq(idx).css('opacity', $(this).slider('value')/100);
+   }
+
+   $canvas.each(function(idx)
+     {
+        var $ctr, $img;
+
+        $ctr = $('<div>')
+                 .addClass('layer-container')
+                 .attr('layer-index', idx)
+                 .appendTo($controls);
+
+        $img = $('<img>').appendTo($ctr);
+
+        $img[0].height = 100;
+        $img[0].width = 100;
+        $img[0].src = this.toDataURL();
+
+
+        $('<div>')
+           .addClass('layer-slider')
+           .slider({
+                 value: 100,
+                 orientation: 'vertical',
+                 slide: updateAlpha
+             }).appendTo($ctr);
+
+     });
+
+   $controls.sortable({
+         stop: function (e, ui)
+          {
+             var cidx = +ui.item.attr('layer-index'),
+                 nidx = ui.item.index(),
+                 $itm = $canvas.eq(nidx),
+                 $tmp;
+
+             if (cidx == nidx) return;
+
+             $tmp = $canvas.eq(cidx).detach();
+             if (cidx < nidx)
+                $tmp.insertAfter($itm);
+             else
+                $tmp.insertBefore($itm);
+
+             $controls.children().each(function(idx)
+               {
+                  $(this).attr('layer-index', idx);
+               });
+
+             $canvas = $('canvas');
+          }
+      });
+
+   $('#drawing').css('top', $('#drawing').parent().outerHeight() / 2 - 200);
+
+// Merge the layers into one canvas and then set image
+// -----------------------------------------------------
+
+   $('#merge-canvas').click(function ()
+     {
+        var stime = (new Date()).getTime();
+
+        $('#mergeimg').show()[0].src = merge2($canvas).toDataURL();
+        $('#timer').text((new Date()).getTime() - stime);
+     });
+
+   $('#merge-direct').click(function ()
+     {
+        var idx = $('#merge-mode')[0].selectedIndex,
+            val = $('#merge-mode')[0].options[idx].value,
+            stime = (new Date()).getTime();
+
+        $('#mergeimg').show()[0].src = merge($canvas, val.toLowerCase()).toDataURL();
+        $('#timer').text((new Date()).getTime() - stime);
+     });
+}
+
+$(function()
+{
+   $('#baseimg')
+      .one('load', go)
+      .each(function() { /* Opera! */ if (this.complete) { $(this).trigger("load"); } });
+});
+
+</script>
+
