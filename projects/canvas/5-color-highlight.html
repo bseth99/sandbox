@@ -1,0 +1,148 @@
+---
+layout: page
+title: jQuery Color Plugin - Highlight Colors
+group: canvas
+tags : [javascript, jquery, color]
+---
+
+{% include JB/setup %}
+
+
+<script src="colorpicker/jquery.colorpicker.js"></script>
+<link href="colorpicker/jquery.colorpicker.css" rel="stylesheet" type="text/css"/>
+<script src="colorpicker/i18n/jquery.ui.colorpicker-en.js"></script>
+
+<script src="jquery-color.js"></script>
+
+<style>
+
+.labelbox {
+   display: inline-block;
+   width: 50px;
+}
+
+.colorbox {
+   border: 1px solid black;
+   display: inline-block;
+   height: 50px;
+   width: 50px;
+}
+
+.outputbox {
+   border: 2px solid #ffffff;
+   width: 200px;
+   padding: 5px;
+}
+
+#colorpicker {
+   position: absolute;
+   z-index: 1000;
+}
+
+#colorselect {
+   width: 120px;
+}
+
+</style>
+
+<div class="discussion">
+A simple example of using the jQuery Color plugin to dynamically find a highlight color to use on the
+border of a div based on the background color.  This demo used the jQuery ColorPicker
+(<a href="https://github.com/vanderlee/colorpicker">github.com/vanderlee/colorpicker</a>) to select
+the main color and then find a suitable complemtary highlight color using the lightness() extension
+available in the Color plugin.  Click the main color swatch to change the color and see the results.
+</div>
+
+<div id="colorpicker"></div>
+
+<div class="wrapper">
+  <div class="labelbox">Main</div>
+  <div class="labelbox">Highlight</div>
+</div>
+
+<div id="colorselect" class="wrapper">
+  <div class="colorbox"></div>
+  <div class="colorbox"></div>
+</div>
+
+<div class="wrapper">
+  <div id="myDiv" class="outputbox">
+    This is a box with the select
+    color as the background and the
+    calculated highlight as the border.
+  </div>
+</div>
+
+<script>
+
+jQuery.Color.fn.contrastColor = function() {
+    var r = this._rgba[0], g = this._rgba[1], b = this._rgba[2];
+    return (((r*299)+(g*587)+(b*144))/1000) >= 131.5 ? "black" : "white";
+};
+
+$(function()
+{
+   var $colorSelect = $('#colorselect'),
+       $colorMain = $colorSelect.children().eq(0),
+       $colorHighlight = $colorSelect.children().eq(1),
+       $myDiv = $('#myDiv');
+
+   function update(e, ui)
+   {
+      var cl, nc, nn;
+
+      if (!ui) return;
+
+      cl = jQuery.Color(ui.formatted);
+      nn = cl.lightness();
+      nc = cl.lightness( (nn > 0.5 ? nn : (1-nn)) / 2);
+
+
+      $colorMain.css('background-color', cl);
+      $colorHighlight.css('background-color', nc);
+
+      $myDiv.css({
+          backgroundColor: cl,
+          borderColor: nc,
+          color: cl.contrastColor()
+        });
+   }
+
+   $(document).click(function (e)
+      {
+         $('#colorpicker')
+              .hide();
+
+         update();
+      });
+
+   $colorMain.click(function (e)
+     {
+        var $el = $(this),
+            $align = $('#colorselect');
+
+        $('#colorpicker')
+           .show()
+           .colorpicker('setColor', $colorMain.css('background-color'))
+           .position({
+                 my: 'left+10, top',
+                 at: 'right, top',
+                 of: $colorSelect
+              });
+
+        e.stopPropagation();
+
+     });
+
+   $('#colorpicker')
+        .hide()
+        .colorpicker({
+             colorFormat: 'RGB',
+             select: update
+           })
+        .click(function (e) { e.stopPropagation(); } );
+
+   update(null, {formatted: 'rgba(255,0,0,1)'});
+});
+
+</script>

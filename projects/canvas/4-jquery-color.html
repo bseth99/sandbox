@@ -1,0 +1,114 @@
+---
+layout: page
+title: jQuery Color Plugin - The Magic Behind Color Animation
+group: canvas
+tags : [javascript, jquery, color]
+---
+
+{% include JB/setup %}
+
+
+<script src="jquery-color.js"></script>
+
+<style>
+.wrapper {
+   display: inline-block;
+   margin: 1px;
+   border: 1px dotted silver;
+}
+
+.color {
+   vertical-align: top;
+   font-size: 6pt;
+   margin: 3px;
+   width: 125px;
+}
+
+.box {
+   display: inline-block;
+   height: 20px;
+   width: 50px;
+   border: 1px solid dimgray;
+}
+
+.values {
+   display: inline-block;
+   margin-left: 1px;
+}
+
+</style>
+
+<div class="discussion">
+Show how easy jQuery.Color makes working with colors.  You can seamlessly switch between
+RGB and HSL color spaces and use the one which works best for the type of manipulation you need
+to achieve.  In this example, I want to incrementally change the lightness of the color until
+it is either white or black.  I created colors using names, hash values, rgb(), and hsl() - all
+conveniently parsed by the plugin.  jQuery UI uses this plugin to before color animation effects.
+However, you can also use it separately since its maintained independantly of jQuery UI
+(<a href="https://github.com/jquery/jquery-color">github.com/jquery/jquery-color</a>)
+or, if you use jQuery UI, its already there.
+<br/><br/>
+
+As of writing this example, the plugin does not handle converting RGB white to HSL white correctly.
+The saturation of all grey-scale colors should be 0%
+(<a href="http://en.wikipedia.org/wiki/HSL_and_HSV#Saturation">based on the Wikipedia</a>).
+
+If white uses 100% saturation, changing its lightness from 100% will result in shades of red:
+<br/><br/>
+<a href="http://jsfiddle.net/bseth99/xxuvk/">jsfiddle.net/bseth99/xxuvk</a>
+<br/><br/>
+This page uses the fix I've proposed to handle the conversion properly.
+
+</div>
+
+<div id="render"></div>
+
+<script>
+
+$(function()
+{
+   var $rdr = $('#render');
+
+   $.each(['black', 'white', 'rgb(80,80,80)', 'hsl(0,0%,70%)',
+           'red', 'blue', 'green', 'yellow',
+           'fuchsia', 'rgb(238,116,238)', 'hsl(14,82%,62%)', '#ffa500'], function (idx)
+      {
+         var $wrp, $val, cdf,
+             color = this,
+             clr = jQuery.Color(color),
+             now = clr.lightness(),
+             step = (now > 0.5 ? 0 - now : 1 - now) / 10;
+
+         if (idx % 4 == 0) $rdr.append('<br/>');
+
+         $wrp = $('<div>')
+                     .addClass('wrapper')
+                     .html('<span><center>'+color+'</center></span>')
+                     .appendTo($rdr);
+
+         for (var i=0;i<=10;i++)
+         {
+            cdf = clr.lightness(now + step * i);
+
+            $val = $('<div>')
+                      .addClass('color')
+                      .appendTo($wrp);
+
+            $val.append(
+               $('<div>')
+                  .addClass('box')
+                  .css('background-color', cdf)
+                  .appendTo($val)
+             );
+
+            $val.append(
+               $('<div>')
+                  .addClass('values')
+                  .html(cdf.toRgbaString()+'<br/>'+cdf.toHslaString())
+             );
+         }
+
+      });
+});
+
+</script>
