@@ -1,0 +1,252 @@
+---
+layout: page
+title: jQuery UI Spinner - Extending, Validating, and Various Other Ideas
+group: jquery-ui
+tags : [javascript, jquery, jquery-ui, widget, spinner]
+---
+
+{% include JB/setup %}
+
+<style>
+
+h5 {
+  margin-top: 5px;
+}
+
+.panel {
+   margin: 10px;
+   padding: 30px;
+   width: 300px;
+   border: 1px solid dimgray;
+}
+
+.c-input > div {
+   margin: 2px;
+   vertical-align: middle;
+   display: inline-block;
+   font-size: 8pt;
+}
+
+
+#topbottom input {
+   width: 20px;
+   font-size: 10pt;
+}
+
+#alpha input {
+   width: 30px;
+   font-size: 14pt;
+}
+
+.helpbox {
+   position: absolute;
+   z-index: 1000;
+}
+
+/* Styles for modifying spinner layout without overriding widget */
+
+.c-topbottom .ui-spinner-input {
+   margin: 0;
+   margin-top: 10px;
+   margin-bottom: 10px;
+   text-align: center;
+}
+
+.c-topbottom .ui-spinner-button {
+   height: 10px;
+   left: 0px;
+   width: 100%;
+}
+
+.c-topbottom a.ui-spinner-button {
+   border: none;
+}
+
+.c-topbottom .ui-spinner .ui-icon {
+   margin-left: -7px;
+   top: 5px;
+   left: 50%;
+}
+
+
+/* Styles for modifying spinner layout for overridden widget alphaspinner */
+
+.ui-spinner-alpha .ui-spinner-input {
+   margin: 0;
+   margin-top: 10px;
+   margin-bottom: 10px;
+   text-align: center;
+}
+
+.ui-spinner-alpha .ui-spinner-button {
+   height: 10px;
+   left: 0px;
+   width: 100%;
+}
+
+.ui-spinner-alpha a.ui-spinner-button {
+   border: none;
+}
+
+.ui-spinner-alpha .ui-icon {
+   margin-left: -7px;
+   top: 5px;
+   left: 50%;
+}
+
+</style>
+
+<div class="discussion">
+This example shows how to create an alternative layout for the jQuery UI Spinner widget.
+Additionally, the widget is extended to enable spinning through the alphabet and validating
+manual user entry.
+</div>
+
+<div class="panel ui-corner-all">
+
+   <div class="controls">
+
+     <h5 class="c-heading">Default Left Side</h5>
+     <div class="c-group">
+
+      <div class="c-input" id="normal">
+        <div class="c-field"><input value="10"/></div>
+      </div>
+
+     </div>
+
+
+     <h5 class="c-heading">Alternative Top/Bottom</h5>
+     <div class="c-group">
+
+      <div class="c-input" id="topbottom">
+        <div class="c-field c-topbottom"><input value="7"/></div>
+        <div class="c-field c-topbottom"><input value="5"/></div>
+        <div class="c-field c-topbottom"><input value="1"/></div>
+        <div class="c-label"> = </div>
+        <div class="c-output"></div>
+      </div>
+
+
+     <h5 class="c-heading">Alpha Spinner</v>
+     <div class="c-group">
+
+      <div class="c-input" id="alpha" help="Only one letter is valid">
+        <div class="c-field"><input value="S"/></div>
+        <div class="c-field"><input value="P"/></div>
+        <div class="c-field"><input value="I"/></div>
+        <div class="c-field"><input value="N"/></div>
+        <div class="c-label"> = </div>
+        <div class="c-output"></div>
+      </div>
+
+   </div>
+
+</div>
+
+<script>
+
+ $.widget( "ui.alphaspinner", $.ui.spinner, {
+     widgetEventPrefix: "spin",
+     options: {
+        max: 'Z',
+        min: 'A'
+     },
+
+     _create: function( ) {
+
+        this._super();
+
+        this.uiSpinner
+            .addClass('ui-spinner-alpha')
+            .find('.ui-spinner-up').addClass('ui-corner-tl').end()
+            .find('.ui-spinner-down').addClass('ui-corner-bl');
+
+     },
+
+     _parse: function( value ) {
+         if ( typeof value === "string" ) {
+             if (value.length > 1) {
+                 return "";
+             }
+             return value.toUpperCase().charCodeAt(0);
+         }
+         return value;
+     },
+
+     _format: function( value ) {
+         return String.fromCharCode(value);
+     },
+
+     _stop: function( event ) {
+
+         var value = this.value() || 0;
+
+         if (event.type == 'keyup' && value != this._adjustValue(value) ) {
+            this.value(this.previous);
+            this._trigger( "invalid", event );
+         }
+         else {
+            this.previous=value;
+            this.element.val(this._format(value));
+         }
+
+         this._super(event);
+     }
+ });
+
+function updateTopBottom()
+{
+   var $el = $('#topbottom'),
+       m;
+
+   m = $el.find('input').map(function() {
+           return $(this).spinner('value');
+      }).get().join(' ');
+
+   $el.find('.c-output').html(m);
+}
+
+function updateAlpha()
+{
+   var $el = $('#alpha'),
+       m;
+
+   m = $el.find('input').map(function() {
+           return String.fromCharCode($(this).alphaspinner('value'));
+      }).get().join(' ');
+
+   $el.find('.c-output').html(m);
+}
+
+$(function() {
+
+    $('#normal input').spinner();
+
+    $('#topbottom input').spinner({min: 0, max: 9, stop: updateTopBottom})
+            .parent()
+            .find('.ui-spinner-up').addClass('ui-corner-tl').end()
+            .find('.ui-spinner-down').addClass('ui-corner-bl');
+
+
+    $('#alpha input')
+            .alphaspinner({stop: updateAlpha });
+
+    $('#alpha').one('spininvalid', function() {
+       var $cn = $('#alpha');
+
+       $('<span>')
+            .addClass('helpbox ui-corner-all ui-state-highlight')
+            .text($('#alpha').attr('help'))
+            .hide()
+            .insertBefore($cn)
+            .position({my: 'left+5 bottom', at: 'left top', of: $cn})
+            .show('slide', {direction:'down'}, 'slow', function () {
+                     $(this).delay(5000).hide('slide', {direction:'down'}, 'slow', function () {$(this).remove(); });
+                  });
+    });
+
+    updateTopBottom();
+    updateAlpha();
+});
+</script>
