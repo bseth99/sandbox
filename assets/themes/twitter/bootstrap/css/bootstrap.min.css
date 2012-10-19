@@ -108,6 +108,7 @@ pre code{padding:0;color:inherit;background-color:transparent;border:0;}
 form{margin:0 0 18px;}
 fieldset{padding:0;margin:0;border:0;}
 legend{display:block;width:100%;padding:0;margin-bottom:27px;font-size:19.5px;line-height:36px;color:#333333;border:0;border-bottom:1px solid #eee;}legend small{font-size:13.5px;color:#999999;}
+/*
 label,input,button,select,textarea{font-size:13px;font-weight:normal;line-height:18px;}
 input,button,select,textarea{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;}
 label{display:block;margin-bottom:5px;color:#333333;}
@@ -193,6 +194,7 @@ legend+.control-group{margin-top:18px;-webkit-margin-top-collapse:separate;}
 .form-horizontal .control-label{float:left;width:140px;padding-top:5px;text-align:right;}
 .form-horizontal .controls{margin-left:160px;}
 .form-horizontal .form-actions{padding-left:160px;}
+*/
 table{max-width:100%;border-collapse:collapse;border-spacing:0;}
 .table{width:100%;margin-bottom:18px;}.table th,.table td{padding:8px;line-height:18px;text-align:left;vertical-align:top;border-top:1px solid #ddd;}
 .table th{font-weight:bold;}
