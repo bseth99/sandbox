@@ -32,7 +32,7 @@ $.widget( "ui.spinner", {
 	widgetEventPrefix: "spin",
 	options: {
 		culture: null,
-		orientation: 'right',
+		alignment: 'right',
 		icons: {
 			down: "ui-icon-triangle-1-s",
 			up: "ui-icon-triangle-1-n",
@@ -195,7 +195,7 @@ $.widget( "ui.spinner", {
 			.attr( "autocomplete", "off" )
 			.wrap( this._uiSpinnerHtml() )
 			.parent()
-				.addClass( "ui-spinner-" + this.options.orientation )
+				.addClass( "ui-spinner-" + this.options.alignment )
 				// add buttons
 				.append( this._buttonHtml() );
 
@@ -248,7 +248,7 @@ $.widget( "ui.spinner", {
 
 	_buttonHtml: function() {
 
-		switch (this.options.orientation) {
+		switch (this.options.alignment) {
 		case 'right':
 			return "" +
 				"<a class='ui-spinner-button ui-spinner-up ui-corner-tr'>" +

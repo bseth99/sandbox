@@ -1,8 +1,8 @@
 ---
 layout: page
-title: jQuery UI Spinner - Possible Orientation Option
+title: jQuery UI Spinner - Possible Alignment Option
 group: jquery-ui
-tags : [javascript, jquery, jquery-ui, widget, spinner, orientation]
+tags : [javascript, jquery, jquery-ui, widget, spinner, alignment]
 blog: /2012/10/18/exploring-the-new-jquery-ui-spinner-beyond-the-basics/
 ---
 
@@ -25,13 +25,15 @@ blog: /2012/10/18/exploring-the-new-jquery-ui-spinner-beyond-the-basics/
 </style>
 
 <div class="discussion">
-This demo illustrates the orientation option I added to Spinner to provide four
-layout configurations for the spin controls.  The left orientation is shown on the
+This demo illustrates the alignment option I added to Spinner to provide four
+layout configurations for the spin controls.  The left alignment is shown on the
 <a href="http://wiki.jqueryui.com/w/page/12138077/Spinner">planning wiki</a> and
 enables adding other controls to the right side of the widget like a drop menu.  The vertical and
 horizontal options add additional flexibility based on how you might want to
 use the widget.  I created three of each in different font sizes to ensure
-the widget scales properly with the input field.
+the widget scales properly with the input field.  I have this changed in
+<a href="https://github.com/bseth99/jquery-ui/tree/spinner-layout">
+my fork of the project under the spinner-layout branch</a> if you're interested in using it.
 </div>
 
 <h5>Right</h5>
@@ -64,9 +66,9 @@ the widget scales properly with the input field.
 
 <script>
 $(function() {
-	$('.right input').spinner({orientation: 'right'});
-	$('.left input').spinner({orientation: 'left'});
-	$('.vertical input').spinner({orientation: 'vertical'});
-	$('.horizontal input').spinner({orientation: 'horizontal'});
+	$('.right input').spinner({alignment: 'right'});
+	$('.left input').spinner({alignment: 'left'});
+	$('.vertical input').spinner({alignment: 'vertical'});
+	$('.horizontal input').spinner({alignment: 'horizontal'});
 });
 </script>
