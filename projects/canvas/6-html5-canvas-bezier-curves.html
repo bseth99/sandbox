@@ -1,0 +1,239 @@
+---
+layout: page
+title: Finding the Bezier Control Point from Points on the Curve
+group: canvas
+tags : [javascript, html5, canvas, bezier, curve, path]
+---
+
+{% include JB/setup %}
+
+<!--
+Copyright (c) 2012 Ben Olson (bseth99@yahoo.com)
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+-->
+
+
+<script src="path.min.js"></script>
+
+<style>
+
+.cmid {
+   width: 620px;
+   margin: auto;
+}
+
+.wrapper {
+   position: relative;
+   display: inline-block;
+   margin-top: 20px;
+}
+
+canvas {
+   border: 1px dotted black;
+}
+
+.title {
+   position: absolute;
+   top: -20px;
+}
+
+.points {
+   position: absolute;
+   height: 5px;
+   width: 5px;
+}
+
+#api .path {
+   background-color: green;
+}
+
+#path .path {
+   background-color: orange;
+}
+
+.control {
+   background-color: red;
+}
+</style>
+
+<div class="discussion">
+This demo shows how to find the control point to pass to the HTML5 Canvas
+quadraticCurveTo() function when you know the three points you want the
+line to pass through.  Move the green points around to see how it affects
+the red control point and curve rendering.  An alternative solution is to use
+<a href="https://github.com/bseth99/pathjs">bseth99/pathjs</a> to perform a
+path interpolation between the points.  That rendering is shown on the right and
+closely approximates the Canvas API function.
+</div>
+<br/>
+
+<div class="cmid">
+	<span id="api" class="wrapper">
+	 <div class="title">canvas.quadraticCurveTo</div>
+	 <canvas></canvas>
+	 <div class="points path"></div>
+	 <div class="points path"></div>
+	 <div class="points path"></div>
+	 <div class="points control"></div>
+	</span>
+
+	<span id="path" class="wrapper">
+	 <div class="title">path.bezier</div>
+	 <canvas></canvas>
+	 <div class="points path"></div>
+	 <div class="points path"></div>
+	 <div class="points path"></div>
+	</span>
+</div>
+
+<script>
+
+function clearDrawing($canvas)
+{
+   $canvas.each(function()
+     {
+        var ctx = this.getContext('2d');
+        ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+     });
+}
+
+function findControlPoint(s1, s2, s3)
+{
+    var // Unit vector, length of line s1,s3
+        ux1 = s3.x - s1.x,
+        uy1 = s3.y - s1.y,
+        ul1 = Math.sqrt(ux1*ux1 + uy1*uy1)
+        u1 = { x: ux1/ul1, y: uy1/ul1 },
+
+        // Unit vector, length of line s1,s2
+        ux2 = s2.x - s1.x,
+        uy2 = s2.y - s1.y,
+        ul2 = Math.sqrt(ux2*ux2 + uy2*uy2),
+        u2 = { x: ux2/ul2, y: uy2/ul2 },
+
+        // Dot product
+        k = u1.x*u2.x + u1.y*u2.y,
+
+        // Project s2 onto s1,s3
+        il1 = { x: s1.x+u1.x*k*ul2, y: s1.y+u1.y*k*ul2 },
+
+        // Unit vector, length of s2,il1
+        dx1 = s2.x - il1.x,
+        dy1 = s2.y - il1.y,
+        dl1 = Math.sqrt(dx1*dx1 + dy1*dy1),
+        d1 = { x: dx1/dl1, y: dy1/dl1 },
+
+        // Midpoint
+        mp = { x: (s1.x+s3.x)/2, y: (s1.y+s3.y)/2 },
+
+        // Control point on s2,il1
+        cpm = { x: s2.x+d1.x*dl1, y: s2.y+d1.y*dl1 },
+
+        // Translate based on distance from midpoint
+        tx = il1.x - mp.x,
+        ty = il1.y - mp.y,
+        cp = { x: cpm.x+tx, y: cpm.y+ty };
+
+    return cp;
+}
+
+function drawCurve($canvas, p1, p2, p3)
+{
+   var ctx = $canvas[0].getContext('2d'),
+       cp = findControlPoint(p1, p2, p3);
+
+   ctx.strokeStyle = 'black';
+   ctx.strokeWidth = 1;
+
+	ctx.beginPath();
+	ctx.moveTo(p1.x, p1.y);
+	ctx.quadraticCurveTo(cp.x,cp.y,p3.x,p3.y);
+	ctx.stroke();
+
+/*
+   Debug lines
+   ctx.strokeStyle = 'rgba(0,255,0,0.3)';
+   ctx.beginPath();
+   ctx.moveTo(p1.x,p1.y);
+   ctx.lineTo(cp.x,cp.y);
+   ctx.lineTo(p3.x,p3.y);
+   ctx.closePath();
+   ctx.stroke();
+*/
+
+	return cp;
+}
+
+
+
+$(function()
+{
+   var $points = $('#api .path');
+
+   $('canvas').each(function()
+     {
+        this.height = 300;
+        this.width = 300;
+     });
+
+	function draw() {
+		var pts, cp, pt, tl1, tt1;
+
+		pts =
+			$points.map(function () {
+					var p = $(this).position();
+					return { x: p.left, y: p.top };
+				}).get();
+
+      $('#path .path').each(function (i) {
+      			$(this).css({ left: pts[i].x, top: pts[i].y });
+            });
+
+      clearDrawing($('canvas'));
+
+		cp = drawCurve.apply(this, [$points.siblings('canvas')].concat(pts));
+
+		PATH.adapter.drawCanvas($('#path canvas')[0],
+		         PATH([
+                    { fn: 'start', x: pts[0].x, y: pts[0].y },
+                    { fn: 'bezier', points: pts.splice(1,3), density: 1 }
+                ]));
+
+		$('#api .control').css({ left: cp.x, top: cp.y });
+	}
+
+   $points
+   	.draggable({
+   			containment: 'parent',
+   			stop: draw
+   		})
+   	.each(function (i) {
+   	      var i = i + 1;
+   			$(this).css({ left: i*75, top: 300-i*100+(i%2)*75 });
+   		});
+
+   draw();
+
+});
+</script>
+
