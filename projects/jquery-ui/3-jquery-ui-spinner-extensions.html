@@ -1,0 +1,115 @@
+---
+layout: page
+title: jQuery UI Spinner - Slider Enhancement
+group: jquery-ui
+tags : [javascript, jquery, jquery-ui, widget, spinner, slider, extension]
+---
+
+{% include JB/setup %}
+
+<link rel="stylesheet" href="spinner-layout/jquery.ui.spinner.css">
+<script src="spinner-layout/jquery.ui.spinner.js"></script>
+
+<style>
+   h5 { margin-top: 5px; }
+	.wrapper { margin: 20px; }
+   .controls { position: relative; }
+   .controls div { position: absolute; font-size: 7pt; }
+	.vertical input { width: 2em; }
+	.horizontal input { width: 2em; }
+</style>
+
+<div class="discussion">
+
+ This is a quick demo showing how to add coordinate a spinner and slider widget to provide an alternative
+ method of moving through a large range of numeric values.  The nice feature the slider adds is visual feedback
+ about where you are in the valid range and a fast way of skipping to a different value without typing.
+
+ I've rolled these samples into the SlideSpinner UI widget on my GitHub <a href="https://github.com/bseth99/jquery-ui-extensions">bseth99/jquery-ui-extensions</a>
+ project.  I've created a few examples on the project page:
+
+ <ul>
+  <li>
+    <a href="http://bseth99.github.com/jquery-ui-extensions/tests/visual/slidespinner/base.html">
+      Basic layout
+    </a>
+  </li>
+
+  <li>
+    <a href="http://bseth99.github.com/jquery-ui-extensions/tests/visual/slidespinner/value.html">
+      Setting min/max and default values
+    </a>
+  </li>
+
+  <li>
+    <a href="http://bseth99.github.com/jquery-ui-extensions/tests/visual/slidespinner/format.html">
+      Formatted numeric values
+    </a>
+  </li>
+ </ul>
+
+</div>
+
+<div class="wrapper">
+
+	<h5>Slider & Spinner - Vertical</h5>
+	<div class="vertical controls">
+		<input />
+		<div></div>
+	</div>
+
+	<h5>Slider & Spinner - Horizontal</h5>
+	<div class="horizontal controls">
+		<input />
+		<div></div>
+	</div>
+
+</div>
+
+<script>
+$(function() {
+	$('.vertical input')
+		.spinner({
+	          alignment: 'vertical',
+	          min: 0,
+	          max: 100,
+	          spin: function (e, ui) {
+	                $('.vertical div').slider('value', ui.value);
+	             }
+	       });
+
+	$('.vertical div')
+		.slider({
+	          orientation: 'vertical',
+	          slide: function (e, ui) {
+	                $('.vertical input').spinner('value', ui.value);
+	             }
+	       })
+		.position({ my: 'left+5 top+5', at: 'right top', of: $('.vertical input').parent() })
+		.css('height', $('.vertical input').outerHeight(true)-10);
+
+
+
+	$('.horizontal input')
+		.spinner({
+	          alignment: 'horizontal',
+	          min: 0,
+	          max: 100,
+	          spin: function (e, ui) {
+	                $('.horizontal div').slider('value', ui.value);
+	             }
+	       });
+
+	$('.horizontal div')
+	   .slider({
+	          orientation: 'horizontal',
+	          slide: function (e, ui) {
+	                $('.horizontal input').spinner('value', ui.value);
+	             }
+	       })
+		.position({ my: 'left+5 top+5', at: 'left bottom', of: $('.horizontal input').parent() })
+		.css('width', $('.horizontal input').outerWidth(true)-10);
+
+
+});
+</script>
