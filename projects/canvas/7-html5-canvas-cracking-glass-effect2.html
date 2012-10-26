@@ -1,0 +1,840 @@
+---
+layout: page
+title: HTML5 Canvas and the Cracked Glass Effect - Revisited
+group: canvas
+tags : [javascript, html5, canvas, effect, algorithm]
+---
+
+{% include JB/setup %}
+
+<!--
+Copyright (c) 2012 Ben Olson (bseth99@yahoo.com)
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+-->
+
+
+<script src="colorpicker/jquery.colorpicker.js"></script>
+<link href="colorpicker/jquery.colorpicker.css" rel="stylesheet" type="text/css"/>
+<script src="colorpicker/i18n/jquery.ui.colorpicker-en.js"></script>
+
+<script src="jquery-color.js"></script>
+<script src="glass-crack-effect.js"></script>
+
+<style>
+* {
+   font-family:   Verdana, Arial, Helvetica, sans-serif;
+   font-size:     9pt;
+}
+
+.wrapper {
+
+}
+
+.wrapper > div {
+   display: inline-block;
+   vertical-align: top;
+}
+
+.drawing {
+   border: 1px solid silver;
+   position: relative;
+   width: 400px;
+   height: 400px;
+   padding: 10px;
+   margin: 2px;
+}
+
+.drawing > * {
+   position: absolute;
+}
+
+.controls {
+   width: 300px;
+}
+
+.c-heading {
+
+}
+
+.ui-accordion .ui-accordion-content {
+   padding: 0;
+}
+
+.c-input {
+   margin: 2px;
+   border-bottom: 1px dotted dimgray;
+   height: 24px;
+}
+
+.c-input.c-last {
+   border-bottom: 0px;
+}
+
+.c-input > div {
+   margin: 2px;
+   vertical-align: middle;
+   display: inline-block;
+   font-size: 8pt;
+}
+
+.c-label {
+   text-align: right;
+   font-weight: bold;
+   width: 100px;
+}
+
+.c-field {
+
+}
+
+.c-spinner input {
+   width: 30px;
+   font-size: 8pt;
+}
+
+.c-slider {
+   width: 175px;
+}
+
+.c-slider * {
+   font-size: 7pt;
+}
+
+.c-button {
+   width: 280px;
+   text-align: right;
+}
+
+.c-button input {
+   padding: 2px;
+   font-size: 8pt;
+}
+
+.c-color-box {
+   cursor: pointer;
+   border: 1px solid black;
+   height: 16px;
+   width: 50px;
+}
+
+#colorpicker {
+   position: absolute;
+   z-index: 1000;
+}
+
+.imageswap span {
+   display: inline-block;
+   height: 60px;
+   width: 60px;
+   border: 1px solid silver;
+}
+
+.imageswap {
+   border: 1px solid silver;
+   padding: 2px;
+   margin: 2px;
+   width: 722px;
+}
+
+.imagecolor.black {
+   background-color: black;
+}
+
+.imagecolor.white {
+   background-color: white;
+}
+
+.imageswap span.selected {
+   border-color: orange;
+}
+
+.showcenter {
+   position: absolute;
+   height: 5px;
+   width: 5px;
+   background-color: lime;
+}
+
+</style>
+
+<div class="discussion">
+A much better version of my original cracking glass effect.  Five canvas elements are layered to render
+different parts of the effect.  Start by clicking the "Draw" button to create the initial paths.  Click on
+the image to change the center point of the crack.  Switch through the different options and apply changes
+to see how they affect the output.  The default settings generate a nice effect on the flowers.  Some tweaking
+is needed for the other images.
+</div>
+<br/>
+
+<div id="colorpicker"></div>
+
+<div class="imageswap ui-corner-all">
+  <a href="#"><span class="imagevalue selected"><img src="flowers.jpg" height="60" width="60" /></span></a>
+  <a href="#"><span class="imagevalue"><img src="landscape.jpg" height="60" width="60" /></span></a>
+  <a href="#"><span class="imagecolor black"></span></a>
+  <a href="#"><span class="imagecolor white"></span></a>
+</div>
+
+<div class="wrapper">
+
+   <div class="drawing ui-corner-all">
+     <img id="draw-image" src="flowers.jpg"/>
+     <canvas id="draw-refract"></canvas>
+     <canvas id="draw-reflect"></canvas>
+     <canvas id="draw-fractures"></canvas>
+     <canvas id="draw-mainline"></canvas>
+     <canvas id="draw-noise"></canvas>
+     <canvas id="draw-debug"></canvas>
+     <div id="draw-picker"></div>
+   </div>
+
+   <div class="controls">
+
+     <!--  Main Cracking Effect Variables -->
+
+     <h3 class="c-heading">Cracks</h3>
+     <div class="c-group" id="control-crack">
+
+       <div class="c-input" id="glass-color">
+         <div class="c-label">Color:</div>
+         <div class="c-field c-color-box" fieldtype="colorpicker" databind="mainColor"></div>
+       </div>
+
+       <div class="c-input" id="glass-radial">
+         <div class="c-label">Radial Lines:</div>
+         <div class="c-field c-spinner" fieldtype="spinner" databind="radialLines"><input /></div>
+       </div>
+
+       <div class="c-input" id="glass-diagonals">
+         <div class="c-label">Diagonals:</div>
+         <div class="c-field c-slider" fieldtype="slider" databind="diagonals"></div>
+       </div>
+
+       <div class="c-input" id="glass-circles">
+         <div class="c-label">Circles:</div>
+         <div class="c-field c-slider" fieldtype="slider" databind="circles"></div>
+       </div>
+
+       <div class="c-input" id="glass-density">
+         <div class="c-label">Density:</div>
+         <div class="c-field c-slider" fieldtype="slider" databind="density"></div>
+       </div>
+
+       <div class="c-input" id="glass-wander">
+         <div class="c-label">Wander:</div>
+         <div class="c-field c-slider" fieldtype="slider" databind="wander"></div>
+       </div>
+
+       <div class="c-input" id="glass-curves">
+         <div class="c-label">Curves:</div>
+         <div class="c-field c-slider" fieldtype="slider" databind="curves"></div>
+       </div>
+
+       <div class="c-input" id="glass-center">
+         <div class="c-label">Center:</div>
+         <div class="c-field c-text" fieldtype="none"></div>
+       </div>
+
+       <div class="c-input c-last" id="glass-actions">
+         <div class="c-field c-button" fieldtype="none">
+            <input id="render-cracks" type="button" value="Draw" />
+         </div>
+       </div>
+
+     </div>
+
+
+     <!--  Refraction Variables -->
+
+     <h3 class="c-heading">Refraction</h3>
+     <div class="c-group" id="control-refract">
+
+       <div class="c-input" id="refract-opacity">
+         <div class="c-label">Opacity:</div>
+         <div class="c-field c-slider" fieldtype="slider" databind="refract.opacity"></div>
+       </div>
+
+       <div class="c-input" id="refract-size">
+         <div class="c-label">Size:</div>
+         <div class="c-field c-spinner" fieldtype="spinner" databind="refract.size"><input /></div>
+       </div>
+
+       <div class="c-input" id="refract-shift">
+         <div class="c-label">Shift:</div>
+         <div class="c-field c-spinner" fieldtype="spinner" databind="refract.shift"><input /></div>
+       </div>
+
+       <div class="c-input c-last" id="refract-actions">
+         <div class="c-field c-button" fieldtype="none">
+           <input class="render-effects" id="render-refract" type="button" value="Apply" />
+           <input id="toggle-refract" type="button" value="Hide" />
+         </div>
+       </div>
+     </div>
+
+
+     <!--  Refraction Variables -->
+
+     <h3 class="c-heading">Reflection</h3>
+     <div class="c-group" id="control-reflect">
+
+       <div class="c-input" id="reflect-opacity">
+         <div class="c-label">Opacity:</div>
+         <div class="c-field c-slider" fieldtype="slider" databind="reflect.opacity"></div>
+       </div>
+
+       <div class="c-input c-last" id="reflect-actions">
+         <div class="c-field c-button" fieldtype="none">
+           <input class="render-effects" id="render-reflect" type="button" value="Apply" />
+           <input id="toggle-reflect" type="button" value="Hide" />
+         </div>
+       </div>
+     </div>
+
+
+     <!--  Fractures Variables -->
+
+     <h3 class="c-heading">Fractures</h3>
+     <div class="c-group" id="control-fractures">
+
+       <div class="c-input" id="fractures-opacity">
+         <div class="c-label">Opacity:</div>
+         <div class="c-field c-slider" fieldtype="slider" databind="fractures.opacity"></div>
+       </div>
+
+       <div class="c-input" id="fractures-size">
+         <div class="c-label">Size:</div>
+         <div class="c-field c-spinner" fieldtype="spinner" databind="fractures.size"><input /></div>
+       </div>
+
+       <div class="c-input" id="fractures-decay">
+         <div class="c-label">Decay:</div>
+         <div class="c-field c-slider" fieldtype="slider" databind="fractures.decay"></div>
+       </div>
+
+       <div class="c-input c-last" id="fractures-actions">
+         <div class="c-field c-button" fieldtype="none">
+           <input class="render-effects" id="render-fractures" type="button" value="Apply" />
+           <input id="toggle-fractures" type="button" value="Hide" />
+         </div>
+       </div>
+
+     </div>
+
+
+     <!--  Mainline Variables -->
+
+     <h3 class="c-heading">Mainline</h3>
+     <div class="c-group" id="control-mainline">
+
+       <div class="c-input" id="mainline-opacity">
+         <div class="c-label">Opacity:</div>
+         <div class="c-field c-slider" fieldtype="slider" databind="mainline.opacity"></div>
+       </div>
+
+       <div class="c-input" id="mainline-offset">
+         <div class="c-label">Offset:</div>
+         <div class="c-field c-spinner" fieldtype="spinner" databind="mainline.offset"><input /></div>
+       </div>
+
+       <div class="c-input" id="mainline-strength">
+         <div class="c-label">Strength:</div>
+         <div class="c-field c-spinner" fieldtype="spinner" databind="mainline.strength"><input /></div>
+       </div>
+
+       <div class="c-input" id="mainline-highlight">
+         <div class="c-label">Highlight:</div>
+         <div class="c-field c-slider" fieldtype="slider" databind="mainline.highlight"></div>
+       </div>
+
+       <div class="c-input" id="mainline-decay">
+         <div class="c-label">Decay:</div>
+         <div class="c-field c-slider" fieldtype="slider" databind="mainline.decay"></div>
+       </div>
+
+       <div class="c-input c-last" id="mainline-actions">
+         <div class="c-field c-button" fieldtype="none">
+           <input class="render-effects" id="render-mainline" type="button" value="Apply" />
+           <input id="toggle-mainline" type="button" value="Hide" />
+         </div>
+       </div>
+
+     </div>
+
+
+     <!--  Noise Variables -->
+
+     <h3 class="c-heading">Noise</h3>
+     <div class="c-group" id="control-noise">
+
+
+       <div class="c-input" id="noise-opacity">
+         <div class="c-label">Opacity:</div>
+         <div class="c-field c-slider" fieldtype="slider" databind="noise.opacity"></div>
+       </div>
+
+       <div class="c-input" id="noise-freq">
+         <div class="c-label">Frequency:</div>
+         <div class="c-field c-slider" fieldtype="slider" databind="noise.freq"></div>
+       </div>
+
+       <div class="c-input" id="noise-decay">
+         <div class="c-label">Decay:</div>
+         <div class="c-field c-slider" fieldtype="slider" databind="noise.decay"></div>
+       </div>
+
+       <div class="c-input c-last" id="noise-actions">
+         <div class="c-field c-button" fieldtype="none">
+           <input class="render-effects" id="render-noise" type="button" value="Apply" />
+           <input id="toggle-noise" type="button" value="Hide" />
+         </div>
+       </div>
+
+     </div>
+
+
+
+
+     <!--  Debug Variables -->
+
+     <h3 class="c-heading">Debug</h3>
+     <div class="c-group" id="control-debug">
+
+       <div class="c-input c-last" id="debug-actions">
+         <div class="c-field c-button" fieldtype="none">
+           <input id="toggle-debug" type="button" value="Hide" />
+         </div>
+       </div>
+
+     </div>
+
+   </div>
+</div>
+
+<script>
+
+function clearDrawing($canvas)
+{
+   $canvas.each(function()
+     {
+        var ctx = this.getContext('2d');
+        ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+     });
+}
+
+function validate()
+{
+   var f = $('.c-field:not([fieldtype=none])'),
+       b, g, pos,
+       o = {};
+
+   f.each(function ()
+     {
+        var $el = $(this), val=null;
+
+        switch ($el.attr('fieldtype'))
+        {
+           case 'spinner' :
+             val = +$el.find('input')[0].value;
+             break;
+
+           case 'colorpicker' :
+             val = $el.css('background-color');
+             break;
+
+           case 'slider' :
+             val = $el.slider('value');
+             break;
+        }
+
+        b = $el.attr('databind');
+        if (b.indexOf('.') > 0)
+        {
+           g = b.split('.')[0];
+           b = b.split('.')[1];
+
+           o[g] = o[g] || {};
+           o[g][b] = val;
+        }
+        else
+        {
+           o[b] = val;
+        }
+     });
+
+   return o;
+}
+
+function fillImage(img, color, w, h)
+{
+   var c = $('<canvas>')[0],
+       ctx;
+
+   c.width = w;
+   c.height = h;
+
+   ctx = c.getContext('2d');
+
+   ctx.fillStyle = color;
+   ctx.fillRect(0,0,w,h);
+
+   img.src = c.toDataURL();
+}
+
+function init()
+{
+   var $canvas = $('canvas'),
+       $image = $('#draw-image'),
+       options, paths, currentCenter;
+
+
+   $canvas.each(function()
+     {
+        this.height = $image.outerHeight(true);
+        this.width = $image.outerWidth(true);
+     });
+
+   $('#draw-picker').css({
+         height: $image.outerHeight(true),
+         width: $image.outerWidth(true)
+      });
+
+
+/**********************************************************************************
+*   Image swapping
+*/
+
+   $('.imageswap').on('click', 'a', function()
+		{
+			var idx = $(this).parent().children().index(this);
+
+         $(this)
+            .find('span')
+            	.addClass('selected')
+            .end()
+            .siblings()
+            .find('span')
+            	.removeClass('selected');
+
+			clearDrawing($canvas);
+
+			switch (idx)
+			{
+			   case 0:
+			   case 1:
+			      $image[0].src = $(this).find('img')[0].src;
+			      break;
+			   case 2:
+			      fillImage($image[0], 'black', 400, 400);
+			      break;
+			   case 3:
+			      fillImage($image[0], 'white', 400, 400);
+			      break;
+			}
+		});
+
+
+
+/**********************************************************************************
+*   Setup global color picker
+*/
+
+   $(document).click(function ()
+      {
+         $('#colorpicker')
+              .data('cp-target', null)
+              .hide();
+      });
+
+   function cpSelect(e)
+   {
+      var $el = $(this);
+
+      $('#colorpicker')
+         .show()
+         .data('cp-target', $el)
+         .colorpicker('setColor', $el.css('background-color'))
+         .position({
+               my: 'left+10, top',
+               at: 'right, top',
+               of: $el
+            });
+
+      e.stopPropagation();
+
+   }
+
+   $('#colorpicker')
+        .hide()
+        .colorpicker({
+             colorFormat: 'RGB',
+             select: function (e, ui)
+               {
+                  var $target = $('#colorpicker').data('cp-target');
+
+                  if ($target)
+                     $target.css('background-color', ui.formatted);
+               },
+             close: function ()
+               {
+                  $('#colorpicker')
+                     .data('cp-target', null)
+                     .hide();
+               }
+           })
+        .click(function (e) { e.stopPropagation(); } );
+
+/**********************************************************************************
+*   Main glass cracking effects.  Mainly affects paths of the cracks
+*/
+
+   $('#glass-color > .c-field')
+       .css('background-color', 'rgb(255,255,255)')
+       .click(cpSelect);
+
+   $('#glass-radial > .c-field > input')
+       .spinner({min: 5, max: 50})
+       .spinner('value', 32);
+
+   $('#glass-diagonals > .c-field')
+       .slider({min: 0, max: 100, value: 30});
+
+   $('#glass-circles > .c-field')
+       .slider({min: 0, max: 100, value: 60});
+
+   $('#glass-density > .c-field')
+       .slider({min: 0, max: 100, value: 50});
+
+   $('#glass-wander > .c-field')
+       .slider({min: 0, max: 100, value: 10});
+
+   $('#glass-curves > .c-field')
+       .slider({min: 0, max: 100, value: 30});
+
+   currentCenter =
+      {
+        x: ($image.outerWidth(true)/2+Math.random()*200-100) | 0,
+        y: ($image.outerHeight(true)/2+Math.random()*200-100) | 0
+      };
+
+   $('#draw-picker').click(function (e)
+      {
+         var pos = $('.drawing').offset(),
+             x = e.pageX - pos.left - 5,
+             y = e.pageY - pos.top - 5;
+
+         if (!isNaN(x))
+         {
+            $('<div>')
+               .addClass('showcenter')
+               .css({top: y, left: x})
+               .appendTo($('.drawing'))
+               .delay(500)
+               .fadeOut(500, function () { $('.showcenter').remove(); });
+
+            currentCenter.x = x;
+            currentCenter.y = y;
+         }
+
+         $('#glass-center > .c-field').text('(X:'+currentCenter.x+',Y:'+currentCenter.y+')');
+      }).click();
+
+   // Draw button creates a new path
+   $('#render-cracks')
+       .button()
+       .click(function ()
+           {
+              if (options = validate())
+              {
+                 options.height = $image.outerHeight(true);
+                 options.width = $image.outerWidth(true);
+                 options.center = currentCenter;
+                 options.debug = true;
+
+                 paths = findCrackEffectPaths(options);
+
+                 clearDrawing($canvas);
+                 renderCrackEffectAll($canvas, $image, paths, options);
+
+              }
+
+           });
+
+   // The other effects buttons use the existing path data
+   $('.render-effects')
+       .button()
+       .click(function ()
+           {
+              // Save so a click without redraw won't upset
+              // anything.  It shouldn't but just in case ...
+              var tmp = options.center;
+
+              if (options = validate())
+              {
+                 options.height = $image.outerHeight(true);
+                 options.width = $image.outerWidth(true);
+                 options.center = tmp;
+                 options.debug = true;
+
+                 clearDrawing($canvas);
+                 renderCrackEffectAll($canvas, $image, paths, options);
+              }
+
+           });
+
+/**********************************************************************************
+*   Refraction layer.  Copies parts of the image and shifts them around
+*/
+
+   $('#refract-opacity > .c-field')
+       .slider({min: 0, max: 100, value: 80});
+
+   $('#refract-size > .c-field > input')
+       .spinner({min: 0, max: 30})
+       .spinner('value', 3);
+
+   $('#refract-shift > .c-field > input')
+       .spinner({min: 0, max: 30})
+       .spinner('value', 6);
+
+   $('#toggle-refract')
+       .button()
+       .click(function ()
+           {
+              var t = $canvas.eq(0).toggle();
+              this.value = ( (t.css('display') == 'none') ? 'Show' : 'Hide' );
+           });
+
+
+/**********************************************************************************
+*   Reflection layer.  Simulate light reflecting off glass
+*/
+
+   $('#reflect-opacity > .c-field')
+       .slider({min: 0, max: 100, value: 30});
+
+   $('#toggle-reflect')
+       .button()
+       .click(function ()
+           {
+              var t = $canvas.eq(1).toggle();
+              this.value = ( (t.css('display') == 'none') ? 'Show' : 'Hide' );
+           });
+
+
+/**********************************************************************************
+*   Fractures layer.  Create perpendicular cracks along main crack lines
+*/
+
+   $('#fractures-opacity > .c-field')
+       .slider({min: 0, max: 100, value: 40});
+
+   $('#fractures-size > .c-field > input')
+       .spinner({min: 0, max: 50})
+       .spinner('value', 33);
+
+   $('#fractures-decay > .c-field')
+       .slider({min: 0, max: 100, value: 100});
+
+   $('#toggle-fractures')
+       .button()
+       .click(function ()
+           {
+              var t = $canvas.eq(2).toggle();
+              this.value = ( (t.css('display') == 'none') ? 'Show' : 'Hide' );
+           });
+
+/**********************************************************************************
+*   Mainline layer.  The main lines that follow along the defined crack paths
+*/
+
+   $('#mainline-opacity > .c-field')
+       .slider({min: 0, max: 100, value: 65});
+
+   $('#mainline-offset > .c-field > input')
+       .spinner({min: 0, max: 15})
+       .spinner('value', 3);
+
+   $('#mainline-strength > .c-field > input')
+       .spinner({min: 0, max: 15})
+       .spinner('value', 14);
+
+   $('#mainline-highlight > .c-field')
+       .slider({min: 0, max: 100, value: 20});
+
+   $('#mainline-decay > .c-field')
+       .slider({min: 0, max: 100, value: 90});
+
+   $('#toggle-mainline')
+       .button()
+       .click(function ()
+           {
+              var t = $canvas.eq(3).toggle();
+              this.value = ( (t.css('display') == 'none') ? 'Show' : 'Hide' );
+           });
+
+
+/**********************************************************************************
+*   Noise layer.  Add noise around the cracks parallel to the main line
+*/
+
+   $('#noise-opacity > .c-field')
+       .slider({min: 0, max: 100, value: 100});
+
+   $('#noise-freq > .c-field')
+       .slider({min: 0, max: 100, value: 40});
+
+   $('#noise-decay > .c-field')
+       .slider({min: 0, max: 100, value: 5});
+
+   $('#toggle-noise')
+       .button()
+       .click(function ()
+           {
+              var t = $canvas.eq(4).toggle();
+              this.value = ( (t.css('display') == 'none') ? 'Show' : 'Hide' );
+           });
+
+/**********************************************************************************
+*   Debug layer.  Draw points of intereste for debugging.
+*/
+
+   $('#toggle-debug')
+       .button()
+       .click(function ()
+           {
+              var t = $canvas.eq(5).toggle();
+              this.value = ( (t.css('display') == 'none') ? 'Show' : 'Hide' );
+           }).click();
+
+   $('.controls').accordion();
+}
+
+$(function()
+{
+   $('#draw-image')
+      .one('load', init)
+      .each(function() { /* Opera! */ if (this.complete) { $(this).trigger("load"); } });
+});
+
+</script>
