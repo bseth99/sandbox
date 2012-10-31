@@ -1,0 +1,86 @@
+---
+layout: page
+title: Creating SVG Paths with Raphael
+group: svg
+tags : [javascript, svg, raphael, paths]
+blog: /2012/10/31/building-svg-paths-with-raphael/
+---
+{% include JB/setup %}
+
+<!--
+Copyright (c) 2012 Ben Olson
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+-->
+
+
+<style>
+.wrapper { position: relative; }
+</style>
+
+<script src="raphael.min.js"></script>
+
+<div class="discussion">
+A quick example of constructing paths with Raphael.  The path() function can accept an array describing
+the path.  This helps make it easier to see the path definition as well as enable the possibility of writing
+functions that can generate basic paths based on a set of inputs.  Other functionality in Raphael only works
+with paths so it is desirable to use them when possible so these features are available.
+</div>
+
+<div class="wrapper">
+</div>
+
+<script>
+
+$(function()
+{
+   var paper = Raphael( $('.wrapper')[0], 600, 600 ),
+
+       pstr = "M295.186,122.908c12.434,18.149,32.781,18.149,45.215,0l12.152-17.736c12.434-18.149,22.109-15.005,21.5,6.986l-0.596,21.49c-0.609,21.992,15.852,33.952,36.579,26.578l20.257-7.207c20.728-7.375,26.707,0.856,13.288,18.29l-13.113,17.037c-13.419,17.434-7.132,36.784,13.971,43.001l20.624,6.076c21.103,6.217,21.103,16.391,0,22.608l-20.624,6.076c-21.103,6.217-27.39,25.567-13.971,43.001l13.113,17.037c13.419,17.434,7.439,25.664-13.287,18.289l-20.259-7.207c-20.727-7.375-37.188,4.585-36.578,26.576l0.596,21.492c0.609,21.991-9.066,25.135-21.5,6.986L340.4,374.543c-12.434-18.148-32.781-18.148-45.215,0.001l-12.152,17.736c-12.434,18.149-22.109,15.006-21.5-6.985l0.595-21.492c0.609-21.991-15.851-33.951-36.578-26.576l-20.257,7.207c-20.727,7.375-26.707-0.855-13.288-18.29l13.112-17.035c13.419-17.435,7.132-36.785-13.972-43.002l-20.623-6.076c-21.104-6.217-21.104-16.391,0-22.608l20.623-6.076c21.104-6.217,27.391-25.568,13.972-43.002l-13.112-17.036c-13.419-17.434-7.439-25.664,13.288-18.29l20.256,7.207c20.728,7.374,37.188-4.585,36.579-26.577l-0.595-21.49c-0.609-21.992,9.066-25.136,21.5-6.986L295.186,122.908z",
+       path1 = paper.path( Raphael.transformPath(pstr, 't-50,-60r125s0.5') )
+                   .attr( 'stroke-width', 3 )
+                   .attr( 'stroke', 'rgb(255,80,80)' ),
+
+       path2 = paper.path( [
+										['M',450,175],
+										['l',0,90],
+										['a',10,10,0,0,1,-10,10],
+										['l',-390,0],
+										['a',10,10,0,0,1,-10,-10],
+										['l',0,-190],
+										['a',10,10,0,0,1,10,-10],
+										['l',390,0],
+										['a',10,10,0,0,1,10,10],
+										['l',0,90],
+										['z']
+									] )
+                   .attr( 'stroke-width', 3 )
+                   .attr( 'stroke', 'rgb(80,255,80)' ),
+
+
+       path3 = paper.path( Raphael._getPath.circle({ attrs: { cx:120, cy:120, r:50 } }))
+                   .attr( 'stroke-width', 3 )
+                   .attr( 'stroke', 'rgb(80,80,255)' );
+
+});
+
+</script>
