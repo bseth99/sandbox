@@ -1,0 +1,149 @@
+---
+layout: page
+title: Creating an SVG Slider Using Raphael Path Functions
+group: svg
+tags : [javascript, svg, raphael, paths, slider]
+blog: /2012/11/01/finding-points-along-an-svg-path-using-raphael/
+---
+{% include JB/setup %}
+
+<!--
+Copyright (c) 2012 Ben Olson
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+-->
+
+<style>
+.wrapper { position: relative; }
+</style>
+
+<script src="raphael.min.js"></script>
+
+<div class="discussion">
+This demo utilizes some of the path funtionality in Raphael to create a slider that follows a
+non-linear path.  The demo makes use of the getPointAtLength() function to find a point on the path
+relative to the current drag position.  Click one of the buttons to change the shape the slider know
+will be attached to and then drag the knob to see how it works.
+</div>
+<br/>
+
+<div class="actions">
+ <button id="wiggles">Wiggles</button>
+ <button id="circle">Circle</button>
+ <button id="ellipse">Ellipse</button>
+ <button id="rectangle">Rectangle</button>
+</div>
+
+<div class="wrapper">
+</div>
+
+<script>
+
+var pdefs = {
+      wiggles: {
+          path: "M295.186,122.908c12.434,18.149,32.781,18.149,45.215,0l12.152-17.736c12.434-18.149,22.109-15.005,21.5,6.986l-0.596,21.49c-0.609,21.992,15.852,33.952,36.579,26.578l20.257-7.207c20.728-7.375,26.707,0.856,13.288,18.29l-13.113,17.037c-13.419,17.434-7.132,36.784,13.971,43.001l20.624,6.076c21.103,6.217,21.103,16.391,0,22.608l-20.624,6.076c-21.103,6.217-27.39,25.567-13.971,43.001l13.113,17.037c13.419,17.434,7.439,25.664-13.287,18.289l-20.259-7.207c-20.727-7.375-37.188,4.585-36.578,26.576l0.596,21.492c0.609,21.991-9.066,25.135-21.5,6.986L340.4,374.543c-12.434-18.148-32.781-18.148-45.215,0.001l-12.152,17.736c-12.434,18.149-22.109,15.006-21.5-6.985l0.595-21.492c0.609-21.991-15.851-33.951-36.578-26.576l-20.257,7.207c-20.727,7.375-26.707-0.855-13.288-18.29l13.112-17.035c13.419-17.435,7.132-36.785-13.972-43.002l-20.623-6.076c-21.104-6.217-21.104-16.391,0-22.608l20.623-6.076c21.104-6.217,27.391-25.568,13.972-43.002l-13.112-17.036c-13.419-17.434-7.439-25.664,13.288-18.29l20.256,7.207c20.728,7.374,37.188-4.585,36.579-26.577l-0.595-21.49c-0.609-21.992,9.066-25.136,21.5-6.986L295.186,122.908z",
+          transform: 't-50,0r100s1.2'
+        },
+      circle: {
+          path: Raphael._getPath.circle({attrs:{cx:300,cy:300,r:200}}),
+          transform: 'r90'
+        },
+      ellipse: {
+          path: Raphael._getPath.ellipse({attrs:{cx:300,cy:300,rx:150,ry:250}}),
+          transform: 'r90'
+        },
+      rectangle: {
+          path: [
+					['M',450,175],
+					['l',0,90],
+					['a',10,10,0,0,1,-10,10],
+					['l',-390,0],
+					['a',10,10,0,0,1,-10,-10],
+					['l',0,-190],
+					['a',10,10,0,0,1,10,-10],
+					['l',390,0],
+					['a',10,10,0,0,1,10,10],
+					['l',0,90],
+					['z']
+				],
+          transform: 'r0'
+        }
+     },
+    useDef = 'wiggles';
+
+
+function run()
+{
+   var paper = Raphael( $('.wrapper')[0], 600, 600 ),
+
+       path = paper.path( Raphael.transformPath(pdefs[useDef].path, pdefs[useDef].transform) )
+                   .attr( 'stroke-width', 10 )
+                   .attr( 'stroke', 'rgb(80,80,80)' ),
+
+       knob = paper.ellipse( 0, 0, 25, 15 )
+                   .attr( 'fill', 'lime' )
+                   .attr( 'stroke', 'rgba(80,80,80,0.5)' ),
+
+       $shim = $('<div>')
+                    .css( {position: 'absolute', width: 50, height: 50 } )
+                    .appendTo( $('.wrapper') ),
+
+       len = path.getTotalLength(),
+       bb = path.getBBox(),
+       mid = {x: bb.x+bb.width/2, y: bb.y+bb.height/2},
+
+       pal = path.getPointAtLength(0);
+
+   knob.translate(pal.x,pal.y).rotate(pal.alpha);
+   $shim.css({ left: pal.x-25, top: pal.y-25 });
+
+   $shim.draggable({
+         drag: function ( e, ui ) {
+
+            // Find lines and then angle to determine
+            // percentage around an imaginary circle.
+            var t = ( Raphael.angle( ui.position.left+25, ui.position.top+25, mid.x, mid.y ) ) / 360;
+
+            // Using t, find a point along the path
+            pal = path.getPointAtLength( (t * len) % len );
+
+            // Move the knob to the new point
+            knob.transform( 't' + [pal.x, pal.y] + 'r' + pal.alpha );
+         },
+         stop: function ( e, ui ) {
+            $shim.css({ left: pal.x-25, top: pal.y-25 });
+         }
+      });
+}
+
+$(function()
+{
+   $('button')
+      .button()
+      .click(function () {
+            $('.wrapper').html('');
+            useDef = this.id;
+            run();
+         });
+});
+
+</script>
