@@ -1,0 +1,305 @@
+---
+layout: page
+title: CSS3 3D Rotation Tests
+group: rotate
+tags : [jquery, css-transform, rotate3d]
+---
+{% include JB/setup %}
+
+<!--
+Copyright (c) 2012 Ben Olson
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+-->
+
+<style>
+
+button span { font-size: 0.7em; }
+
+.wrapper {
+    position: relative;
+    margin: 50px;
+    margin-top: 100px;
+    margin-bottom: 100px;
+    width: 350px;
+    height:30px;
+ }
+
+.outer {
+    position: absolute;
+    width: 350px;
+    height:30px;
+    border: 1px dotted red;
+ }
+
+.inner {
+    position: absolute;
+    width: 350px;
+    height:30px;
+    border: 1px dotted green;
+ }
+
+.box {
+    position: absolute;
+    background-color: #fff;
+    left: 140px;
+    width: 75px;
+    height: 30px;
+    line-height: 30px;
+    font-weight: bold;
+    text-align: center;
+    border: 1px solid lightblue;
+}
+
+.sliders {
+   margin-left: 50px;
+}
+
+.sliders div {
+   line-height: 30px;
+}
+
+.sliders div div {
+   margin-left: 5px;
+   display: inline-block;
+   font-size: 8pt;
+   width: 400px;
+}
+
+</style>
+
+<div class="discussion">
+A test of CSS3 3D transforms.  Specifically, rotating objects in 3D space using perspective and transformOrigin
+to set the z-axis to rotate around.  This will cause the DIVs to appear to move around that point.  Different
+DIVs are embedded to control X,Y,Z axis.  Use the sliders to rotate each div.  The "P" and "O" sliders will
+adjust the <code>perspective</code> and z-axis of the <code>transform-origin</code> styles, respectively.
+
+Disable the transform to see the starting point without a transform applied.  Show the guides to see the
+borders of the other container DIVs as a reference.
+</div>
+<br/>
+
+<div class="actions">
+  <button id="transform">Disable Transform</button>
+  <button id="guides">Show Guides</button>
+  <br/>
+
+  <div class="sliders">
+
+    <div>
+       X: <div id="rotateX"></div>
+    </div>
+
+    <div>
+       Y: <div id="rotateY"></div>
+    </div>
+
+    <div>
+       Z: <div id="rotateZ"></div>
+    </div>
+
+    <div>
+       P: <div id="perspective"></div>
+    </div>
+
+    <div>
+       O: <div id="origin"></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="wrapper">
+	<div class="outer">
+		<div class="inner">
+		  <div class="box">One</div>
+		  <div class="box">Two</div>
+		  <div class="box">Three</div>
+		  <div class="box">Four</div>
+		  <div class="box">Five</div>
+		</div>
+	</div>
+</div>
+
+<script>
+
+function enableTransform () {
+
+   rotateX($('#rotateX').slider( 'value' ));
+   rotateY($('#rotateY').slider( 'value' ));
+   rotateZ($('#rotateZ').slider( 'value' ));
+
+}
+
+function disableTransform () {
+
+   $('.wrapper div').css({
+   		transform: ''
+      });
+
+}
+
+function showGuides () {
+
+   $('.wrapper div').not('.box').css({
+   		borderWidth: '1px'
+      });
+
+}
+
+function hideGuides () {
+
+   $('.wrapper div').not('.box').css({
+   		borderWidth: '0px'
+      });
+
+}
+
+function rotateX( off ) {
+
+   $('.outer').css( 'transform', 'rotateX('+off+'deg)' );
+}
+
+function rotateY( off ) {
+
+   var $box, cnt;
+
+   $box = $('.box');
+   cnt = $box.length;
+
+   $box.each(function (i, e)
+   	{
+   		$(e).css( 'transform', 'rotateY('+Math.round( ( 360/cnt*i + off ) % 360 )+'deg)' );
+   	});
+}
+
+function rotateZ( off ) {
+
+   $('.inner').css( 'transform', 'rotateZ('+off+'deg)' );
+}
+
+$(function()
+{
+
+   $('.wrapper').css({
+         perspective: '800px'
+      });
+
+   $('.wrapper div').css({
+   		transformOrigin: '50% 50% -100px',
+   		transformStyle: 'preserve-3d'
+      });
+
+
+   $('.box').css({
+   		borderRadius: '4px',
+   		/* boxShadow: '0px 0px 4px lightblue' buggy in Firefox when 3D transforms applied - causes awful flickering :( */
+      });
+
+
+   $('#rotateX').slider({ min: 0, max: 360,
+         value: 25,
+   		slide: function ( e, ui ) {
+   				rotateX( ui.value );
+   			}
+   	});
+
+
+   $('#rotateY').slider({ min: 0, max: 360,
+         value: 10,
+   		slide: function ( e, ui ) {
+   				rotateY( ui.value );
+   			}
+   	});
+
+
+   $('#rotateZ').slider({ min: 0, max: 360,
+         value: 25,
+   		slide: function ( e, ui ) {
+   				rotateZ( ui.value );
+   			}
+   	});
+
+   $('#perspective').slider({ min: 200, max: 1000,
+         value: 800,
+   		slide: function ( e, ui ) {
+					$('.wrapper').css({
+							perspective: ui.value + 'px'
+						});
+   			}
+   	});
+
+
+   $('#origin').slider({ min: 0, max: 225,
+         value: 100,
+   		slide: function ( e, ui ) {
+					$('.wrapper div').css({
+							transformOrigin: '50% 50% -'+ ui.value +'px'
+						});
+   			}
+   	});
+
+   $('button').button()
+   		.click( function ( e ) {
+
+               var $el = $(this);
+
+   				if ( this.id == 'transform' ) {
+
+   					if ( $el.button( 'option', 'label' ) == 'Disable Transform' ) {
+
+   						$el.button( 'option', 'label', 'Enable Transform' );
+   						disableTransform();
+
+   					} else {
+
+							$el.button( 'option', 'label', 'Disable Transform' );
+   						enableTransform();
+
+   					}
+
+   				} else {
+
+   					if ( $el.button( 'option', 'label' ) == 'Show Guides' ) {
+
+							$el.button( 'option', 'label', 'Hide Guides' );
+   						showGuides();
+
+   					} else {
+
+							$el.button( 'option', 'label', 'Show Guides' );
+   						hideGuides();
+
+   					}
+
+   				}
+   			});
+
+   enableTransform();
+   hideGuides();
+
+});
+
+</script>
+
+</body>
+</html>
