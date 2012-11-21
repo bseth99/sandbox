@@ -1,0 +1,113 @@
+---
+layout: page
+title: jQuery UI Datepicker - Range Selection with Only One Control
+group: jquery-ui
+tags : [javascript, jquery, jquery-ui, widget, datepicker, range]
+---
+
+{% include JB/setup %}
+
+<div class="discussion">
+In this example, I wanted to try to add range selection to the jQuery UI Datepicker.  Its one of the
+features I'm interested in providing to my users.  My preference is to use the jQuery UI widgets when possible
+simply because there is a consistent look-and-feel across the library.  I found other libraries that provide
+the features but do not work as well overall as the jQuery version.
+</div>
+<br/>
+
+<style>
+.wrapper {
+   height: 600px;
+}
+
+#jrange input {
+   width: 200px;
+}
+
+#jrange div {
+   font-size: 9pt;
+}
+
+.date-range-selected > .ui-state-active,
+.date-range-selected > .ui-state-default {
+   background: none;
+   background-color: lightsteelblue;
+}
+</style>
+
+<div class="wrapper">
+	<div id="jrange" class="dates">
+	 <input />
+	 <div></div>
+	</div>
+</div>
+
+
+
+<script>
+
+$.datepicker._defaults.onAfterUpdate = null;
+
+var datepicker__updateDatepicker = $.datepicker._updateDatepicker;
+$.datepicker._updateDatepicker = function( inst ) {
+	datepicker__updateDatepicker.call( this, inst );
+
+	var onAfterUpdate = this._get(inst, 'onAfterUpdate');
+	if (onAfterUpdate)
+		onAfterUpdate.apply((inst.input ? inst.input[0] : null),
+			[(inst.input ? inst.input.val() : ''), inst]);
+}
+
+
+$(function() {
+
+	var cur = -1, prv = -1;
+   $('#jrange div')
+   	.datepicker({
+   			changeMonth: true,
+   			changeYear: true,
+   			showButtonPanel: true,
+
+   			beforeShowDay: function ( date ) {
+   					return [true, ( (date.getDate() >= Math.min(prv, cur) && date.getDate() <= Math.max(prv, cur)) ? 'date-range-selected' : '')];
+   				},
+
+   			onSelect: function ( dateText, inst ) {
+   					var d1, d2;
+
+   					prv = +cur;
+   					cur = inst.selectedDay;
+   					if ( prv == -1 || prv == cur ) {
+   						prv = cur;
+   						$('#jrange input').val( dateText );
+   					} else {
+   						d1 = $.datepicker.formatDate( 'mm/dd/yy', new Date( inst.selectedYear, inst.selectedMonth, Math.min(prv,cur) ), {} );
+   						d2 = $.datepicker.formatDate( 'mm/dd/yy', new Date( inst.selectedYear, inst.selectedMonth, Math.max(prv,cur) ), {} );
+   						$('#jrange input').val( d1+' - '+d2 );
+   					}
+   				},
+
+   			onChangeMonthYear: function ( year, month, inst ) {
+   					prv = cur = -1;
+   				},
+
+   			onAfterUpdate: function ( inst ) {
+   					$('<button type="button" class="ui-datepicker-close ui-state-default ui-priority-primary ui-corner-all" data-handler="hide" data-event="click">Done</button>')
+   						.appendTo($('#jrange div .ui-datepicker-buttonpane'))
+   						.on('click', function () { $('#jrange div').hide(); });
+   				}
+   		})
+   	.position({
+   			my: 'left top',
+   			at: 'left bottom',
+   			of: $('#jrange input')
+   		})
+   	.hide();
+
+   $('#jrange input').on('focus', function (e) {
+   		$('#jrange div').show();
+   	});
+
+});
+
+</script>
