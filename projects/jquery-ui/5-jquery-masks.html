@@ -1,0 +1,243 @@
+---
+layout: page
+title: jQuery Input Masks - Guiding and Validating User Entry
+group: jquery-ui
+tags : [javascript, jquery, jquery-ui, widget, mask, format]
+---
+
+{% include JB/setup %}
+
+<script src="jquery.inputmask/jquery.inputmask.js"></script>
+<script src="jquery.inputmask/jquery.inputmask.extensions.js"></script>
+<script src="jquery.inputmask/jquery.inputmask.custom.extensions.js"></script>
+<script src="jquery.inputmask/jquery.inputmask.date.extensions.js"></script>
+<script src="jquery.inputmask/jquery.inputmask.numeric.extensions.js"></script>
+
+
+<style>
+.wrapper div { margin: 5px; }
+.ui-spinner input { font-size: 8pt; }
+</style>
+
+<div class="discussion">
+These are some of the interesting masks available in the <a href="https://github.com/RobinHerbots/jquery.inputmask">RobinHerbots/jquery.inputmask</a>
+plugin.  The date and time masks validate each part to ensure the entry is in range.  The decimal input formats while typing.  These features are
+above and beyond those available in both the unreleased jQuery UI and the one from digitalbush.  Those two implementations focus only on providing
+the basic mask without validation beyond numeric and/or alpha ranges.
+</div>
+<br/>
+
+<div class="wrapper">
+   <div>Date: <input id="date" /></div>
+   <div>Time: <input id="time" /></div>
+   <div>Decimal: <input id="decimal" /></div>
+</div>
+<br/>
+
+
+<script>
+
+$(function() {
+
+   $("#date").inputmask( 'mm/dd/yyyy' );
+
+   $("#time").inputmask( 'h:s t' );
+
+   $("#decimal").inputmask( 'decimal', { radixPoint: '.', autoGroup: true, groupSeparator: ',', groupSize: 3 } );
+
+});
+
+</script>
+
+
+<div class="discussion">
+Here's an attempt to extend the RobinHerbots/jquery.inputmask to add a dollar symbol to the decimal mask.  It unfortunately only allows one number
+to be entered.  It appears most of the logic in the decimal implementation needs to be duplicated and modified to account for the dollar sign.
+I also tried to use a spinner with decimal formatting with the decimal input mask to force valid entries in the spinner input field.  For some reason,
+they do not get along after getting into the 1000's range when the group separator starts getting added.
+</div>
+<br/>
+
+<div class="wrapper">
+   <div>Dollar: <input id="dollar" /></div>
+   <div>Spinner: <input id="numspin" /></div>
+</div>
+<br/>
+
+<script>
+
+(function ($) {
+    //number aliases
+    $.extend($.inputmask.defaults.aliases, {
+        'dollar': {
+            mask: "$~",
+            repeat: 0,
+            numericInput: false,
+            autoGroup: false,
+            regex: {
+                number: function (groupSeparator, groupSize, radixPoint, digits) {
+                    return new RegExp("^\\$[\+\\d\-]{1}[\\d" + groupSeparator + "]*[" + radixPoint + "]?\\d" + digits + "$");
+                }
+            },
+            alias: 'decimal'
+         }
+      });
+})(jQuery);
+
+$(function() {
+
+   $("#dollar").inputmask('dollar');
+
+   $("#numspin")
+      .inputmask('decimal', { radixPoint: '.', autoGroup: true, groupSeparator: ',', groupSize: 3 } )
+      .spinner({ min:0, max:1999, numberFormat: 'n' });
+
+});
+
+</script>
+
+
+<div class="discussion">
+This last set of demos only uses the <a href="http://digitalbush.com/projects/masked-input-plugin/">digitalbush</a> mask to create the formatted input.
+I did modify it to add a callback to validate each "field" in the mask so I could do the date/time validation.  The decimal, dollar, and spinner all
+use keydown/keyup events with Globalize to format entry as you type.  Its not a perfect implementation but a reasonable proof-of-concept that illustrates
+the approach.
+</div>
+<br/>
+
+<script src="jquery.maskedinput-ben.js"></script>
+<script src="globalize.js"></script>
+
+<div class="wrapper">
+   <div>Date: <input id="date2" /></div>
+   <div>Time: <input id="time2" /></div>
+   <div>Decimal: <input id="decimal2" /></div>
+   <div>Dollar: <input id="dollar2" /></div>
+   <div>Spinner: <input id="numspin2" /></div>
+</div>
+<br/>
+
+<script>
+$(function() {
+
+   $("#date2")
+      .mask(
+         '99/99/9999',
+         { validate: function (fld,cur) {
+               // 0 == month; 1 == day; 2 == year
+               var mm = parseInt(fld[0]),
+                   dd = parseInt(fld[1]),
+                   yy = parseInt(fld[2]),
+                   vl = true;
+
+               if (!(mm >= 0 && mm < 13) && cur == 0) {
+                  fld[0] = '12';
+                  vl = false;
+               }
+
+               if (!(dd >= 0 && dd < 31) && cur == 1) {
+                  fld[1] = '01';
+                  vl = false;
+               }
+
+               if (!(yy >= 1976 && yy < 2199) && cur == 2 && fld[2].replace('_','').length == 4) {
+                  fld[2] = '2012';
+                  vl = false;
+               }
+
+               return vl;
+            }
+         });
+
+   $("#time2").mask(
+         '99:99 aa' ,
+         { validate: function (fld,cur) {
+               // 0 == hour; 1 == minute; 2 == AM/PM
+               var hh = parseInt(fld[0]),
+                   mm = parseInt(fld[1]),
+                   ap = fld[2].replace('_','').toUpperCase(),
+                   vl = true;
+
+               if (!(hh >= 0 && hh < 13) && cur == 0) {
+                  fld[0] = '12';
+                  vl = false;
+               }
+
+               if (!(mm >= 0 && mm < 60) && cur == 1) {
+                  fld[1] = '00';
+                  vl = false;
+               }
+
+               if (cur == 2) {
+                  if (ap.length == 2) {
+                     if (!(ap == 'AM' || ap == 'PM')) {
+                        fld[2] = 'AM';
+                        vl = false;
+                     } else {
+                       fld[2] = ap;
+                     }
+                  } else if (ap == 'P') {
+                     fld[2] = 'PM';
+                  } else if (ap == 'A') {
+                     fld[2] = 'AM';
+                  }
+               }
+
+               return vl;
+            }
+         });
+
+   var old = '';
+   $("#decimal2, #numspin2")
+      .on('focus', function (e) {
+            old = '';
+         })
+      .on('keydown', function (e) {
+            old = $(this).val();
+         })
+      .on('keyup', function (e) {
+            var n = Globalize.parseFloat($(this).val()),
+                pos;
+
+            if (isNaN(n)) {
+               pos = old.indexOf('.');
+               $(this).val( old )
+                      .caret( pos, pos);
+            } else {
+               n = Globalize.format( n, 'n' );
+               pos = n.indexOf('.');
+               $(this).val( n )
+                      .caret( pos, pos);
+            }
+         });
+
+   $("#dollar2")
+      .on('focus', function (e) {
+            old = '';
+         })
+      .on('keydown', function (e) {
+            old = $(this).val();
+         })
+      .on('keyup', function (e) {
+            var n = Globalize.parseFloat($(this).val()),
+                pos;
+
+            if (isNaN(n)) {
+               pos = old.indexOf('.');
+               $(this).val( old )
+                      .caret( pos, pos);
+            } else {
+               n = Globalize.format( n, 'C' );
+               pos = n.indexOf('.');
+               $(this).val( n )
+                      .caret( pos, pos);
+            }
+         });
+
+
+   $("#numspin2")
+      .spinner({ min:0, max:1999, numberFormat: 'n' });
+
+});
+
+</script>
