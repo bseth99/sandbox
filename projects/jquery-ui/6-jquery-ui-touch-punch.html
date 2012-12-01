@@ -3,6 +3,7 @@ layout: page
 title: jQuery UI Touch Punch - Hack to Enable Functionality on Mobile Devices
 group: jquery-ui
 tags : [javascript, jquery, jquery-ui, widget, touch, mouse, event, hack, touch-punch]
+blog: /2012/12/01/proxying-touch-events-to-enable-jquery-ui-mouse-interactions/
 ---
 
 {% include JB/setup %}
@@ -67,8 +68,7 @@ $(function() {
 
    var sNow = 0;
    $('#cvstg, #svgtg, #divtg')
-      .on('mousedown', function (e)
-        {
+      .on('mousedown', function (e) {
             sNow = $('#sizer').slider('value');
 
             $('#sizer')
@@ -83,8 +83,7 @@ $(function() {
                   });
 
         })
-       .on('mouseup', function (e)
-        {
+       .on('mouseup', function (e) {
             $('#sizer')
                .stop()
                .animate( {tabIndex: 0}, {
