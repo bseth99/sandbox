@@ -1,0 +1,103 @@
+---
+layout: page
+title: jQuery UI Touch Punch - Hack to Enable Functionality on Mobile Devices
+group: jquery-ui
+tags : [javascript, jquery, jquery-ui, widget, touch, mouse, event, hack, touch-punch]
+---
+
+{% include JB/setup %}
+
+
+<style>
+.wrapper { position: relative; height: 400px; width: 400px; margin: auto; }
+.box { position: absolute; background-color: red; }
+.slide { width: 350px; font-size: 8pt; }
+
+canvas { position: absolute; left: 200px; border: 1px solid green; height: 150px; width: 150px; }
+svg { position: absolute; top: 200px; border: 1px solid blue; height: 150px; width: 150px; }
+#divtg { position: absolute; top: 250px; left: 250px; background-color: orange; height: 50px; width: 50px; }
+</style>
+
+<div class="discussion">
+A few tests of the <a href="http://touchpunch.furf.com/">Touch Punch</a> hack that enables jQuery UI widgets like
+Draggable to work properly on a mobile device.  Without it, the Slider and Draggable widgets would not function
+properly.
+
+<br/>
+<br/>
+The size of the object being dragged around needs to be appropriate so it will capture the touch events.
+The red DIV below has a Draggable interaction added.  The default size of 5px is difficult to drag on a mobile device.
+Use the slider to make the DIV larger.  There is also a Canvas (green) and SVG (blue) object to test interaction.  These
+elements are listening to mousedown and mouseup events which will resize the red DIV as well.  Touch Punch should
+forward the touchstart and touchend properly to these events.  However, the mousedown acts more like a click - the animation
+does not continue smoothly until the end.  Instead, it jumps to the end and then animates back to the start.
+</div>
+<br/>
+
+<div class="wrapper">
+
+   <div id="sizer" class="slide"></div>
+   <br/>
+
+   <canvas id="cvstg"></canvas>
+   <svg><rect id="svgtg" x="50" y="50" width="50" height="50" fill="purple"></rect></svg>
+   <div id="divtg"></div>
+
+   <div id="dragel" class="box"></div>
+</div>
+
+
+
+<script>
+
+$(function() {
+
+   $('#sizer')
+      .slider({
+         min:5,
+         max:50,
+         slide: function ( e, ui ) {
+                  $('#dragel').css({ width: ui.value, height: ui.value });
+               }
+            });
+
+   $('#dragel')
+      .draggable()
+      .css({ width: 5, height: 5, top: 50, left: 50 });
+
+   var sNow = 0;
+   $('#cvstg, #svgtg, #divtg')
+      .on('mousedown', function (e)
+        {
+            sNow = $('#sizer').slider('value');
+
+            $('#sizer')
+               .stop()
+               .animate( {tabIndex: 0}, {
+                  duration: 1000,
+                  step: function (now, fx) {
+                        var v = sNow + (50 - sNow) * fx.pos;
+                        $('#sizer').slider( 'value', v );
+                        $('#dragel').css({ width: v, height: v });
+                     }
+                  });
+
+        })
+       .on('mouseup', function (e)
+        {
+            $('#sizer')
+               .stop()
+               .animate( {tabIndex: 0}, {
+                  duration: 1000,
+                  step: function (now, fx) {
+                        var v = sNow + (50 - sNow) * (1-fx.pos);
+                        $('#sizer').slider( 'value', v );
+                        $('#dragel').css({ width: v, height: v });
+                     }
+                  });
+        });
+
+});
+
+</script>
+
