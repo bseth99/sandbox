@@ -1,0 +1,145 @@
+---
+layout: page
+title: Animating a Ribbon Effect
+group: css
+tags : [ribbon, effect, animate]
+---
+
+{% include JB/setup %}
+
+
+<style>
+
+.wrapper {
+   display: inline-block;
+   position: relative;
+   width: 100px;
+   height: 360px;
+   margin: 30px;
+   padding: 30px;
+   background-color: #ddd;
+   border-radius: 5px;
+}
+
+.banner {
+   position: absolute;
+   top: 30px;
+   margin-left: -40px;
+}
+
+.banner .main {
+   cursor: pointer;
+   position: relative;
+   padding: 10px;
+   padding-left: 20px;
+   padding-right: 20px;
+   min-width: 75px;
+   font-weight: bold;
+   color: white;
+   background-color: gray;
+   border-radius: 0px 5px 5px 0px;
+}
+
+.banner .wrap {
+   position: absolute;
+   top: 0px;
+   left: 0;
+   width: 0;
+   height: 100%;
+   border-width: 0px 10px 5px 0px;
+   border-style: solid;
+   border-color: transparent #aaa transparent transparent;
+}
+
+#move { font-size: 8pt; margin-top: -20px; }
+
+</style>
+
+<div class="discussion">
+A demo of using a ribbon effect and transitioning it based on perspective.  There is both a slider version to see
+the different in-between points and an actual animated version which will perform the transistion when you click on
+the element.
+</div>
+<br/>
+
+<div class="wrapper">
+   <div id="move"></div>
+
+   <div id="mv1" class="banner">
+    <div class="wrap"></div>
+    <div class="main">Apples</div>
+   </div>
+</div>
+
+<script>
+$(function() {
+
+   $('#move')
+      .slider({
+         min: 30,
+         max: 330,
+         slide: function ( e, ui ) {
+               var p = Math.round(10 / 300 * (ui.value - 30)) - 5;
+
+               $('#mv1')
+                  .css('top', ui.value)
+                  .find('.wrap')
+                     .css({
+                           top: (p >= 0 ? -p : 0),
+                           borderTopWidth: (p >= 0 ? p : 0),
+                           borderBottomWidth: (p <= 0 ? -p : 0)
+                        })
+                     .end()
+                   .find('.main')
+                     .css({
+                           boxShadow: '3px '+(-p/2)+'px 3px 0 #aaa'
+                        });
+            }
+         });
+
+   $('#mv1 .main').css('box-shadow', '3px 3px 3px 0 #aaa');
+
+});
+</script>
+
+<div class="wrapper">
+   <div id="mv2" class="banner">
+    <div class="wrap"></div>
+    <div class="main">Bananas</div>
+   </div>
+</div>
+
+<script>
+$(function() {
+
+   var dir = 1;
+   $('#mv2')
+      .click(function ( e ) {
+
+            var $w = $('#mv2 .wrap'),
+                $m = $('#mv2 .main');
+
+            $(this)
+               .animate({top: (dir == 1 ? 330 : 30)}, {
+                     step: function (now, fx) {
+
+                           var p = Math.round(10 / 300 * (now - 30)) - 5;
+
+                           $w.css({
+                                 top: (p >= 0 ? -p : 0),
+                                 borderTopWidth: (p >= 0 ? p : 0),
+                                 borderBottomWidth: (p <= 0 ? -p : 0)
+                              });
+
+                           $m.css('box-shadow', '3px '+(-p/2)+'px 3px 0 #aaa');
+                        }
+                   });
+
+            dir *= -1;
+
+         });
+
+   $('#mv2 .main').css('box-shadow', '3px 3px 3px 0 #aaa');
+
+});
+</script>

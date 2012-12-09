@@ -1,0 +1,121 @@
+---
+layout: page
+title: CSS3 Ribbon Effect
+group: css
+tags : [css3,ribbon,effect]
+---
+
+{% include JB/setup %}
+
+
+<style>
+
+.wrapper {
+   width: 600px;
+   height: 60%;
+   margin: auto;
+   padding: 20px;
+   background-color: #ddd;
+   border-radius: 5px;
+}
+
+.banner {
+   position: relative;
+   font-weight: bold;
+   color: white;
+   padding: 10px;
+   margin: 10px;
+   padding-left: 20px;
+   margin-right: -30px;
+   margin-left: -30px;
+   background-color: gray;
+}
+
+.banner.top {
+   border-radius: 5px 5px 0px 0px;
+   box-shadow: 0px 3px 2px -1px #aaa;
+   -moz-box-shadow: 0px 3px 2px -1px #aaa;
+   -webkit-box-shadow: 0px 3px 2px -1px #aaa;
+   -o-box-shadow: 0px 3px 2px -1px #aaa;
+}
+
+.banner.middle {
+   border-radius: 2px;
+}
+
+.banner.bottom {
+   border-radius: 0px 0px 5px 5px;
+   box-shadow: 0px -3px 2px -1px #aaa;
+   -moz-box-shadow: 0px -3px 2px -1px #aaa;
+   -webkit-box-shadow: 0px -3px 2px -1px #aaa;
+   -o-box-shadow: 0px -3px 2px -1px #aaa;
+}
+
+.banner:before, .banner:after {
+   content: ' ';
+   position: absolute;
+   width: 0;
+   height: 0;
+}
+
+.banner.top:before {
+   bottom: -6px;
+   left: 0px;
+   border-width: 3px 5px;
+   border-style: solid;
+   border-color: #aaa #aaa transparent transparent;
+}
+
+.banner.top:after {
+   bottom: -6px;
+   right: 0px;
+   border-width: 3px 5px;
+   border-style: solid;
+   border-color: #aaa transparent transparent #aaa;
+}
+
+.banner.bottom:before {
+   top: -6px;
+   left: 0px;
+   border-width: 3px 5px;
+   border-style: solid;
+   border-color: transparent #aaa #aaa transparent;
+}
+
+.banner.bottom:after {
+   top: -6px;
+   right: 0px;
+   border-width: 3px 5px;
+   border-style: solid;
+   border-color: transparent transparent #aaa #aaa;
+}
+
+.textbox {
+   margin: 20px;
+   padding: 10px;
+   background-color: white;
+   color: black;
+   border-radius: 5px;
+   box-shadow: 5px 5px 5px #aaa;
+   -moz-box-shadow: 5px 5px 5px #aaa;
+   -webkit-box-shadow: 5px 5px 5px #aaa;
+   -o-box-shadow: 5px 5px 5px #aaa;
+}
+
+</style>
+
+<div class="wrapper">
+   <div id="mv1" class="banner top">Header</div>
+   <div class="textbox">
+     This is just an implementation of the solution described <a href="http://www.sitepoint.com/pure-css3-ribbons/">in this article</a>.
+     I was just wanted to make my own version and understand the concept.  My next goal was to add motion to these
+     headers which meant I was not going to be able to use the pseudo-selectors to achieve the effect.  Note the differnt
+     perspectives of the ribbon depending on the position on the page.  I want to create a smooth transition from the
+     top to the bottom styling.  The demo can be seen <a href="2-ribbon-wrap-slide.html">here</a>.
+   </div>
+   <div class="banner middle">Section</div>
+   <div class="textbox">
+     Duis porttitor, justo sed ornare tincidunt, nulla lectus fringilla enim, ac dictum nulla metus ut est. Praesent bibendum elit ac elit auctor porttitor feugiat felis sollicitudin. Sed in eros libero, non gravida ipsum. Etiam ut nunc odio. Quisque imperdiet pharetra libero in bibendum. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed quis dui dolor, vel accumsan arcu. Aenean est arcu, dapibus in tempus mattis, fringilla a tortor. Phasellus odio nunc, volutpat quis congue sed, hendrerit quis eros. Nam sit amet dignissim nibh.
+   </div>
+   <div class="banner bottom">Footer</div>
+</div>
