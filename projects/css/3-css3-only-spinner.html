@@ -1,0 +1,129 @@
+---
+layout: page
+title: CSS3-Only Animated Spinner
+group: css
+tags : [css3, spinner, animation]
+blog: /2012/12/09/creating-a-perspective-based-animated-3d-ribbon-effect/
+---
+
+{% include JB/setup %}
+
+<div class="discussion">
+Using rounded corners, we can create circles and arcs with just plain HTML and CSS
+</div>
+<br/>
+
+<style>
+.wrapper {
+   position: relative;
+   margin: 20px;
+}
+
+.wrapper > div {
+   display: inline-block;
+   border-style: solid;
+   background-color: #fff;
+   margin: 10px;
+}
+
+.circle > div {
+   width: 60px;
+   height: 60px;
+   border-radius: 35px;
+   border-width: 5px;
+}
+
+.circle .full {
+   border-color: #999;
+}
+
+.circle .top {
+   border-color: #999 transparent transparent transparent;
+}
+
+.circle .right {
+   border-color: transparent #999 transparent transparent;
+}
+
+.circle .bottom {
+   border-color: transparent transparent #999 transparent;
+}
+
+.circle .left {
+   border-color: transparent transparent transparent #999;
+}
+
+</style>
+
+<div class="wrapper circle">
+ <div class="full"></div>
+ <div class="top"></div>
+ <div class="right"></div>
+ <div class="bottom"></div>
+ <div class="left"></div>
+</div>
+
+
+<div class="discussion">
+Extending the idea of using borders to make triangles, we can also make rounded wedges by using rounded corners.
+</div>
+<br/>
+
+<style>
+
+.wedge > div {
+   width: 0;
+   height: 0;
+   border-radius: 35px;
+   border-width: 35px;
+}
+
+.wedge .full {
+   border-color: #999;
+}
+
+.wedge .top {
+   border-color: #999 transparent transparent transparent;
+}
+
+.wedge .right {
+   border-color: transparent #999 transparent transparent;
+}
+
+.wedge .bottom {
+   border-color: transparent transparent #999 transparent;
+}
+
+.wedge .left {
+   border-color: transparent transparent transparent #999;
+}
+
+</style>
+
+
+<div class="wrapper wedge">
+ <div class="full"></div>
+ <div class="top"></div>
+ <div class="right"></div>
+ <div class="bottom"></div>
+ <div class="left"></div>
+</div>
+
+
+<div class="discussion">
+Mixing these ideas together and adding in some CSS animation, we can build a spinner without one line of Javascript.
+Although, it won't work in IE :(
+</div>
+<br/>
+
+<link rel="stylesheet" type="text/css" href="css-spinner.css">
+
+<div class="wrapper spinner">
+ <div class="full"></div>
+ <div class="wedge"></div>
+ <div class="edge"></div>
+</div>
+
+
+</body>
+</html>
