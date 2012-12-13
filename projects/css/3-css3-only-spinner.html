@@ -65,6 +65,51 @@ Using rounded corners, we can create circles and arcs with just plain HTML and C
 
 
 <div class="discussion">
+A common CSS trick is to use borders to create triangles
+</div>
+<br/>
+
+<style>
+
+.triangle > div {
+   width: 0;
+   height: 0;
+   border-width: 35px;
+}
+
+.triangle .full {
+   border-color: #999;
+}
+
+.triangle .top {
+   border-color: #999 transparent transparent transparent;
+}
+
+.triangle .right {
+   border-color: transparent #999 transparent transparent;
+}
+
+.triangle .bottom {
+   border-color: transparent transparent #999 transparent;
+}
+
+.triangle .left {
+   border-color: transparent transparent transparent #999;
+}
+
+</style>
+
+
+<div class="wrapper triangle">
+ <div class="full"></div>
+ <div class="top"></div>
+ <div class="right"></div>
+ <div class="bottom"></div>
+ <div class="left"></div>
+</div>
+
+
+<div class="discussion">
 Extending the idea of using borders to make triangles, we can also make rounded wedges by using rounded corners.
 </div>
 <br/>
@@ -124,6 +169,5 @@ Although, it won't work in IE :(
  <div class="edge"></div>
 </div>
 
-
-</body>
-</html>
+<br/>
+<br/>
