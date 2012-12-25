@@ -1,0 +1,208 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+   <title>Fireworks Celebration - CSS 3D Transforms and TweenLite Animations</title>
+
+   <script src="http://code.jquery.com/jquery.js"></script>
+   <script src="tweenlite/TweenMax.min.js"></script>
+
+</head>
+<body>
+
+<style>
+
+body { background-color: black; }
+
+.wrapper {
+   position: relative;
+   width: 800px;
+   height: 600px;
+   margin: auto;
+}
+
+.boom {
+   position: absolute;
+   height: 300px;
+   width: 300px;
+
+   -webkit-perspective: 500px;
+   -moz-perspective: 500px;
+   perspective: 500px;
+}
+
+.boom > div {
+   position: absolute;
+
+   -webkit-transform-origin: 50% 50% 0px;
+   -moz-transform-origin: 50% 50% 0px;
+   transform-origin: 50% 50% 0px;
+
+   -webkit-transform-style: preserve-3d;
+   -moz-transform-style: preserve-3d;
+   transform-style: preserve-3d;
+}
+
+.place {
+   top: 0;
+   left: 0;
+   height: 0;
+   width: 0;
+}
+
+.spark {
+  width: 4px;
+  height: 3px;
+  border-radius: 5px;
+}
+
+.spark.red {
+  background-color: #f00;
+  color: #f00;
+}
+
+.spark.green {
+  background-color: #0f0;
+  color: #0f0;
+}
+
+.spark.blue {
+  background-color: #00f;
+  color: #00f;
+}
+
+.spark.yellow {
+  background-color: #ff0;
+  color: #ff0;
+}
+
+.spark.white {
+  background-color: #fff;
+  color: #fff;
+}
+
+#desc {
+  position: fixed:
+  bottom: 0;
+  color: yellow;
+  font-size: 8pt;
+  width: 800px;
+  margin: auto;
+}
+
+a, a:visited { color: red; }
+
+</style>
+
+<div class="wrapper">
+</div>
+
+<div id="desc">
+  Let's celebrate!  A combination of many DIVs and some GreenSock Tweening magic.  Using CSS3 3D transforms to build
+  spherical shapes to create the firework effect.  This really only works well in Chrome.  Check out the more
+  <a href="C_HTML_parallax_fireworks_full.html">browser compatible version</a>.  For more about how this was created, check out my blog.
+</div>
+
+<script>
+
+var colors = ['red','green','blue','yellow','white'];
+
+function makeFirework($c)
+{
+   var $b = $('<div>').appendTo($c).addClass('boom');
+   var ta, i,
+       cnt = Math.floor(150 + Math.random() * 150 - 75),
+       x = 0, y = 0, z = 0,
+       incZ = 360 / cnt * 20,
+       incY = Math.floor(360 / cnt * 10),
+       clr = colors[Math.floor((Math.random()+0.19)*4)],
+       posX = Math.floor(400 + Math.random() * 400 - 250),
+       posY = Math.floor(300 + Math.random() * 200 - 100),
+       size = 50 * Math.floor((cnt / 50 + 1));
+
+   $b.css({ left: posX, top: posY }).hide();
+
+   for (i=0;i<cnt;i++)
+   {
+      z += Math.floor(incZ + Math.random() * 10 - 20);
+      if ( z > 360 )
+      {
+         y += incY;
+         z = Math.floor(Math.random() * 5 - 10);
+
+         if ( y > 360 )
+            y = 0;
+      }
+
+      x = Math.floor(Math.random() * 20 - 40);
+
+      $('<div class="place"><div class="spark '+clr+'"></div></div>')
+         .appendTo($b)
+         .css('transform', 'translateX('+x+'px) rotateY('+y+'deg) rotateZ('+z+'deg)')
+         .find('.spark')
+            .css('transform', 'rotateY(-'+y+'deg)');
+   }
+
+   ta = new TimelineLite({
+             onStart: function () { $b.show(); },
+             onComplete: function () {  $b.remove();  }
+         });
+
+   ta.insert(
+        TweenLite.to($b.find('.place'), 0.5,
+                     {
+                        easing: Expo.easeIn,
+                        css: {
+                              top: -size/1.5,
+                              left: -size/(2 + Math.random() - 0.5),
+                              width: size,
+                              height: size
+                           }
+                     })
+      );
+
+   ta.insert(
+        TweenLite.to($b.find('.place'), 3 + Math.random() * 0.5 - 1,
+                     {
+                        easing: Linear.easeOut,
+                        css: {
+                              top: '+=30px',
+                              height: '+=90px',
+                              opacity: 0
+                           }
+                     }),
+        0.5
+      );
+
+   return ta;
+}
+
+function launch() {
+
+   var cnt = Math.ceil(Math.random()*4+1);
+
+   var tml = new TimelineLite();
+
+   while (cnt--)
+      tml.insert(makeFirework($('.wrapper')), Math.random() * 0.8 + 0.4);
+
+
+   tml.play();
+
+}
+
+function show() {
+   launch();
+   setTimeout(function () { show(); }, Math.random() * 1000 + 2700);
+}
+
+$(function () {
+   show();
+});
+
+</script>
+
+</body>
+</html>

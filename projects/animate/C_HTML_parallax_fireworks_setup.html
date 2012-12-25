@@ -1,0 +1,202 @@
+---
+layout: page
+title: Fireworks Celebration - Simulated 3D with Parallaxing and TweenLite Animations
+group: animate
+tags : [javascript, animate, tweenlite, fireworks, parallax]
+---
+{% include JB/setup %}
+
+<!--
+Copyright (c) 2012 Ben Olson
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+-->
+
+
+<script src="tweenlite/TweenMax.min.js"></script>
+
+<style>
+
+.wrapper {
+   background-color: black;
+
+   position: relative;
+   width: 600px;
+   height: 600px;
+   margin: auto;
+   top: 60px;
+   margin-bottom: 60px;
+}
+
+.boom {
+   position: relative;
+   height: 300px;
+   width: 300px;
+   margin: 50px;
+}
+
+.place {
+   position: absolute;
+}
+
+.spark {
+  position: absolute;
+  background-color: #f00;
+  color: #f00;
+  border-radius: 5px;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  -o-border-radius: 5px;
+}
+
+.spark.front {
+  width: 5px;
+  height: 4px;
+}
+
+.spark.mid {
+  width: 3px;
+  height: 4px;
+}
+
+.spark.mid2 {
+  width: 4px;
+  height: 3px;
+}
+
+.spark.back {
+  width: 2px;
+  height: 2px;
+}
+
+button { position: absolute; top: -40px; }
+button span { font-size: 8pt; }
+
+</style>
+
+<div class="discussion">
+This version is much faster and will work in all browsers.  Avoiding 3D transforms by creating 5 planes and sliding them
+slightly to create the illusion of 3D.  Click the launch button to see the effect.
+Checkout the <a href="C_HTML_parallax_fireworks_full.html">full fireworks show</a>.
+</div>
+<br/>
+
+<div class="wrapper">
+  <button id="launch">Launch</button>
+  <div class="boom"></div>
+</div>
+
+<script>
+
+var _RAD = Math.PI / 180;
+
+function findPointOnCircle(c, r, a)
+{
+   return {x: c.x + r * Math.cos(a * _RAD), y: c.y + r * Math.sin(a * _RAD)};
+}
+
+$(function () {
+
+   var $b = $('.boom'), $p, $s,
+       pcls = ['back','mid','mid2','mid','front'],
+       mid = {x: 150, y: 150},
+       maxr = 150,
+       cnt = 150,
+       rel = -2,
+       lyr = cnt / 5,
+       lsz,
+       ang,
+       pt,
+       opp;
+
+   ta = new TimelineLite({
+             paused: true
+         });
+
+   while ( rel < 3 ) {
+
+      lsz = Math.round(maxr / (Math.abs(rel/2)+1));
+      opp = 5-(rel+3);
+
+      $p = $('<div>')
+              .addClass('place')
+              .css({ height: lsz, width: lsz })
+              .appendTo($b);
+
+      ta.insert(
+           TweenLite.to($p, 3 + Math.random() * 0.5 - 1,
+                        {
+                           easing: Linear.easeOut,
+                           css: {
+                                 top: opp*10,
+                                 left: opp*2 * (opp%2>0 ? -1 : 1),
+                                 opacity: 0
+                              }
+                        }),
+           0.3
+         );
+
+      for ( ang=0; ang<360; ang+=360/lyr ) {
+
+         // Max size is 300px.  So center is 150,150
+         // There are 5 layers.  Need to scale the
+         // front/back layers to create a fake sphere
+         // and depth
+
+         pt = findPointOnCircle(
+                     mid,
+                     lsz + Math.random() * (lsz/1.5) - (lsz/3),
+                     ang + Math.random() * 20 - 10
+                  );
+
+
+         $s = $('<div>')
+                 .addClass('spark')
+                 .addClass(pcls[opp])
+                 .css({ top: mid.y, left: mid.x })
+                 .appendTo($p);
+
+         ta.insert(
+              TweenLite.to($s, 0.5,
+                           {
+                              easing: Expo.easeIn,
+                              css: {
+                                    left:  Math.round(pt.x),
+                                    top: Math.round(pt.y) - opp*5
+                                 }
+                           })
+            );
+
+      }
+
+      rel++;
+   }
+
+   $('#launch')
+      .button()
+      .click(function () {
+            ta.play(0);
+         });
+});
+
+
+</script>

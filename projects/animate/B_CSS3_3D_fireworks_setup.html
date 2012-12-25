@@ -1,0 +1,198 @@
+---
+layout: page
+title: Fireworks Celebration - CSS 3D Transforms and TweenLite Animations
+group: animate
+tags : [javascript, animate, tweenlite, fireworks, css3, transform, 3d]
+---
+{% include JB/setup %}
+
+<!--
+Copyright (c) 2012 Ben Olson
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+-->
+
+<style>
+
+.wrapper {
+   background-color: black;
+
+   position: relative;
+   width: 600px;
+   height: 600px;
+   margin: auto;
+   top: 60px;
+   margin-bottom: 60px;
+}
+
+.boom {
+   position: absolute;
+   height: 300px;
+   width: 300px;
+   top: 300px;
+   left: 300px;
+
+   -webkit-perspective: 500px;
+   -moz-perspective: 500px;
+   perspective: 500px;
+}
+
+.boom > div {
+   position: absolute;
+
+   -webkit-transform-origin: 50% 50% 0px;
+   -moz-transform-origin: 50% 50% 0px;
+   transform-origin: 50% 50% 0px;
+
+   -webkit-transform-style: preserve-3d;
+   -moz-transform-style: preserve-3d;
+   transform-style: preserve-3d;
+}
+
+.place {
+   top: 0;
+   left: 0;
+   height: 0;
+   width: 0;
+}
+
+.spark {
+  width: 4px;
+  height: 3px;
+  border-radius: 5px;
+  background-color: #f00;
+  color: #f00;
+}
+
+
+#slider1 { width: 300px; font-size: 8pt; margin: auto; top: -30px; }
+#slider2 { height: 300px; font-size: 8pt; margin: 20px; margin-left: -30px; }
+
+</style>
+
+<div class="discussion">
+Use CSS3 3D transforms to create the spheres that represent the exploding firework.
+Avoiding 3D transforms by creating 5 planes and sliding them slightly to create the illusion of 3D.
+Use the top slider to see the exploding part and use the slider on the side to see the portion as the
+the sparks fizzle out.  Only works in Firefox and Chrome, however, Chrome performs the best.
+Checkout the <a href="B_CSS3_3D_fireworks_full.html">full fireworks show</a>.  For a none 3D transform
+version check out <a href="C_HTML_parallax_fireworks_setup.html">the alternative approach</a>.
+</div>
+<br/>
+
+<div class="wrapper">
+  <div id="slider1"></div>
+  <div id="slider2"></div>
+  <div class="boom"></div>
+</div>
+
+<script>
+
+$(function () {
+
+   var $b = $('.boom');
+   var i,
+       cnt = 150,
+       x = 0, y = 0, z = 0,
+       incZ = 40,
+       incY = 20;
+
+   // Make a bunch of sparks to assemble the
+   // firework.
+   for (i=0;i<cnt;i++)
+   {
+      // Rotate each spark container (.place) on the
+      // Z and Y axis.  Everything needs a little
+      // random staggering to avoid looking too uniform
+
+      z += Math.floor(incZ + Math.random() * 10 - 20);
+      if ( z > 360 )
+      {
+         y += incY;
+         z = Math.floor(Math.random() * 5 - 10);
+
+         if ( y > 360 )
+            y = 0;
+      }
+
+      // Shifting a little on the X-axis helps the
+      // staggering effect even more.
+      x = Math.floor(Math.random() * 20 - 40);
+
+      // Now create the actual spark.  It will be contained by
+      // the .place wrapper which will be what is actual resized and moved
+      // around during the animation.
+
+      // The spark does need to be rotated in the negative Y direction
+      // to compensate for the Y rotation on the container, otherwise,
+      // it will appear like a line in some cases since it will be
+      // rotated on its side.
+
+      $('<div class="place"><div class="spark"></div></div>')
+         .appendTo($b)
+         .css('transform', 'translateX('+x+'px) rotateY('+y+'deg) rotateZ('+z+'deg)')
+         .find('.spark')
+            .css('transform', 'rotateY(-'+y+'deg)');
+   }
+
+
+   // These will be changed to animations later.
+   // But allow for testing the sizing and positioning.
+
+   // slider1 represents the explosion part of the firework
+   // when it rapidly expands to its final size.
+
+   $('#slider1').slider({
+         slide: function ( e, ui ) {
+               var pos = ui.value / 100,
+                   pos2 = $('#slider2').slider('value') / 100;
+
+               $('.place').css({
+                              top: -150 * pos + 30 * pos2,
+                              left: -100 * pos,
+                              width: 200 * pos,
+                              height: 200 * pos + 90 * pos2
+                           });
+            }
+      });
+
+
+   // slider2 represents the fading part of the firework
+   // as it starts to be affected by gravity and the sparks
+   // fizzle away.
+
+   $('#slider2').slider({
+         orientation: 'vertical',
+         slide: function ( e, ui ) {
+               var pos2 = ui.value / 100,
+                   pos = $('#slider1').slider('value') / 100;
+
+               $('.place').css({
+                              top: -150 * pos + 30 * pos2,
+                              height: 200 * pos + 90 * pos2
+                           });
+            }
+      });
+
+});
+
+</script>
