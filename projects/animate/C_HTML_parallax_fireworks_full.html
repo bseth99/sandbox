@@ -184,7 +184,7 @@ function makeFirework($c)
                  .appendTo($p);
 
          ta.insert(
-              TweenLite.to($s, 0.5,
+              TweenLite.to($s, 0.4 + Math.random() * 0.2 - 0.1,
                            {
                               easing: Expo.easeIn,
                               css: {
