@@ -1,0 +1,33 @@
+table {
+   border-collapse: separate;
+   border: 1px solid #dfdfdf;
+   background-color: #f9f9f9;
+   width: 100%;
+   table-layout: fixed;
+   -moz-border-radius: 3px;
+   -webkit-border-radius: 3px;
+   border-radius: 3px;
+   color: #333;
+}
+
+table td, table th {
+   border-top-color: white;
+   border-bottom: 1px solid #dfdfdf;
+   color: #555;
+}
+
+table th {
+   font-weight: bold;
+   padding: 7px 5px 8px;
+   text-align: left;
+   line-height: 1.3em;
+   font-size: 14px;
+}
+
+table td {
+   font-size: 12px;
+   padding: 4px 5px 2px;
+   vertical-align: top;
+   white-space: nowrap;
+   overflow: hidden;
+}

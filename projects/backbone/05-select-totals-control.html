@@ -1,0 +1,447 @@
+---
+layout: page
+title: Adding Selectable Statistics by Leveraging Backbone Events
+group: backbone-table
+tags : [backbone, template, table, collection, view]
+---
+
+{% include JB/setup %}
+
+<!--
+Copyright (c) 2012 Ben Olson
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+-->
+
+
+<link rel="stylesheet" type="text/css" href="table.css">
+
+<style>
+
+#movies th { white-space: nowrap; cursor: pointer; }
+#movies th span { display: inline-block; margin-left: 5px; }
+
+#movies [column="rank"] { width: 50px; }
+#movies [column="title"] { width: 35%; }
+#movies [column="studio"] { width: 80px; }
+#movies [column="gross"] { width: 100px; }
+#movies [column="year"] { width: 80px; }
+#movies [column="pct_cmp"] { width: 0px; }
+
+.icon-none { visibility: hidden; }
+
+.pct-label { width: 50px; display: inline-block; }
+
+.graph { width: 200px; height: 15px; display: inline-block; }
+.graph > .red { background-color: red; }
+.graph > .green { background-color: lime; }
+.graph > div { position: relative; height: 15px; width: 0; left: 100px; }
+
+.compare div { vertical-align: top; }
+
+</style>
+
+<script id="movie-totals" type="text/template">
+ <thead>
+  <tr>
+   <th><div>Compare</div></th>
+   <th><div>Average Gross</div></th>
+   <th><div>Total Gross</div></th>
+  </tr>
+ </thead>
+ <tbody>
+  <tr>
+   <td>
+      <select id="compare-picker">
+        <option value="">None</option>
+        <option value="avgGross">Average</option>
+        <option value="2012">2012</option>
+        <option value="fox">Fox</option>
+      </select>
+   </td>
+   <td><div id="avgGross"></div></td>
+   <td><div id="totalGross"></div></td>
+  </tr>
+ </tbody>
+</script>
+
+<script id="movie-table" type="text/template">
+ <thead>
+  <tr>
+   <th column="rank"><div>Rank</div></th>
+   <th column="title"><div>Title</div></th>
+   <th column="studio"><div>Studio</div></th>
+   <th column="gross"><div>Gross</div></th>
+   <th column="year"><div>Year</div></th>
+   <th column="pct_cmp" class="compare"><div>Compare</div></th>
+  </tr>
+ </thead>
+ <tbody>
+
+ </tbody>
+</script>
+
+<script id="movie-row" type="text/template">
+   <td><div><%= rank %></div></td>
+   <td><div><%= title %></div></td>
+   <td><div><%= studio %></div></td>
+   <td><div><%= Globalize.format(gross, 'C') %></div></td>
+   <td><div><%= year %></div></td>
+   <td class="compare"><div><div class="graph"></div><div class="pct-label"></div></div></td>
+</script>
+
+
+<script src="moviedata.js"></script>
+<script src="globalize.js"></script>
+<script src="underscore.min.js"></script>
+<script src="backbone.min.js"></script>
+
+<script>
+
+var Movie = Backbone.Model.extend({
+
+   defaults: {
+      title: '',
+      gross: 0,
+      rank: -1,
+      year: 1900,
+      studio: '',
+      pct_cmp: ''
+   },
+
+   calc: function(compare) {
+
+      var gross = this.get('gross'),
+          val;
+
+      val = compare ? (gross - compare) / compare : '';
+
+      this.set('pct_cmp', val);
+
+   }
+
+});
+
+var Movies = Backbone.Collection.extend({
+
+   model: Movie,
+
+   totals: null,
+   controls: null,
+
+   sortAttribute: "rank",
+   sortDirection: 1,
+
+   initialize: function() {
+      this.totals = new Backbone.Model({totalGross: 0, avgGross: 0});
+      this.controls = new Backbone.Model({compare: ''});
+   },
+
+   sortMovies: function (attr) {
+      this.sortAttribute = attr;
+      this.sort();
+   },
+
+   comparator: function(a, b) {
+      var a = a.get(this.sortAttribute),
+          b = b.get(this.sortAttribute);
+
+      if (a == b) return 0;
+
+      if (this.sortDirection == 1) {
+         return a > b;
+      } else {
+         return a < b;
+      }
+   },
+
+   sumCompare: function() {
+
+      var that = this, wrm,
+          compare = this.controls.get('compare'),
+          total = 0, avg = 0;
+
+      switch (compare)
+      {
+         case 'avgGross' :
+            wrm = this.models;
+            break;
+
+         case '2012' :
+            wrm = this.where({year:2012});
+            break;
+
+         case 'fox' :
+            wrm = this.where({studio:'Fox'});
+            break;
+      }
+
+      if (compare != '') {
+         _.each(wrm, function ( v ) { total += v.get('gross'); } );
+         avg = total / wrm.length;
+      }
+
+      this.totals.set({totalGross: total, avgGross: avg});
+
+      _.each(this.models,
+            function ( obj ) {
+                  that.get(obj).calc(avg);
+              });
+   }
+
+});
+
+var MovieTotals = Backbone.View.extend({
+
+   tagName: 'table',
+   template: null,
+
+   events: {
+      "change #compare-picker" :    "changeCompare"
+   },
+
+   initialize: function() {
+
+      this.template = _.template( $('#movie-totals').html() );
+
+      this.listenTo(this.collection.totals, "change", this.updateTotals);
+   },
+
+   render: function() {
+
+      this.$el.html(this.template());
+
+      this.updateTotals();
+
+      return this;
+
+   },
+
+   changeCompare: function () {
+      var $cmpsel = this.$('#compare-picker :selected'),
+          cmp = $cmpsel.attr('value');
+
+      this.collection.controls.set({
+            compare: cmp
+         });
+   },
+
+   updateTotals: function () {
+      var totals = this.collection.totals.toJSON();
+
+      this.$('#avgGross').html(Globalize.format(totals.avgGross, 'C'));
+      this.$('#totalGross').html(Globalize.format(totals.totalGross, 'C'));
+   }
+
+});
+
+var MovieTable = Backbone.View.extend({
+
+   _movieRowViews: [],
+
+   tagName: 'table',
+   template: null,
+
+   sortUpIcon: 'ui-icon-triangle-1-n',
+   sortDnIcon: 'ui-icon-triangle-1-s',
+
+   events: {
+      "click th":                   "headerClick"
+   },
+
+   initialize: function() {
+
+      this.template = _.template( $('#movie-table').html() );
+
+      this.listenTo(this.collection, "sort", this.updateTable);
+      this.listenTo(this.collection.controls, "change", this.updateCompare);
+
+      this.collection.sumCompare();
+   },
+
+   render: function() {
+
+      this.$el.html(this.template());
+
+      // Setup the sort indicators
+      this.$('th div')
+             .append($('<span>'))
+             .closest('thead')
+             .find('span')
+               .addClass('ui-icon icon-none')
+               .end()
+             .find('[column="'+this.collection.sortAttribute+'"] span')
+               .removeClass('icon-none').addClass(this.sortUpIcon);
+
+      this.updateTable();
+
+      return this;
+   },
+
+   updateCompare: function () {
+
+      var cmp = this.collection.controls.get('compare');
+
+      // Show/Hide the compare column based on selected
+      // comparison metric (hide if None is selected)
+      if (cmp == '') {
+
+         this.$('.compare')
+            .children()
+               .hide()
+            .end()
+            .animate({width: 0}, 500, 'swing', function () { $(this).hide(); } );
+
+      } else {
+
+         this.$('.compare')
+            .show()
+            .animate({width: 250}, 500, 'swing', function () { $(this).children().show(); } );
+
+      }
+
+      this.collection.sumCompare();
+   },
+
+   headerClick: function( e ) {
+      var $el = $(e.currentTarget),
+          ns = $el.attr('column'),
+          cs = this.collection.sortAttribute;
+
+      if (ns == cs) {
+         this.collection.sortDirection *= -1;
+      } else {
+         this.collection.sortDirection = 1;
+      }
+
+      $el.closest('thead').find('span').attr('class', 'ui-icon icon-none');
+
+      if (this.collection.sortDirection == 1) {
+         $el.find('span').removeClass('icon-none').addClass(this.sortUpIcon);
+      } else {
+         $el.find('span').removeClass('icon-none').addClass(this.sortDnIcon);
+      }
+
+      this.collection.sortMovies(ns);
+   },
+
+   updateTable: function () {
+
+      var ref = this.collection,
+          cmp = ref.controls.get('compare'),
+          $table;
+
+      _.invoke(this._movieRowViews, 'remove');
+
+      $table = this.$('tbody');
+
+      this._movieRowViews = this.collection.map(
+            function ( obj ) {
+                  var v = new MovieRow({  model: ref.get(obj) });
+
+                  $table.append(v.render().$el);
+
+                  return v;
+              });
+
+      // Ensure compare column is properly displayed after
+      // rendering all the rows
+      if (cmp == '') {
+         this.$('.compare').hide().children().hide();
+      } else {
+         this.$('.compare').show().children().show();
+      }
+   }
+
+});
+
+var MovieRow = Backbone.View.extend({
+
+   tagName: 'tr',
+
+   template: null,
+
+   $graph: null,
+   $label: null,
+
+   initialize: function() {
+      this.template = _.template( $('#movie-row').html() );
+
+      this.listenTo(this.model, 'change:pct_cmp', this.renderGraph);
+   },
+
+   render: function() {
+
+      this.$el.html( this.template( this.model.toJSON()) );
+
+      this.$graph = $('<div>').appendTo( this.$('.graph') );
+      this.$label = this.$('.pct-label');
+
+      this.renderGraph();
+
+      return this;
+   },
+
+   renderGraph: function() {
+
+      var pct = this.model.get('pct_cmp'),
+          dir = pct > 0 ? 1 : -1;
+
+      this.$label.text( (pct == '' ? '' : (Math.round(pct * 1000) / 10) + '%' ) );
+
+      pct = Math.abs(pct);
+
+      this.$graph.attr('class', '').addClass( (dir == 1 ? 'green' : 'red') );
+
+      // When the compare column is being animated delay the animation so it happens
+      // after the column is fully visible
+      if (this.$graph.parent().css('display') == 'none') this.$graph.delay(750);
+
+      this.$graph.animate({ width: Math.round(pct * 100), left: Math.round(dir == -1 ? 100 - pct * 100 : 100) }, 1000);
+
+   }
+
+});
+
+</script>
+
+<div class="wrapper">
+ <div id="top"></div>
+ <br/>
+ <div id="table"></div>
+</div>
+
+<script>
+
+$(function() {
+
+   var movieList = new Movies(movieData);
+
+   var movieTotals = new MovieTotals({ collection: movieList });
+   var movieView = new MovieTable({ collection: movieList });
+
+   $('#top').html( movieTotals.render().$el.attr('id', 'totals') );
+   $('#table').html( movieView.render().$el.attr('id', 'movies') );
+
+});
+
+</script>

@@ -1,0 +1,187 @@
+---
+layout: page
+title: Basic Tables using Backbone Views
+group: backbone-table
+tags : [backbone, template, table, collection, view]
+---
+
+{% include JB/setup %}
+
+<!--
+Copyright (c) 2012 Ben Olson
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+-->
+
+
+<link rel="stylesheet" type="text/css" href="table.css">
+
+<style>
+
+#movies [column="rank"] { width: 50px; }
+#movies [column="title"] { width: 35%; }
+#movies [column="studio"] { width: 80px; }
+#movies [column="gross"] { width: 100px; }
+#movies [column="year"] { width: 80px; }
+
+</style>
+
+<script id="movie-table" type="text/template">
+
+ <thead>
+  <tr>
+   <th column="rank"><div>Rank</div></th>
+   <th column="title"><div>Title</div></th>
+   <th column="studio"><div>Studio</div></th>
+   <th column="gross"><div>Gross</div></th>
+   <th column="year"><div>Year</div></th>
+  </tr>
+ </thead>
+ <tbody>
+
+ </tbody>
+
+</script>
+
+<script id="movie-row" type="text/template">
+   <td><div><%= rank %></div></td>
+   <td><div><%= title %></div></td>
+   <td><div><%= studio %></div></td>
+   <td><div><%= Globalize.format(gross, 'C') %></div></td>
+   <td><div><%= year %></div></td>
+</script>
+
+<script src="moviedata.js"></script>
+<script src="globalize.js"></script>
+<script src="underscore.min.js"></script>
+<script src="backbone.min.js"></script>
+
+<script>
+
+var Movie = Backbone.Model.extend({
+
+   defaults: {
+      title: '',
+      gross: 0,
+      rank: -1,
+      year: 1900,
+      studio: ''
+   }
+
+});
+
+var Movies = Backbone.Collection.extend({
+
+   model: Movie,
+
+   comparator: function(movie) {
+      return movie.get('rank');
+   }
+
+});
+
+var MovieTable = Backbone.View.extend({
+
+   _movieRowViews: [],
+
+   tagName: 'table',
+   template: null,
+
+   initialize: function() {
+
+      this.template = _.template( $('#movie-table').html() );
+   },
+
+   render: function() {
+
+      this.$el.html(this.template());
+
+      this.updateTable();
+
+      return this;
+   },
+
+   updateTable: function () {
+
+      var ref = this.collection,
+          $table;
+
+      _.invoke(this._movieRowViews, 'remove');
+
+      $table = this.$('tbody');
+
+      this._movieRowViews = this.collection.map(
+            function ( obj ) {
+                  var v = new MovieRow({  model: ref.get(obj) });
+
+                  $table.append(v.render().$el);
+
+                  return v;
+              });
+   }
+
+});
+
+var MovieRow = Backbone.View.extend({
+
+   tagName: 'tr',
+   template: null,
+
+   initialize: function() {
+
+      this.template = _.template( $('#movie-row').html() );
+
+   },
+
+   render: function() {
+
+      this.$el.html( this.template( this.model.toJSON()) );
+
+      return this;
+   }
+
+});
+
+</script>
+
+<div class="discussion">
+  Instead of using one view that renders the entire table using partials, this version is broken into
+  two views - one to render the main table and headers and the other to render one row from the collection.
+  This approach provides flexibility as additional functionality is added to the main table and each row.
+</div>
+<br/>
+
+<div class="wrapper"></div>
+
+<script>
+
+$(function() {
+
+   var movieList = new Movies(movieData);
+
+   var movieView = new MovieTable({ collection: movieList });
+
+   $('.wrapper').html( movieView.render().$el.attr('id', 'movies') );
+
+});
+
+</script>
