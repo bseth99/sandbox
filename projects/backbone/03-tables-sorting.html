@@ -112,9 +112,9 @@ var Movies = Backbone.Collection.extend({
       if (a == b) return 0;
 
       if (this.sortDirection == 1) {
-         return a > b;
+         return a > b ? 1 : -1;
       } else {
-         return a < b;
+         return a < b ? 1 : -1;
       }
    }
 

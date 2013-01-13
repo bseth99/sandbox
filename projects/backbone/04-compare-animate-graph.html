@@ -50,10 +50,10 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 .pct-label { width: 50px; display: inline-block; }
 
-.graph { width: 200px; height: 15px; display: inline-block; }
+.graph { position: relative; width: 200px; height: 15px; display: inline-block; }
 .graph > .red { background-color: red; }
 .graph > .green { background-color: lime; }
-.graph > div { position: relative; height: 15px; width: 0; left: 100px; }
+.graph > div { position: absolute; height: 15px; width: 0; left: 100px; }
 
 </style>
 
@@ -133,9 +133,9 @@ var Movies = Backbone.Collection.extend({
       if (a == b) return 0;
 
       if (this.sortDirection == 1) {
-         return a > b;
+         return a > b ? 1 : -1;
       } else {
-         return a < b;
+         return a < b ? 1 : -1;
       }
    },
 
@@ -274,7 +274,11 @@ var MovieRow = Backbone.View.extend({
 
       pct = Math.abs(pct);
 
-      this.$graph.attr('class', '').addClass( (dir == 1 ? 'green' : 'red') );
+      this.$graph
+         .attr('class', '')
+         .addClass( (dir == 1 ? 'green' : 'red') )
+         .css( {width: 0, left: 100} );
+
       this.$graph.animate({ width: Math.round(pct * 100), left: Math.round(dir == -1 ? 100 - pct * 100 : 100) }, 1000);
 
    }
