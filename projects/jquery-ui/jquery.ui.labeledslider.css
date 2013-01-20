@@ -1,0 +1,40 @@
+/*!
+ * Copyright (c) 2012 Ben Olson
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
+.ui-slider-wrapper { position: relative }
+
+.ui-slider-label-ticks { border: 1px solid transparent; position: absolute; text-align: center; white-space: nowrap; font-size: 0.9em; }
+.ui-slider-labels { position: absolute; border: 1px solid transparent; }
+
+.ui-slider-wrapper.horizontal { height: 4.5em; }
+.horizontal .ui-slider-labels { top: 0.7em; left: -0.05em; margin-top: -0.35em; width: 100%; }
+.horizontal .ui-slider-label-ticks { width: 1.2em; margin-left: -.65em; }
+.horizontal .ui-slider-label-ticks span { display: inline-block; border-left: 1px solid #999; height: 0.7em; }
+
+.ui-slider-wrapper.vertical { width: 4.5em; }
+.vertical .ui-slider-labels { left: 0.7em; top: 0.35em; margin-left: -0.15em; height: 100%; }
+.vertical .ui-slider-label-ticks { height: 1.2em; margin-top: -.65em; }
+.vertical .ui-slider-label-ticks span { display: inline-block; border-top: 1px solid #999; width: 0.7em; margin-bottom: 0.15em; }

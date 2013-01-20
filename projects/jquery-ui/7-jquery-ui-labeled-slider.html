@@ -1,0 +1,115 @@
+---
+layout: page
+title: Adding Labels and Tick Marks to jQuery UI Slider
+group: jquery-ui
+tags : [javascript, jquery, jquery-ui, widget, slider, labels, ticks]
+---
+
+{% include JB/setup %}
+
+
+<link rel="stylesheet" href="jquery.ui.labeledslider.css">
+<script src="jquery.ui.labeledslider.js"></script>
+
+<style>
+
+.wrapper {
+   margin: auto;
+   position: relative;
+   width: 400px;
+   height: 400px;
+   margin-top: 10px;
+}
+
+.controls {
+   position: absolute;
+   bottom: 30px;
+   right: 0;
+   font-size: 8pt;
+   text-align: right;
+}
+.controls .clabel { font-size: .9em; }
+.ui-spinner { width: 4em; }
+
+</style>
+
+<div class="discussion">
+   Demo of an extension to the jQuery UI Slider widget which adds labels and tick marks
+   to the slider control.  Options added include the interval to place the ticks and
+   and option set of labels to show (other than the default numeric labels).  The current
+   source is on my jQuery UI extensions GitHub project repository.  If you want the widget,
+   download the most current version of the
+   <a href="https://raw.github.com/bseth99/jquery-ui-extensions/master/ui/jquery.ui.labeledslider.js">Javascript</a> and
+   <a href="https://raw.github.com/bseth99/jquery-ui-extensions/master/themes/base/jquery.ui.labeledslider.css">CSS</a>
+   files.  Additional tests/examples are on
+   the <a href="http://bseth99.github.com/jquery-ui-extensions/tests/visual/">project page</a>.
+</div>
+
+<div class="wrapper">
+   <div id="slider1"></div>
+   <br/>
+   <div id="slider2" style="height: 250px"></div>
+
+   <div class="controls">
+      <span class="clabel">Min: </span><input id="min" /><br/>
+      <span class="clabel">Max: </span><input id="max" /><br/>
+      <span class="clabel">Step: </span><input id="step" /><br/>
+      <span class="clabel">Tick Interval: </span><input id="ticks" /><br/>
+      <span class="clabel">Show Labels: </span><input id="labels" type="checkbox" />
+   </div>
+</div>
+
+<script>
+$(function() {
+
+   $('#slider1').labeledslider({ max: 6, tickInterval: 1 });
+   $('#slider2').labeledslider({ max: 10, step: 2, orientation: 'vertical', range: true });
+
+   $('#min').val(0).spinner({
+         min: 0,
+         max: 5,
+         spin: function ( e, ui ) {
+               $('#slider1').labeledslider( 'option', 'min', ui.value );
+            }
+      });
+
+   $('#max').val(6).spinner({
+         min: 6,
+         max: 20,
+         spin: function ( e, ui ) {
+               $('#slider1').labeledslider( 'option', 'max', ui.value );
+            }
+      });
+
+   $('#step').val(1).spinner({
+         min: 1,
+         max: 3,
+         spin: function ( e, ui ) {
+               $('#slider1').labeledslider( 'option', 'step', ui.value );
+            }
+      });
+
+   $('#ticks').val(1).spinner({
+         min: 1,
+         max: 3,
+         spin: function ( e, ui ) {
+               $('#slider1').labeledslider( 'option', 'tickInterval', ui.value );
+            }
+      });
+
+   $('#labels').attr('checked', false).on('click', function () {
+         var t = $(this).is(':checked'),
+             labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+         labels = labels.concat(labels).concat(labels);
+
+         if (t) {
+            $('#slider1').labeledslider( 'option', 'tickLabels', labels );
+         } else {
+            $('#slider1').labeledslider( 'option', 'tickLabels', null );
+         }
+
+      });
+
+});
+</script>
