@@ -52,16 +52,17 @@
                 .wrap( '<div class="ui-slider-wrapper ui-widget"></div>' )
                 .before( '<div class="ui-slider-labels">' )
                 .parent()
-                .addClass( this.orientation );
+                .addClass( this.orientation )
+                .css( 'font-size', this.element.css('font-size') );
 
          this._alignWithStep();
 
          if ( this.orientation == 'horizontal' ) {
             this.uiSlider
-               .width( this.uiSlider.children( '.ui-slider' ).width() );
+               .width( this.element.width() );
          } else {
             this.uiSlider
-               .height( this.uiSlider.children( '.ui-slider' ).height() );
+               .height( this.element.height() );
          }
 
          this._drawLabels();
