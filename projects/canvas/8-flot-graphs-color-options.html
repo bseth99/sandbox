@@ -1,0 +1,208 @@
+---
+layout: page
+title: Graphing with Flot - Controlling Series Color
+group: canvas
+tags : [javascript, html5, canvas, graph, flot, colors, stacked]
+blog: /2013/02/03/graphing-with-flot-controlling-series-color/
+---
+
+{% include JB/setup %}
+
+<!--
+Copyright (c) 2012 Ben Olson
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+-->
+
+
+<script src="flot/jquery.flot.js"></script>
+<script src="flot/jquery.flot.stack.js"></script>
+
+<style>
+
+.wrapper { width: 800px; margin: auto; font-size: 12pt; }
+
+.graph {
+   margin-top: 10px;
+   width: 700px;
+   height: 400px;
+}
+
+.legend { margin-top: 30px; }
+.legend > table { margin: auto; }
+
+.ui-button-text { font-size: 0.7em; }
+
+.controls > div { display: inline-block; }
+.controls .mlabel { margin: 5px; color: #888; font-weight: bold; font-size: 0.9em; }
+
+</style>
+
+<div class="discussion">
+Using the data from the <a href="http://www.flotcharts.org/flot/examples/series-toggle/index.html">Series Toggle Example</a> on
+the Flot site, I used the stack plugin and added additional options to try creating custom color schemes for each series.  While
+the default selections are general fine, I found that at times I wanted to have more control.  You can either set the color on the series object directly or
+use the <code>colors</code> array to create a custom palette of colors to chose from (regardless of the number of series).  I used
+jQuery.Color to construct the Mono and Multi options below such that I could work in the HSL color space to manipulate hue and lightness
+before converting to RGB.  Additionally, I set a <code>yaxis.max</code> so the graph would maintain a consistent scale when adding/removing series.
+This example also makes use of the jQuery UI Buttonset widget to make for a consistent and enhanced layout.
+</div>
+<br/>
+
+<div class="wrapper">
+   <div class="controls">
+
+      <div>
+         <div class="mlabel">
+            Color:
+         </div>
+         <div>
+            <span id="color">
+               <input type="radio" name="color" id="default" checked="checked"/><label for="default">Default</label>
+               <input type="radio" name="color" id="single" /><label for="single">Mono</label>
+               <input type="radio" name="color" id="multi" /><label for="multi">Multi</label>
+            </span>
+         </div>
+      </div>
+
+      <div>
+         <div class="mlabel">
+            Type:
+         </div>
+         <div>
+            <span id="type">
+               <input type="radio" name="type" id="bar" checked="checked"/><label for="bar">Bar</label>
+               <input type="radio" name="type" id="line" /><label for="line">Line</label>
+            </span>
+         </div>
+      </div>
+
+      <div>
+         <div class="mlabel">
+            Include:
+         </div>
+         <div>
+            <span id="include">
+               <input type="checkbox" id="usa" /><label for="usa">USA</label>
+               <input type="checkbox" id="russia" /><label for="russia">Russia</label>
+               <input type="checkbox" id="uk" /><label for="uk">UK</label>
+               <input type="checkbox" id="germany" /><label for="germany">Germany</label>
+               <input type="checkbox" id="denmark" /><label for="denmark">Denmark</label>
+            </span>
+         </div>
+      </div>
+
+   </div>
+   <div class="legend"></div>
+   <div class="graph"></div>
+</div>
+
+<script>
+
+$(function() {
+    var data = [
+           {
+               id: "usa",
+               label: "USA",
+               data: [[1988, 483994], [1989, 479060], [1990, 457648], [1991, 401949], [1992, 424705], [1993, 402375], [1994, 377867], [1995, 357382], [1996, 337946], [1997, 336185], [1998, 328611], [1999, 329421], [2000, 342172], [2001, 344932], [2002, 387303], [2003, 440813], [2004, 480451], [2005, 504638], [2006, 528692]]
+           },
+           {
+               id: "russia",
+               label: "Russia",
+               data: [[1988, 218000], [1989, 203000], [1990, 171000], [1991, 0], [1992, 42500], [1993, 37600], [1994, 36600], [1995, 21700], [1996, 19200], [1997, 21300], [1998, 13600], [1999, 14000], [2000, 19100], [2001, 21300], [2002, 23600], [2003, 25100], [2004, 26100], [2005, 31100], [2006, 34700]]
+           },
+           {
+               id: "uk",
+               label: "UK",
+               data: [[1988, 62982], [1989, 62027], [1990, 60696], [1991, 62348], [1992, 58560], [1993, 56393], [1994, 54579], [1995, 50818], [1996, 50554], [1997, 48276], [1998, 47691], [1999, 47529], [2000, 47778], [2001, 48760], [2002, 50949], [2003, 57452], [2004, 60234], [2005, 60076], [2006, 59213]]
+           },
+           {
+               id: "germany",
+               label: "Germany",
+               data: [[1988, 55627], [1989, 55475], [1990, 58464], [1991, 55134], [1992, 52436], [1993, 47139], [1994, 43962], [1995, 43238], [1996, 42395], [1997, 40854], [1998, 40993], [1999, 328611], [2000, 41147], [2001, 40474], [2002, 40604], [2003, 40044], [2004, 38816], [2005, 38060], [2006, 36984]]
+           },
+           {
+               id: "denmark",
+               label: "Denmark",
+               data: [[1988, 62982], [1989, 62027], [1990, 60696], [1991, 62348], [1992, 58560], [1993, 56393], [1994, 54579], [1995, 50818], [1996, 50554], [1997, 48276], [1998, 47691], [1999, 47529], [2000, 47778], [2001, 48760], [2002, 50949], [2003, 57452], [2004, 60234], [2005, 60076], [2006, 59213]]
+           }
+       ],
+       len = data.length,
+       options;
+
+    options = {
+          legend: { show: true, container: $('.legend') },
+          series: {
+              stack: true,
+          },
+          yaxis: { min: 0, max: 1000000 },
+          xaxis: { tickDecimals: 0 }
+       };
+
+    var drawGraph = function ( e ) {
+
+          var d = [], c = [], z;
+
+          if ( $('#color :checked').attr('id') == 'single' ) {
+             options.colors = $.map( data, function ( o, i ) {
+                        return jQuery.Color('blue').lightness(0.7-i/(len*1.2)).toHexString();
+                      });
+          } else if ( $('#color :checked').attr('id') == 'multi' ) {
+             options.colors = $.map( data, function ( o, i ) {
+                        return jQuery.Color({ hue: (i*200/len), saturation: 0.95, lightness: 0.35, alpha: 1 }).toHexString();
+                      });
+          } else {
+             options.colors = [];
+          }
+
+          if ( $('#type :checked').attr('id') == 'bar' ) {
+             options.lines = null;
+             options.bars = { show: true, barWidth: 0.6, align: 'center' };
+          } else {
+             options.bars = null;
+             options.lines = { show: true, fill: true };
+          }
+
+          for ( z=0;z<len;z++) {
+             if ( $('#include input').eq(z).is(':checked') ) {
+                d.push( data[z] );
+                c.push( options.colors[z] );
+             }
+          }
+
+          options.colors = c;
+          options.legend.noColumns = len;
+
+          $.plot($(".graph"), d, options);
+       }
+
+    $('#color').buttonset();
+    $('#type').buttonset();
+    $('#include').children('input').attr('checked', 'checked').end().buttonset();
+
+    $('input').click(drawGraph);
+
+    drawGraph();
+
+});
+</script>
+
