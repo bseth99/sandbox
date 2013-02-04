@@ -1,0 +1,94 @@
+---
+layout: page
+title: Animating a Flot Graph with jQuery
+group: canvas
+tags : [javascript, html5, canvas, graph, flot, animate]
+---
+
+{% include JB/setup %}
+
+<!--
+Copyright (c) 2012 Ben Olson
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+-->
+
+
+<script src="flot/jquery.flot.js"></script>
+<script src="flot/jquery.flot.stack.js"></script>
+
+<style>
+
+
+.wrapper { width: 800px; margin: auto; font-size: 12pt; }
+
+.graph {
+   margin-top: 20px;
+   width: 700px;
+   height: 400px;
+}
+
+.ui-button-text { font-size: 0.7em; }
+
+</style>
+
+<div class="wrapper">
+   <button>Animate!</button>
+   <div class="graph"></div>
+</div>
+
+<script>
+
+$(function() {
+
+    var init = { data: [[1, 5], [2, 25], [3, 4], [4, 16], [5, 12]] },
+        options = {
+             bars: { show: true },
+             yaxis: { min: 0 },
+             xaxis: { tickDecimals: 0 }
+          },
+        plot;
+
+    plot = $.plot($('.graph'), [init], options);
+
+    var animate = function () {
+       $('.graph').animate( {tabIndex: 0}, {
+               duration: 1000,
+               step: function ( now, fx ) {
+
+                     var r = $.map( init.data, function ( o ) {
+                           return [[ o[0], o[1] * fx.pos ]];
+                        });
+
+                     plot.setData( [{ data: r }] );
+                     plot.draw();
+
+                  }
+         });
+    }
+
+    $('button').button().click(animate);
+
+    animate();
+
+});
+</script>
