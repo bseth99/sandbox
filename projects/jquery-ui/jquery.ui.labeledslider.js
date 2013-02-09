@@ -44,16 +44,19 @@
 
       _create: function( ) {
 
-         this._super();
+         this._detectOrientation();
 
          this.uiSlider =
              this.element
-                .removeClass( 'ui-widget' )
                 .wrap( '<div class="ui-slider-wrapper ui-widget"></div>' )
                 .before( '<div class="ui-slider-labels">' )
                 .parent()
                 .addClass( this.orientation )
                 .css( 'font-size', this.element.css('font-size') );
+
+         this._super();
+
+         this.element.removeClass( 'ui-widget' )
 
          this._alignWithStep();
 
