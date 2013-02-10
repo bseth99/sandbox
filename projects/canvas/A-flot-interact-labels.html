@@ -1,0 +1,297 @@
+---
+layout: page
+title: Adding Interaction to Flot Graphs - Tooltips and Labeled Series
+group: canvas
+tags : [javascript, html5, canvas, graph, flot, tooltips, labels]
+---
+
+{% include JB/setup %}
+
+<!--
+Copyright (c) 2012 Ben Olson
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+-->
+
+
+<script src="flot/jquery.flot.js"></script>
+<script src="flot/jquery.flot.stack.js"></script>
+
+<style>
+
+.wrapper {
+   margin: auto;
+   width: 800px;
+   margin-top: 50px;
+   font-size: 12pt;
+}
+
+.graph {
+   margin-top: 20px;
+   width: 700px;
+   height: 400px;
+}
+
+.ui-button-text { font-size: 0.8em; }
+.controls > div { display: inline-block; }
+.controls .mlabel { margin: 5px; color: #888; font-weight: bold; font-size: 0.9em; }
+
+.tooltip {
+   font-size: 1em;
+   opacity: 1;
+   padding: 0;
+   position: absolute;
+   z-index: 12;
+   color: #888;
+   background: #fff;
+   border: 1px solid #aaa;
+   -moz-box-shadow: 0px 1px 1px #ddd;
+   -webkit-box-shadow: 0px 1px 1px #ddd;
+   box-shadow: 0px 1px 2px #ddd;
+}
+
+.tooltip div {
+   position: relative;
+   text-align: center;
+   margin: 3px;
+   max-width:100px;
+}
+
+.tooltip span { font-size: 0.7em; display: block; }
+.tooltip span.series { color: #333; }
+
+.tooltip:after {
+   content: ' ';
+   position: absolute;
+   width: 0;
+   height: 0;
+   margin-left: -5px;
+   bottom: -10px;
+   left: 50%;
+   border-width: 5px;
+   border-style: solid;
+   border-color: #aaa transparent transparent transparent ;
+}
+
+</style>
+
+<div class="discussion">
+Example showing how to respond to interaction events fired by Flot.  Hovering will label a single point.  Clicking will
+label all the points in the series.  Works with both line and bar charts including the stack plugin.
+</div>
+
+<div class="wrapper">
+   <div class="controls">
+
+      <div>
+         <div class="mlabel">
+            Type:
+         </div>
+         <div>
+            <span id="type">
+               <input type="radio" name="type" id="bar" checked="checked"/><label for="bar">Bar</label>
+               <input type="radio" name="type" id="area" /><label for="area">Area</label>
+               <input type="radio" name="type" id="line" /><label for="line">Line</label>
+            </span>
+         </div>
+      </div>
+
+   </div>
+
+   <div class="graph"></div>
+</div>
+
+<script>
+
+var data = [
+        { label: 'One', data: [[1, 12], [2, 4], [3, 5], [4, 25], [5, 16]] },
+        { label: 'Two', data: [[1, 5], [2, 25], [3, 4], [4, 16], [5, 12]] },
+        { label: 'Three', data: [[1, 5], [2, 16], [3, 25], [4, 4], [5, 12]] }
+     ],
+    options = {
+         legend: { show: false },
+         lines: { show: true },
+         series: { /* set based on button in drawGraph */ },
+         yaxis: { min: 0 },
+         xaxis: { tickDecimals: 0 },
+         grid: { hoverable: true, clickable: true, autoHighlight: true }
+      },
+    clickTips, hoverTip;
+
+
+function toolTipHTML( stat, series ) {
+
+   var html = '';
+
+   html += '<div class="tooltip">';
+   html += '<div>';
+
+   if ( series )
+      html += '<span class="series">'+series+'</span>';
+
+   html += '<span class="stats">'+stat+'</span>';
+   html += '</div>';
+   html += '</div>';
+
+   return html;
+
+}
+
+function clearTooltips() {
+
+   if ( hoverTip )
+      hoverTip.remove();
+
+   if ( clickTips )
+      $.each( clickTips, function ( i, t ) { t.remove(); });
+
+   hoverTip = null;
+   clickTips = null;
+
+}
+
+function setOptions() {
+
+   if ( $('#type :checked').attr('id') == 'bar' ) {
+      options.lines.show = false;
+      options.series = {
+            stack: true,
+            bars: { show: true, barWidth: 0.7, align: 'center' }
+         };
+   } else if ( $('#type :checked').attr('id') == 'area' ) {
+      options.lines.show = true;
+      options.series = {
+            stack: true,
+            lines: { show: true, fill: true }
+         };
+   } else { // line
+      delete options.series;
+      options.lines.show = true;
+   }
+
+}
+
+function bindEvents ( plot ) {
+
+   $('.graph').on('plothover', function ( event, pos, item ) {
+
+       var ofs = { height: 0, width: 0 },
+           fmtd;
+
+       if ( clickTips ) return;
+
+       clearTooltips();
+
+       if (item) {
+
+          fmtd = item.series.data[item.dataIndex][1];
+
+          hoverTip = $(toolTipHTML( fmtd, item.series.label ));
+
+          $('.wrapper').append(hoverTip);
+
+          ofs.height = hoverTip.outerHeight();
+          ofs.width = hoverTip.outerWidth();
+
+          hoverTip.offset({ left: item.pageX - ofs.width / 2, top: item.pageY - ofs.height - 15 });
+
+       }
+
+   });
+
+
+  $('.graph').on('plotclick', function ( event, pos, item ) {
+
+      var x = 0, ttip, fmtd, dp, pz, tmp, xtickl,
+          ofs = { pageX: 0, pageY: 0, height: 0, width: 0, plotX: 0, plotY: 0 },
+          axis = plot.getAxes(),
+          series = plot.getData(),
+          xcnt = series[0].data.length;
+
+      plot.unhighlight();
+      clearTooltips();
+
+      if ( item ) {
+
+         clickTips = [];
+
+         tmp = $('.graph').offset();
+         ofs.plotX = tmp.left;
+         ofs.plotY = tmp.top;
+
+         tmp = plot.getPlotOffset();
+         ofs.plotX += tmp.left;
+         ofs.plotY += tmp.top;
+
+         xtickl = Math.ceil(xcnt / 12);
+
+         for ( ;x<xcnt;x+=xtickl ) {
+
+            plot.highlight(item.seriesIndex, x);
+
+            pz = series[item.seriesIndex].datapoints.pointsize;
+            dp = [ series[item.seriesIndex].datapoints.points[x*pz], series[item.seriesIndex].datapoints.points[x*pz+1] ];
+
+            fmtd = series[item.seriesIndex].data[x][1];
+
+            ofs.pageX = parseInt(axis.xaxis.p2c(dp[0]) + ofs.plotX);
+            ofs.pageY = parseInt(axis.yaxis.p2c(dp[1]) + ofs.plotY);
+
+            ttip = $(toolTipHTML( fmtd, (item.dataIndex == x ? item.series.label : null) ));
+
+            $('.wrapper').append(ttip);
+
+            ofs.width = ttip.outerWidth();
+            ofs.height = ttip.outerHeight();
+
+            ttip.offset({ left: ofs.pageX - ofs.width / 2, top: ofs.pageY - ofs.height - 15 });
+
+            clickTips[x] = ttip;
+
+         }
+      }
+
+   });
+}
+
+function drawGraph () {
+
+   var plot;
+
+   clearTooltips();
+   setOptions();
+
+   plot = $.plot($('.graph'), data, options);
+
+   bindEvents( plot );
+}
+
+$(function() {
+
+    $('#type').buttonset();
+    $('input').click(drawGraph);
+
+    drawGraph();
+
+});
+
+</script>
