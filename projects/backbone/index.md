@@ -23,3 +23,4 @@ the final demo complete with animated graphs and selectable comparison statistic
    {% assign group = 'backbone-table' %}
    {% include JB/pages_list %}
 </ul>
+

@@ -1,0 +1,246 @@
+---
+layout: page
+title: Integrating Flot Graphs in a Backbone View
+group: backbone-table
+tags : [backbone, flot, graph, collection, view]
+blog: /2013/02/17/integrating-flot-graphs-in-a-backbone-view/
+---
+
+{% include JB/setup %}
+
+<!--
+Copyright (c) 2012 Ben Olson
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+-->
+
+<script src="globalize.js"></script>
+<script src="underscore.min.js"></script>
+<script src="backbone.min.js"></script>
+<script src="flot/jquery.flot.js"></script>
+<script src="flot/jquery.flot.stack.js"></script>
+
+<script src="moviedata.js"></script>
+
+<style>
+
+.wrapper { position: relative; width: 800px; margin: auto; margin-top: 20px; font-size: 12pt; }
+.title { color: #888; margin-left: 50px; }
+.graph { position: relative; margin-top: 20px; }
+.legend { position: absolute; right: 0; }
+.plot { width: 720px; height: 400px; }
+
+.ui-button-text { font-size: 0.7em; }
+.controls { position: absolute; right: 80px; top: 0; }
+.controls > div { display: inline-block; }
+.controls .mlabel { margin: 5px; color: #888; font-weight: bold; font-size: 0.9em; }
+
+</style>
+
+<div class="discussion">
+Example that demostrates how to transform a Backbone Collection inside a View
+into a dataset that can be used by Flot to generate a graph.  The goal was to build
+something that was relatively reusable such that other the columns used in the graph
+could be switched or other datasets could be plugged in.  The Series options below
+allow you to swap the x-axis and series groups or turn off the series stacking entirely.
+</div>
+
+<div class="wrapper">
+   <h3 class="title">Gross by Year/Studio</h3>
+   <div class="controls">
+
+      <div>
+         <span class="mlabel">
+            Series:
+         </span>
+         <span id="series">
+            <input type="radio" name="series" id="studio" checked="checked"/><label for="studio">Studio</label>
+            <input type="radio" name="series" id="year" /><label for="year">Year</label>
+            <input type="radio" name="series" id="none" /><label for="none">None</label>
+         </span>
+      </div>
+
+   </div>
+</div>
+
+
+<script>
+
+var Movie = Backbone.Model.extend({
+
+   defaults: {
+      title: '',
+      gross: 0,
+      rank: -1,
+      year: 1900,
+      studio: ''
+   }
+
+});
+
+var Movies = Backbone.Collection.extend({
+
+   model: Movie,
+
+   comparator: function(movie) {
+      return movie.get('year');
+   }
+
+});
+
+var MovieGraph = Backbone.View.extend({
+
+   attributes: { class: 'graph' },
+
+   seriesColumn: 'year',
+   xaxisColumn: 'studio',
+   yaxisColumn: 'gross',
+
+   plotOptions: {
+       yaxis: {},
+       xaxis: {},
+       legend: { show: true, container: '.legend' },
+       grid: { hoverable: true, clickable: true, autoHighlight: true },
+       series: {
+            stack: true,
+            bars: { show: true, fill: 0.7, barWidth: 0.8, align: 'center' }
+         }
+   },
+
+   render: function() {
+
+      this.$el.html('<div class="legend"></div><div class="plot"></div>');
+
+      return this;
+   },
+
+   renderGraph: function() {
+
+      var data = this.collection.toJSON(),
+          options = _.clone(this.plotOptions),
+          sC = this.seriesColumn,
+          xC = this.xaxisColumn,
+          yC = this.yaxisColumn,
+          svalue = '',
+          series = {},
+          xaxis = {},
+          base = {},
+          xticks = 0,
+          i;
+
+      if ( data.length > 0 ) {
+
+         // All x-axis data must be passed as an index
+         // from 0 .. n.  Setup hash mapping of x-axis values to
+         // an indexed number so they can be looked up below
+         // Also, stacked charts don't work well with missing
+         // values so make sure each series will have a data point
+         // for each x-axis index.
+         for ( i=0;i<data.length;i++ ) {
+
+            if ( typeof xaxis[data[i][xC]] == 'undefined' ) {
+               xaxis[data[i][xC]] = xticks;
+               base[xticks] = 0;
+               xticks++;
+            }
+         }
+
+         // Build series data.  Sum y-axis values over each series and x-axis point
+         for ( i=0;i<data.length;i++ ) {
+
+            svalue = sC ? data[i][sC] : 'all';
+
+            if ( !series[svalue] ) {
+               // Initialize series with hash setup above to ensure
+               // each x-axis point has a value (zero).  Set the label for
+               // the legend
+               series[svalue] = { data: _.clone( base ), label: svalue };
+            }
+
+            // Depending on the data, adding may be desired to group/summarize
+            series[svalue].data[ xaxis[data[i][xC]] ] += data[i][yC];
+         }
+
+         // Everything is a hash right now object[idx] = val
+         // Flot wants an array of arrays [ [idx, val] ... ]
+         // Use _.map to convert:
+         options.xaxis.ticks = _.map( xaxis, function ( val, idx ) { return [val, idx]; } );
+
+         // Same with the series data
+         for ( i in series )
+            series[i].data = _.map( series[i].data, function ( o, i ) { return [ i, o ]; });
+
+         // Again, another hash that must be an array of objects
+         // Convert again with _.map
+         series = _.map( series, function ( z ) { return z; } );
+
+         // Make the y-axis pretty.  Assuming Gross dollars is the y-axis
+         // here.  Format accordingly
+         options.yaxis.tickFormatter = function (val, axis) {
+                return Globalize.format(val, 'C0');
+            };
+
+         options.legend.show = (sC !== null);
+
+         // Now, the chart can be drawn ...
+         this.$('.legend').html('');
+         $.plot( this.$('.plot'), series, options );
+      }
+
+   }
+
+});
+
+
+$(function() {
+
+   var movieList = new Movies(movieData);
+
+   var movieView = new MovieGraph({ collection: movieList });
+
+   $('.wrapper').append( movieView.render().$el );
+
+   $('#series').children('input').removeProp('checked');
+   $('#studio').prop('checked', true);
+   $('#series').buttonset();
+
+   $('input').click(function () {
+
+          if ( $('#series :checked').attr('id') == 'studio' ) {
+             movieView.seriesColumn = 'year';
+             movieView.xaxisColumn = 'studio';
+          } else if ( $('#series :checked').attr('id') == 'year' ) {
+             movieView.seriesColumn = 'studio';
+             movieView.xaxisColumn = 'year';
+          } else {
+             movieView.seriesColumn = null;
+             movieView.xaxisColumn = 'studio';
+          }
+
+          movieView.renderGraph();
+      });
+
+   movieView.renderGraph();
+
+});
+
+</script>
