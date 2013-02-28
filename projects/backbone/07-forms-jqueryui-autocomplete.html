@@ -1,0 +1,269 @@
+---
+layout: page
+title: Integrating Backbone with jQuery UI Autocomplete to Provide Search Functionality
+group: backbone-form
+tags : [backbone, collection, model, search, lookup, jquery-ui, autocomplete]
+blog: /2013/02/28/integrating-backbone-with-a-jquery-ui-autocomplete-to-provide-search-functionality/
+---
+
+{% include JB/setup %}
+
+<!--
+Copyright (c) 2012 Ben Olson
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+-->
+
+<script src="underscore.min.js"></script>
+<script src="backbone.min.js"></script>
+
+
+<style>
+
+.wrapper { height: 600px; }
+
+.ui-autocomplete {
+   max-height: 500px;
+   overflow-y: auto;
+   /* prevent horizontal scrollbar */
+   overflow-x: hidden;
+}
+
+.movie { position: relative; width: 325px; margin: 10px; }
+.movie .image { position: absolute; top: 20px; left: 0; }
+.movie .details { position: absolute; top: 20px; right: 0; margin-left: 70px; }
+.movie .synopsis { position: absolute; top: 115px; left: 0; }
+
+</style>
+
+<script id="movie-detail" type="text/template">
+   <div><strong>You selected:</strong></div>
+   <div class="image">
+      <img src="<%= image %>" border="0" height="80" />
+   </div>
+   <div class="details">
+      <div><span style="color: orange; font-weight: bold;"><%= title %> (<%= year %>)</span></div>
+      <div><strong>Studio: </strong><%= studio %></div>
+      <div><strong>Cast: </strong><%= cast %></div>
+      <div><a href=<%= link %> target="rotten">More ...</a></div>
+   </div>
+   <div class="synopsis">
+      <%= synopsis %>
+   </div>
+</script>
+
+<div class="discussion">
+A simple test on how to integrate a jQuery UI Autocomplete widget search into a Backbone based app.  This
+search is against the RottenTomatoes movie database using their API.  Search and select a movie to load its
+detail.  The goal was to decide how to best leverage Backbone's collections and models to perform a lookup against
+a reduced set of attributes and then load the remaining detail on the selected model using two different API methods.
+</div>
+<br/>
+<div class="wrapper"></div>
+
+<script>
+
+var MovieModel = Backbone.Model.extend({
+
+   defaults: {
+
+      id: '',
+      title: '',
+      year: '',
+      studio: '',
+      cast: '',
+      image: '',
+      synopsis: '',
+      link: ''
+
+   },
+
+   url: function () {
+
+      return _.result(this.collection, 'url')+'/'+this.id+'.json?apikey='+this.collection.apikey;
+   },
+
+   parse: function ( res ) {
+
+      return {
+            id: res.id,
+            title: res.title,
+            year: res.year || '',
+            studio: res.studio || '',
+            cast: (res.abridged_cast ? _.pluck( res.abridged_cast, 'name' ).join(', ') : ''),
+            image: res.posters.thumbnail,
+            synopsis: res.synopsis || '',
+            link: res.links.alternate
+         };
+
+   },
+
+   sync: function(method, model, options){
+
+      options.timeout = 10000;
+      options.dataType = 'jsonp';
+
+      return Backbone.sync(method, model, options);
+   }
+
+});
+
+var MovieCollection = Backbone.Collection.extend({
+
+   model: MovieModel,
+   apikey: 'xc8w3a2sbj7b7mgrv9e75c52',
+   url: 'http://api.rottentomatoes.com/api/public/v1.0/movies',
+
+   _cache: {},
+
+   sync: function(method, model, options){
+
+      options.timeout = 10000;
+      options.dataType = 'jsonp';
+
+      return Backbone.sync(method, model, options);
+   },
+
+   parse: function ( res ) {
+
+      return res.movies;
+   },
+
+   search: function ( term ) {
+
+      var that = this,
+          save = this._cache,
+          crit = term.toLowerCase(),
+          ckey = term.substring(0,2);
+
+      return $.Deferred(function (dfd) {
+
+         if ( save[ckey] ) {
+
+            that.reset(save[ckey]);
+            dfd.resolve(save[ckey]);
+
+         } else {
+
+            that.fetch({
+                  url: _.result(that, 'url') + '.json?apikey=' + that.apikey + '&q=' + crit,
+                  success: function ( data ) {
+                     save[ckey] = data.toJSON();
+                     dfd.resolve(save[ckey]);
+                  }
+               });
+
+         }
+
+      }).promise();
+   }
+
+});
+
+var MovieFinder = Backbone.View.extend({
+
+   render: function () {
+
+      this.$el.html('<span>Find a Movie: </span><input id="search" type="text" size="30" />');
+
+      this.$('#search')
+         .autocomplete({ source: $.proxy( this.findMovies, this), minLength: 2 });
+
+      return this;
+   },
+
+   findMovies: function ( request, response ) {
+
+      $.when( this.collection.search( request.term ) )
+         .then(function ( data ) { response( _.map(data, function ( d ) { return { value: d.id, label: d.title + ' ('+ d.year +')' }; }) ); });
+
+   },
+
+   events: {
+      'autocompletefocus' :    'handleFindFocus',
+      'autocompleteselect' :   'handleFindSelect'
+   },
+
+   handleFindFocus: function ( e, ui ) {
+
+      this.$('#search').val( ui.item.label );
+
+      return false;
+
+   },
+
+   handleFindSelect: function ( e, ui ) {
+
+      var m = this.collection.get( ui.item.value );
+
+      this.$('#search').val( ui.item.label );
+
+      this.trigger(' finder:selected', m );
+
+      return false;
+
+   }
+
+});
+
+var MovieDetail = Backbone.View.extend({
+
+   template: _.template( $('#movie-detail').html() ),
+   className: 'movie',
+
+   initialize: function () {
+      this.listenTo( this.model, 'sync', this.render );
+   },
+
+   render: function () {
+
+      this.$el.html(this.template( this.model.toJSON() ));
+
+      return this;
+   }
+
+});
+
+$(function() {
+
+   movies = new MovieCollection();
+
+   var finder = new MovieFinder({ collection: movies });
+   var selected;
+
+   $('.wrapper').append( finder.render().$el );
+
+   finder.on('finder:selected', function ( m ) {
+
+         if ( selected ) {
+            selected.remove();
+         }
+
+         m.fetch();
+         selected = new MovieDetail({ model: m });
+         $('.wrapper').append( selected.render().$el );
+
+      });
+
+});
+
+</script>
