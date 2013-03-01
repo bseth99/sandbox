@@ -162,7 +162,7 @@ var MovieCollection = Backbone.Collection.extend({
          if ( save[ckey] ) {
 
             matcher = new RegExp($.ui.autocomplete.escapeRegex(crit), 'i');
-            rslt = _.filter(save[ckey], function ( m ) { return matcher.test(m.title); })
+            rslt = _.filter(save[ckey], function ( m ) { return matcher.test(m.title); });
             that.reset(rslt);
             dfd.resolve(rslt);
 
