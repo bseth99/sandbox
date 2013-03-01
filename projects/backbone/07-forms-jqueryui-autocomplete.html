@@ -130,7 +130,7 @@ var MovieModel = Backbone.Model.extend({
 var MovieCollection = Backbone.Collection.extend({
 
    model: MovieModel,
-   apikey: 'xc8w3a2sbj7b7mgrv9e75c52',
+   apikey: 'xc8w3a2sbj7b7mgrv9e75c52', /* please change to use your key */
    url: 'http://api.rottentomatoes.com/api/public/v1.0/movies',
 
    _cache: {},
@@ -153,14 +153,17 @@ var MovieCollection = Backbone.Collection.extend({
       var that = this,
           save = this._cache,
           crit = term.toLowerCase(),
-          ckey = term.substring(0,2);
+          ckey = crit.slice(0,2),
+          clen = crit.length,
+          rslt;
 
       return $.Deferred(function (dfd) {
 
          if ( save[ckey] ) {
 
-            that.reset(save[ckey]);
-            dfd.resolve(save[ckey]);
+            rslt = _.filter(save[ckey], function ( m ) { return (m.title.slice(0,clen).toLowerCase() == crit); })
+            that.reset(rslt);
+            dfd.resolve(rslt);
 
          } else {
 
@@ -204,8 +207,6 @@ var MovieFinder = Backbone.View.extend({
    },
 
    handleFindFocus: function ( e, ui ) {
-
-      this.$('#search').val( ui.item.label );
 
       return false;
 
