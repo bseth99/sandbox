@@ -155,13 +155,14 @@ var MovieCollection = Backbone.Collection.extend({
           crit = term.toLowerCase(),
           ckey = crit.slice(0,2),
           clen = crit.length,
-          rslt;
+          rslt, matcher;
 
       return $.Deferred(function (dfd) {
 
          if ( save[ckey] ) {
 
-            rslt = _.filter(save[ckey], function ( m ) { return (m.title.slice(0,clen).toLowerCase() == crit); })
+            matcher = new RegExp($.ui.autocomplete.escapeRegex(crit), 'i');
+            rslt = _.filter(save[ckey], function ( m ) { return matcher.test(m.title); })
             that.reset(rslt);
             dfd.resolve(rslt);
 
