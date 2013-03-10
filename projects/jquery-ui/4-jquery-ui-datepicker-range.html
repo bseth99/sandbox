@@ -106,7 +106,27 @@ $(function() {
       .hide();
 
    $('#jrange input').on('focus', function (e) {
-         $('#jrange div').show();
+         var v = this.value,
+             d;
+
+         try {
+            if ( v.indexOf(' - ') > -1 ) {
+               d = v.split(' - ');
+
+               prv = $.datepicker.parseDate( 'mm/dd/yy', d[0] ).getTime();
+               cur = $.datepicker.parseDate( 'mm/dd/yy', d[1] ).getTime();
+
+            } else if ( v.length > 0 ) {
+               prv = cur = $.datepicker.parseDate( 'mm/dd/yy', v ).getTime();
+            }
+         } catch ( e ) {
+            cur = prv = -1;
+         }
+
+         if ( cur > -1 )
+            $('#jrange div').datepicker('setDate', new Date(cur));
+
+         $('#jrange div').datepicker('refresh').show();
       });
 
 });
