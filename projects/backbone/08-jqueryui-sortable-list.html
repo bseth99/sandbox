@@ -1,0 +1,276 @@
+---
+layout: page
+title: Custom Sorting with a Collection bound to a jQuery UI Sortable Widget
+group: backbone-form
+tags : [backbone, collection, model, jquery-ui, sortable, interaction]
+---
+
+{% include JB/setup %}
+
+<!--
+Copyright (c) 2012 Ben Olson
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+-->
+
+
+<script src="underscore.min.js"></script>
+<script src="backbone.min.js"></script>
+
+<div class="discussion">
+This demo replicates the basic example on the jQuery UI site for the Sortable widget.  However, the
+contents of the list are backed by a Backbone collection and the MVC framework is used to manage
+and respond to the user interaction.  As you move items around, the data is stringified and echoed
+at the bottom of the page to show that the collection has changed to match the current state of the
+list.
+</div>
+<br/>
+
+<style>
+ul { list-style-type: none; margin: 5px; padding: 0; width: 40%; }
+ul li { margin-top: 3px; padding: 0.4em; padding-left: 1.5em; font-size: 1.1em; height: 18px; }
+ul li span { position: absolute; margin-left: -1.3em; }
+</style>
+
+<script>
+
+var ThingModel = Backbone.Model.extend({
+
+   defaults: {
+      order: 0,
+      title: ''
+   }
+
+});
+
+var ThingCollection = Backbone.Collection.extend({
+
+   model: ThingModel,
+   comparator: 'order'
+
+});
+
+var ThingItem = Backbone.View.extend({
+
+   template: null,
+
+   tagName: 'li',
+   className: 'ui-state-default',
+
+   render: function () {
+
+      this.$el.html( this.model.get('title') );
+
+      return this;
+   }
+
+});
+
+var ThingList = Backbone.View.extend({
+
+   tagName: 'ul',
+
+   itemView: ThingItem,
+
+   _listItems: null,
+   _listIsSyncing: false,
+
+   orderAttr: 'order',
+
+   render: function () {
+
+      this._listItems = {};
+
+      this.listenTo( this.collection, 'sync reset', this.listSync );
+
+      this.listSync();
+
+      return this;
+   },
+
+   events: {
+      'sortupdate'                           :  'handleSortComplete'
+   },
+
+   /**
+   * Respond to the Sortable's update event.
+   *
+   * Iterate over each view in the list and use its position relative to
+   * its siblings to set the ordering attribute on the associated model
+   *
+   * This does not appear to trigger a resort on the collection so
+   * explicitly do this so downstream processing is working with the
+   * right order of the models.
+   *
+   */
+
+   handleSortComplete: function () {
+
+      var oatr = this.orderAttr;
+
+      _.each( this._listItems, function ( v ) {
+            v.model.set(oatr, v.$el.index());
+         });
+
+      this.collection.sort({silent: true});
+      this.listSetup();
+
+      this.trigger('sorted');
+   },
+
+
+   /**
+   * Configure the UI.
+   *
+   * Ensure the Sortable widget is initialized on the list.
+   *
+   */
+
+   listSetup: function () {
+
+      var $ods = this.$('li');
+
+      if ( $ods.length == 1 ) {
+         if ( this.$el.data('ui-sortable') )
+            this.$el.sortable('destroy');
+      } else {
+         this.$el.sortable({ containment: 'parent', tolerance: 'pointer' });
+      }
+
+   },
+
+   /**
+   * Respond to collection resets or syncs and rebuid the list
+   *
+   */
+
+   listSync: function () {
+
+      var list = this.collection.models
+
+      this._listIsSyncing = true;
+
+      _.invoke( this._listItems, 'remove' );
+      this._listItems = {};
+
+      for ( var m in list )
+         this.listAdd( list[m] );
+
+      this._listIsSyncing = false;
+
+      this.listSetup();
+
+   },
+
+   /**
+   * Respond to collection add event by adding a new view to the list
+   * and binding it to the model being added
+   *
+   */
+
+   listAdd: function ( model ) {
+
+      var v;
+
+      if ( !this._listItems[model.cid] ) {
+         v = this._listItems[model.cid] = new this.itemView({ model: model });
+         this.$el.append(v.render().$el);
+      }
+
+      if ( !this._listIsSyncing )
+         this.listSetup();
+   },
+
+   /**
+   * Respond to collection remove event by removing the view associated
+   * to the model from the list
+   *
+   */
+
+   listRemove: function ( model ) {
+
+      if ( this._listItems[model.cid] ) {
+         this._listItems[model.cid].remove();
+         delete this._listItems[model.cid];
+      }
+
+      if ( !this._listIsSyncing )
+         this.listSetup();
+
+   },
+
+   /**
+   * Chain onto Backbone.View.remove and ensure all the child views
+   * in the list are removed.
+   *
+   */
+
+   remove: function () {
+
+      _.invoke( this._listItems, 'remove' );
+
+   }
+
+});
+
+</script>
+
+<div class="wrapper">
+</div>
+
+<br/>
+<h5>
+   Current Model Ordering in Collection:
+</h5>
+<pre id="json">
+</pre>
+
+<script>
+
+function prettyPrintData(data) {
+   $('#json').text( JSON.stringify(data.toJSON()).replace(/{/g, '\n\t{').slice(0, -1)+'\n]' );
+}
+
+$(function() {
+
+   var things = new ThingCollection([
+         { order: 0, title: 'Item 1' },
+         { order: 1, title: 'Item 2' },
+         { order: 2, title: 'Item 3' },
+         { order: 3, title: 'Item 4' },
+         { order: 4, title: 'Item 5' },
+         { order: 5, title: 'Item 6' },
+         { order: 6, title: 'Item 7' }
+      ]);
+
+   var list = new ThingList({ collection: things });
+
+   $('.wrapper').append( list.render().$el );
+
+   list.on('sorted', function () {
+         prettyPrintData(things);
+      });
+
+   prettyPrintData(things);
+});
+
+</script>
