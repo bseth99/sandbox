@@ -1,0 +1,106 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+   <link rel="stylesheet" type="text/css" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css">
+   <link rel="stylesheet" type="text/css" href="bseth99-jquery-ui.css">
+
+   <title>HTML Column Layout to Fill Window Height (Margin Overrun)</title>
+
+   <script src="http://code.jquery.com/jquery.js"></script>
+   <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
+
+</head>
+<body>
+
+<style>
+
+body {
+   font-family: Arial,Helvetica,Verdana,sans-serif;
+   font-size: 62.5%;
+   margin:0;
+   padding:0;
+   border:0;
+   width:100%;
+   background:#fff;
+   min-width: 600px;
+}
+
+.col-wrapper { position: relative; width: 100%; font-size: 1.2em; }
+
+.col-left, .col-mid, .col-right { position: absolute; height: 100%; }
+.col-left  { left: 0;  width: 300px; background-color: yellow; }
+.col-mid   { left: 0; margin-left: 300px; margin-right: 300px; background-color: lightblue; }
+.col-right { right: 0; width: 300px; background-color: pink; }
+
+.col-content-wrapper { margin: 0.5em; border: 2px solid black; height: 100%; overflow: hidden; overflow-y: auto; }
+.col-content { margin: 0.8em; }
+
+</style>
+
+<script>
+$(function() {
+   $(window).on('resize', function () {
+         $('.col-wrapper').outerHeight($(window).outerHeight());
+      }).trigger('resize');
+});
+</script>
+
+<div class="col-wrapper">
+
+   <div class="col-left">
+      <div class="col-content-wrapper">
+         <div class="col-content">
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque rhoncus commodo lacus, tempor sagittis magna ornare sed. Sed in sem ligula. Sed tincidunt eros a nisl interdum consectetur. Sed elementum, ipsum non scelerisque tempor, tortor orci semper nisl, at rhoncus tellus tortor quis metus. Morbi elementum turpis nec magna sagittis eget aliquam sapien porttitor. Aenean ac diam nec nulla vehicula scelerisque eget a lorem. Mauris fringilla ullamcorper iaculis. Donec condimentum mollis urna, nec elementum nulla imperdiet vitae. Morbi nec ligula massa, quis convallis dui. Sed vel orci eget enim sagittis aliquet. Morbi sit amet ligula odio. Pellentesque lacinia mattis lorem vitae rhoncus.
+
+            <p>Suspendisse est ante, convallis vel lobortis non, malesuada lacinia risus. Pellentesque egestas tincidunt lacus in bibendum. Phasellus ac blandit diam. Nulla vehicula pellentesque hendrerit. Curabitur lobortis semper sem quis posuere. Integer vitae nunc sit amet ligula placerat elementum. Cras non metus odio, a auctor odio. Mauris ac nisl nibh, id elementum neque. Nullam arcu mi, semper eu vulputate et, facilisis et elit.
+
+            <p>Nulla facilisi. Nullam ut dolor vitae urna sagittis venenatis quis ut dui. Curabitur tincidunt orci sodales sapien venenatis at egestas lectus vehicula. Vestibulum tristique, nunc at aliquam lobortis, neque ligula consectetur leo, eget consequat lacus nisi quis dolor. Aliquam sit amet odio mi, et sollicitudin lectus. Sed ultricies, nisi ac aliquam placerat, ipsum dolor posuere sem, at imperdiet risus ante eleifend neque. Ut feugiat, erat nec facilisis blandit, dolor diam bibendum mauris, vel eleifend velit dui eu arcu. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Quisque in est felis, sit amet venenatis nibh. Praesent tempus viverra ipsum sit amet blandit. Mauris id nisl id leo mollis vestibulum. Suspendisse ornare rutrum lacus et venenatis. Sed fermentum augue nec justo pulvinar eleifend.
+
+            <p>Vivamus ac augue urna, vel aliquet dolor. Suspendisse justo diam, ultricies viverra luctus commodo, ornare vel dui. Donec auctor purus vitae sapien auctor a commodo lectus placerat. Duis consequat magna eget purus dignissim non mattis leo adipiscing. Sed urna ante, fermentum nec feugiat ac, molestie id turpis. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Phasellus risus ligula, blandit vitae semper sed, fermentum et mauris.
+
+            <p>Nulla sed dolor lacus. Etiam urna arcu, tempor non convallis at, lacinia non lacus. Maecenas accumsan ultrices lobortis. Sed vitae hendrerit dui. Vivamus ultrices sapien eu quam euismod lobortis. Maecenas eget erat purus, ut ornare tellus. Ut vestibulum porttitor facilisis. Nullam tincidunt orci at risus dignissim pretium. Nam malesuada porta dolor a ornare.
+         </div>
+      </div>
+   </div>
+
+   <div class="col-mid">
+      <div class="col-content-wrapper">
+         <div class="col-content">
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque rhoncus commodo lacus, tempor sagittis magna ornare sed. Sed in sem ligula. Sed tincidunt eros a nisl interdum consectetur. Sed elementum, ipsum non scelerisque tempor, tortor orci semper nisl, at rhoncus tellus tortor quis metus. Morbi elementum turpis nec magna sagittis eget aliquam sapien porttitor. Aenean ac diam nec nulla vehicula scelerisque eget a lorem. Mauris fringilla ullamcorper iaculis. Donec condimentum mollis urna, nec elementum nulla imperdiet vitae. Morbi nec ligula massa, quis convallis dui. Sed vel orci eget enim sagittis aliquet. Morbi sit amet ligula odio. Pellentesque lacinia mattis lorem vitae rhoncus.
+
+            <p>Suspendisse est ante, convallis vel lobortis non, malesuada lacinia risus. Pellentesque egestas tincidunt lacus in bibendum. Phasellus ac blandit diam. Nulla vehicula pellentesque hendrerit. Curabitur lobortis semper sem quis posuere. Integer vitae nunc sit amet ligula placerat elementum. Cras non metus odio, a auctor odio. Mauris ac nisl nibh, id elementum neque. Nullam arcu mi, semper eu vulputate et, facilisis et elit.
+
+            <p>Nulla facilisi. Nullam ut dolor vitae urna sagittis venenatis quis ut dui. Curabitur tincidunt orci sodales sapien venenatis at egestas lectus vehicula. Vestibulum tristique, nunc at aliquam lobortis, neque ligula consectetur leo, eget consequat lacus nisi quis dolor. Aliquam sit amet odio mi, et sollicitudin lectus. Sed ultricies, nisi ac aliquam placerat, ipsum dolor posuere sem, at imperdiet risus ante eleifend neque. Ut feugiat, erat nec facilisis blandit, dolor diam bibendum mauris, vel eleifend velit dui eu arcu. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Quisque in est felis, sit amet venenatis nibh. Praesent tempus viverra ipsum sit amet blandit. Mauris id nisl id leo mollis vestibulum. Suspendisse ornare rutrum lacus et venenatis. Sed fermentum augue nec justo pulvinar eleifend.
+
+            <p>Vivamus ac augue urna, vel aliquet dolor. Suspendisse justo diam, ultricies viverra luctus commodo, ornare vel dui. Donec auctor purus vitae sapien auctor a commodo lectus placerat. Duis consequat magna eget purus dignissim non mattis leo adipiscing. Sed urna ante, fermentum nec feugiat ac, molestie id turpis. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Phasellus risus ligula, blandit vitae semper sed, fermentum et mauris.
+
+            <p>Nulla sed dolor lacus. Etiam urna arcu, tempor non convallis at, lacinia non lacus. Maecenas accumsan ultrices lobortis. Sed vitae hendrerit dui. Vivamus ultrices sapien eu quam euismod lobortis. Maecenas eget erat purus, ut ornare tellus. Ut vestibulum porttitor facilisis. Nullam tincidunt orci at risus dignissim pretium. Nam malesuada porta dolor a ornare.
+
+         </div>
+      </div>
+   </div>
+
+   <div class="col-right">
+      <div class="col-content-wrapper">
+         <div class="col-content">
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque rhoncus commodo lacus, tempor sagittis magna ornare sed. Sed in sem ligula. Sed tincidunt eros a nisl interdum consectetur. Sed elementum, ipsum non scelerisque tempor, tortor orci semper nisl, at rhoncus tellus tortor quis metus. Morbi elementum turpis nec magna sagittis eget aliquam sapien porttitor. Aenean ac diam nec nulla vehicula scelerisque eget a lorem. Mauris fringilla ullamcorper iaculis. Donec condimentum mollis urna, nec elementum nulla imperdiet vitae. Morbi nec ligula massa, quis convallis dui. Sed vel orci eget enim sagittis aliquet. Morbi sit amet ligula odio. Pellentesque lacinia mattis lorem vitae rhoncus.
+
+            <p>Suspendisse est ante, convallis vel lobortis non, malesuada lacinia risus. Pellentesque egestas tincidunt lacus in bibendum. Phasellus ac blandit diam. Nulla vehicula pellentesque hendrerit. Curabitur lobortis semper sem quis posuere. Integer vitae nunc sit amet ligula placerat elementum. Cras non metus odio, a auctor odio. Mauris ac nisl nibh, id elementum neque. Nullam arcu mi, semper eu vulputate et, facilisis et elit.
+
+            <p>Nulla facilisi. Nullam ut dolor vitae urna sagittis venenatis quis ut dui. Curabitur tincidunt orci sodales sapien venenatis at egestas lectus vehicula. Vestibulum tristique, nunc at aliquam lobortis, neque ligula consectetur leo, eget consequat lacus nisi quis dolor. Aliquam sit amet odio mi, et sollicitudin lectus. Sed ultricies, nisi ac aliquam placerat, ipsum dolor posuere sem, at imperdiet risus ante eleifend neque. Ut feugiat, erat nec facilisis blandit, dolor diam bibendum mauris, vel eleifend velit dui eu arcu. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Quisque in est felis, sit amet venenatis nibh. Praesent tempus viverra ipsum sit amet blandit. Mauris id nisl id leo mollis vestibulum. Suspendisse ornare rutrum lacus et venenatis. Sed fermentum augue nec justo pulvinar eleifend.
+
+            <p>Vivamus ac augue urna, vel aliquet dolor. Suspendisse justo diam, ultricies viverra luctus commodo, ornare vel dui. Donec auctor purus vitae sapien auctor a commodo lectus placerat. Duis consequat magna eget purus dignissim non mattis leo adipiscing. Sed urna ante, fermentum nec feugiat ac, molestie id turpis. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Phasellus risus ligula, blandit vitae semper sed, fermentum et mauris.
+
+            <p>Nulla sed dolor lacus. Etiam urna arcu, tempor non convallis at, lacinia non lacus. Maecenas accumsan ultrices lobortis. Sed vitae hendrerit dui. Vivamus ultrices sapien eu quam euismod lobortis. Maecenas eget erat purus, ut ornare tellus. Ut vestibulum porttitor facilisis. Nullam tincidunt orci at risus dignissim pretium. Nam malesuada porta dolor a ornare.
+
+         </div>
+      </div>
+   </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+   <link rel="stylesheet" type="text/css" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css">
+   <link rel="stylesheet" type="text/css" href="bseth99-jquery-ui.css">
+
+   <title>HTML Stretched/Column Layout with jQueryUI Widget Test</title>
+
+   <script src="http://code.jquery.com/jquery.js"></script>
+   <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
+
+</head>
+<body>
+
+<style>
+*, html {
+   font-family: Arial,Helvetica,Verdana,sans-serif;
+}
+
+body {
+   font-size: 62.5%;
+   margin: 0;
+   padding:0;
+   border:0;
+   width:100%;
+   background:#fff;
+}
+
+/* Setup columns */
+.column-wrapper { position: relative; width: 100%; font-size: 1.5em; overflow: hidden; }
+//.column-left, .column-middle, .column-right { position: absolute; height: 100%; }
+.column-left  { left: 0;  width: 300px; }
+.column-right { left: auto !important; right: 0; width: 300px; }
+.column-middle   { left: 0; right: 0; margin: 0 300px; }
+
+/* Setup container to fill column area and not overflow the bounds */
+.fill-box { position: absolute; height: auto; top: 0; bottom: 0; left: 0; right: 0; overflow: hidden; }
+
+/* Define specific styles for each column container */
+.toolbox { margin: 5px; margin-top: 3px; padding-bottom: 1px; }
+.sortable { margin: 5px; border: 1px solid #aaa; overflow-y: auto; }
+.content { margin: 5px; border: 1px solid #aaa; padding: 5px; overflow-y: auto; }
+
+/* Content styles */
+.draggable, .sortable div { margin: 5px; padding: 5px; cursor: pointer; }
+.toolbox div { font-size: 100%; }
+
+</style>
+
+<script>
+$(function() {
+
+   /* Track the window height and set the outer column wrapper to match */
+   $(window).on('resize', function () {
+         $('.column-wrapper').outerHeight($(window).outerHeight());
+
+         $('.toolbox > div').filter('.ui-accordion').accordion( 'refresh' );
+      }).trigger('resize');
+
+
+   $('.toolbox > div')
+      .accordion({ heightStyle: 'fill' });
+
+   $('.sortable')
+      .sortable({ containment: 'parent', tolerance: 'pointer' })
+      .disableSelection();
+
+   $('.draggable')
+      .draggable({
+         connectToSortable: '.sortable',
+         helper: function() {
+               return $(this).clone().outerWidth($(this).outerWidth());
+            },
+         appendTo: '.column-wrapper'
+      }).disableSelection();
+
+});
+</script>
+
+<div class="column-wrapper">
+
+   <div class="fill-box column-left">
+      <div class="fill-box toolbox">
+         <div>
+            <h3>Stuff A</h3>
+            <div>
+               <div class="ui-state-default draggable">Thing 1</div>
+               <div class="ui-state-default draggable">Thing 2</div>
+               <div class="ui-state-default draggable">Thing 3</div>
+               <div class="ui-state-default draggable">Thing 4</div>
+               <div class="ui-state-default draggable">Thing 5</div>
+            </div>
+            <h3>Stuff B</h3>
+            <div>
+               <div class="ui-state-default draggable">Thing 6</div>
+               <div class="ui-state-default draggable">Thing 7</div>
+               <div class="ui-state-default draggable">Thing 8</div>
+               <div class="ui-state-default draggable">Thing 9</div>
+               <div class="ui-state-default draggable">Thing 10</div>
+            </div>
+            <h3>Stuff C</h3>
+            <div>
+               <div class="ui-state-default draggable">Thing 11</div>
+               <div class="ui-state-default draggable">Thing 12</div>
+               <div class="ui-state-default draggable">Thing 13</div>
+               <div class="ui-state-default draggable">Thing 14</div>
+               <div class="ui-state-default draggable">Thing 15</div>
+            </div>
+         </div>
+      </div>
+   </div>
+
+   <div class="fill-box column-middle">
+      <div class="fill-box sortable ui-corner-all">
+         <div class="ui-state-highlight">Item 1</div>
+         <div class="ui-state-highlight">Item 2</div>
+         <div class="ui-state-highlight">Item 3</div>
+         <div class="ui-state-highlight">Item 4</div>
+         <div class="ui-state-highlight">Item 5</div>
+      </div>
+   </div>
+
+   <div class="fill-box column-right">
+      <div class="fill-box content ui-corner-all">
+
+         <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque rhoncus commodo lacus, tempor sagittis magna ornare sed. Sed in sem ligula. Sed tincidunt eros a nisl interdum consectetur. Sed elementum, ipsum non scelerisque tempor, tortor orci semper nisl, at rhoncus tellus tortor quis metus. Morbi elementum turpis nec magna sagittis eget aliquam sapien porttitor. Aenean ac diam nec nulla vehicula scelerisque eget a lorem. Mauris fringilla ullamcorper iaculis. Donec condimentum mollis urna, nec elementum nulla imperdiet vitae. Morbi nec ligula massa, quis convallis dui. Sed vel orci eget enim sagittis aliquet. Morbi sit amet ligula odio. Pellentesque lacinia mattis lorem vitae rhoncus.
+
+         <p>Suspendisse est ante, convallis vel lobortis non, malesuada lacinia risus. Pellentesque egestas tincidunt lacus in bibendum. Phasellus ac blandit diam. Nulla vehicula pellentesque hendrerit. Curabitur lobortis semper sem quis posuere. Integer vitae nunc sit amet ligula placerat elementum. Cras non metus odio, a auctor odio. Mauris ac nisl nibh, id elementum neque. Nullam arcu mi, semper eu vulputate et, facilisis et elit.
+
+         <p>Nulla facilisi. Nullam ut dolor vitae urna sagittis venenatis quis ut dui. Curabitur tincidunt orci sodales sapien venenatis at egestas lectus vehicula. Vestibulum tristique, nunc at aliquam lobortis, neque ligula consectetur leo, eget consequat lacus nisi quis dolor. Aliquam sit amet odio mi, et sollicitudin lectus. Sed ultricies, nisi ac aliquam placerat, ipsum dolor posuere sem, at imperdiet risus ante eleifend neque. Ut feugiat, erat nec facilisis blandit, dolor diam bibendum mauris, vel eleifend velit dui eu arcu. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Quisque in est felis, sit amet venenatis nibh. Praesent tempus viverra ipsum sit amet blandit. Mauris id nisl id leo mollis vestibulum. Suspendisse ornare rutrum lacus et venenatis. Sed fermentum augue nec justo pulvinar eleifend.
+
+         <p>Vivamus ac augue urna, vel aliquet dolor. Suspendisse justo diam, ultricies viverra luctus commodo, ornare vel dui. Donec auctor purus vitae sapien auctor a commodo lectus placerat. Duis consequat magna eget purus dignissim non mattis leo adipiscing. Sed urna ante, fermentum nec feugiat ac, molestie id turpis. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Phasellus risus ligula, blandit vitae semper sed, fermentum et mauris.
+
+         <p>Nulla sed dolor lacus. Etiam urna arcu, tempor non convallis at, lacinia non lacus. Maecenas accumsan ultrices lobortis. Sed vitae hendrerit dui. Vivamus ultrices sapien eu quam euismod lobortis. Maecenas eget erat purus, ut ornare tellus. Ut vestibulum porttitor facilisis. Nullam tincidunt orci at risus dignissim pretium. Nam malesuada porta dolor a ornare.
+
+      </div>
+   </div>
+
+</div>
+
+</body>
+</html>
