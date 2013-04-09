@@ -76,7 +76,7 @@ $(function() {
             onSelect: function ( dateText, inst ) {
                   var d1, d2;
 
-                  prv = +cur;
+                  prv = cur;
                   cur = (new Date(inst.selectedYear, inst.selectedMonth, inst.selectedDay)).getTime();
                   if ( prv == -1 || prv == cur ) {
                      prv = cur;

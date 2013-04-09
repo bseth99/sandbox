@@ -1,0 +1,192 @@
+---
+layout: page
+title: Mixing jQuery UI Draggable, Droppable, and Sortable Interaction Widgets
+group: jquery-ui
+tags : [javascript, jquery, jquery-ui, drag, drop, sortable, draggable, droppable]
+---
+
+{% include JB/setup %}
+
+<script src="jquery-hoverIntent.js"></script>
+
+
+<style>
+
+.wrapper { width: 300px; height: 500px; margin: auto; }
+.wrapper > h5 { padding: 0; margin: 0; }
+.wrapper > div { margin-bottom: 15px; border: 1px solid #aaa; }
+
+.item-wrapper { position: relative; padding: 3px; color: #555; }
+.item-wrapper:nth-child(even) { background-color: #f8f8f8; }
+
+.drag-handle { position: absolute; border: 3px solid transparent; left: 0; right: 0; top: 0; bottom: 0; cursor: move; }
+
+.item-container { position: relative; text-align: center; cursor: move; }
+.drop-container .item-container { cursor: default; }
+.sort-container .item-container { cursor: n-resize; }
+
+.item-wrapper.mx-state-moving { background-color: #fcefa1; color: #000; margin: 0; }
+
+.drag-container .item-wrapper.mx-content-hover { background-color: #cce0ff; color: #000; }
+.drop-container.mx-content-hover { background-color: #ccff99; }
+.sort-container .drag-handle.mx-content-hover { border-color: #cce0ff; }
+.sort-container .item-wrapper.mx-content-hover { color: #000; }
+
+
+
+</style>
+
+<div class="discussion">
+   This demo investigates how to integrate the different jQuery UI interaction widgets (Draggable, Sortable, and Droppable)
+   together so they work together and still leverage their built-in capabilities.  The goal is to be able to hook into the
+   callbacks and know where an item originated from and react accordingly.  Additionally, visual cues (ie hovering) to assist the
+   user with the interactions are added to experiment with different approaches.
+</div>
+<br/>
+
+<div class="wrapper">
+
+   <h5>Draggable</h5>
+   <div class="drag-container ui-corner-all">
+      <div class="item-wrapper">
+         <div class="item-container">Item 4</div>
+      </div>
+   </div>
+
+   <h5>Droppable</h5>
+   <div class="drop-container ui-corner-all">
+      <div class="item-wrapper">
+         <div class="item-container">Empty</div>
+      </div>
+   </div>
+
+   <h5>Sortable</h5>
+   <div class="sort-container ui-corner-all">
+
+      <div class="item-wrapper">
+         <div class="drag-handle"></div>
+         <div class="item-container">Item 1</div>
+      </div>
+
+      <div class="item-wrapper">
+         <div class="drag-handle"></div>
+         <div class="item-container">Item 2</div>
+      </div>
+
+      <div class="item-wrapper">
+         <div class="drag-handle"></div>
+         <div class="item-container">Item 3</div>
+      </div>
+
+   </div>
+
+
+</div>
+
+<script>
+
+   var items = 4;
+
+   function fixHelper( e, ui ) {
+
+      var $ctr = $(this);
+
+      ui.helper
+         .addClass('mx-state-moving ui-corner-all')
+         .outerWidth($ctr.outerWidth())
+         .find('.mx-content-hover')
+            .removeClass('mx-content-hover')
+            .end();
+   }
+
+   function toggleHover( e ) {
+
+      if ( e.type == 'mouseenter' )
+         $(this).addClass( 'mx-content-hover' );
+      else
+         $(this).removeClass( 'mx-content-hover' );
+
+   }
+
+   sdCfg = {
+
+         cursor: 'move',
+         zIndex: 200,
+         opacity: 0.75,
+         handle: '.drag-handle',
+         scroll: false,
+         containment: 'window',
+         appendTo: document.body,
+         helper: 'clone',
+         start: fixHelper
+
+   };
+
+   $('.drag-container')
+      .find('.item-wrapper').draggable({
+
+         cursor: 'move',
+         zIndex: 200,
+         opacity: 0.75,
+         scroll: false,
+         containment: 'window',
+         appendTo: document.body,
+         helper: 'clone',
+         connectToSortable: '.sort-container',
+         start: fixHelper
+
+         }).hover( toggleHover );
+
+   $('.sort-container')
+         .sortable({
+
+            containment: 'parent',
+            handle: '.item-container',
+            tolerance: 'pointer',
+            helper: 'clone',
+            start: fixHelper,
+
+            update: function ( e, ui ) {
+
+                  if ( ui.item.find('.drag-handle').length == 0 ) {
+
+                     $('.drag-container .item-container').html('Item ' + (++items));
+
+                     ui.item
+                        .find('.item-container')
+                           .before( $('<div class="drag-handle">') )
+                           .parent()
+                        .draggable(sdCfg)
+                        .hover( toggleHover )
+                        .find('.drag-handle')
+                           .hoverIntent( toggleHover );
+
+                     $(this).sortable('option', 'containment', 'parent');
+                  }
+
+               }
+
+      }).find('.item-wrapper')
+         .draggable(sdCfg)
+         .hover( toggleHover )
+         .find('.drag-handle')
+            .hoverIntent( toggleHover );
+
+
+   $('.drop-container').droppable({
+
+         hoverClass: 'mx-content-hover',
+         drop: function ( e, ui ) {
+
+               $(this).find('.item-container').html( ui.draggable.children('.item-container').html() );
+
+               if ( ui.draggable.parent().is('.drag-container') )
+                  $('.drag-container .item-container').html('Item ' + (++items));
+               else
+                  ui.draggable.remove();
+
+            }
+      });
+
+</script>
+
