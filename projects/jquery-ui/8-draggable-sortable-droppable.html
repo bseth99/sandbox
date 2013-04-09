@@ -3,6 +3,7 @@ layout: page
 title: Mixing jQuery UI Draggable, Droppable, and Sortable Interaction Widgets
 group: jquery-ui
 tags : [javascript, jquery, jquery-ui, drag, drop, sortable, draggable, droppable]
+blog: /2013/04/09/mixing-jquery-ui-draggable-droppable-and-sortable-interaction-widgets/
 ---
 
 {% include JB/setup %}
@@ -183,7 +184,9 @@ tags : [javascript, jquery, jquery-ui, drag, drop, sortable, draggable, droppabl
                if ( ui.draggable.parent().is('.drag-container') )
                   $('.drag-container .item-container').html('Item ' + (++items));
                else
-                  ui.draggable.remove();
+                  // Defer removing the item after exiting the current call stack
+                  // so the Draggable widget can complete the drag processing
+                  setTimeout(function () { ui.draggable.remove(); }, 0);
 
             }
       });
