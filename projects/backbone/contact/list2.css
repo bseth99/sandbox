@@ -1,0 +1,99 @@
+.ui-list-wrapper { position: absolute; height: 100%; }
+
+.ui-list-content { border: 1px solid #aaa; margin: 5px; }
+.ui-list-content > div { position: relative; }
+
+.ui-list-options { position: relative; margin: 5px; }
+.ui-list-title { padding: 0; margin: 0; }
+.ui-list-option-item { position: absolute; top: -1px;}
+.ui-list-option-item .ui-button-text { font-size: 0.8em; padding: 0.15em 0.8em;}
+
+.ui-list-search { border-bottom: 2px solid #aaa; }
+.ui-list-search > div { position: relative; margin: 5px; overflow: hidden; }
+
+.ui-list-search input { width: 100%; font-size: 0.9em; }
+
+.ui-list-search input.mx-content-default.ui-state-empty { color: #aaa; }
+.ui-list-search input.mx-content-default { color: #555; }
+.ui-list-search input.mx-content-hover.ui-state-empty { color: #888; }
+.ui-list-search input.mx-content-hover { color: #333; }
+.ui-list-search input:focus { color: #000 !important; }
+
+.ui-list-search a { position: absolute; top: 0; bottom: 0; padding: 0.2em; border: 1px solid transparent; background: none; }
+.ui-list-search a.ds-list-clear { right: 0; }
+.ui-list-search a.ds-list-search { right: 16px; }
+
+ul.ui-list-item { margin: 0; padding: 0; }
+li.ui-list-column { display: inline-block; margin: 0; padding: 0; list-style: none; overflow: hidden; vertical-align: middle; white-space: nowrap; }
+
+.ui-list-header {  }
+.ui-list-header ul.ui-list-item { background-color: #eee; border-bottom: 1px solid #aaa; }
+.ui-list-header li.ui-list-column { font-weight: bold; }
+
+.ui-list-rows { overflow: hidden; overflow-y: scroll; }
+
+.ui-list-rows ul.ui-list-item:nth-child(even) { background-color: #f8f8f8; }
+.ui-list-rows ul.ui-list-item.mx-content-default { color: #555; }
+.ui-list-rows ul.ui-list-item.mx-content-hover { color: #000; }
+
+.ui-list-add { position: relative; border-top: 2px solid #aaa; }
+
+.ui-list-add.ui-state-empty > div { padding: 3px; text-align: center;  }
+.ui-list-add > div.mx-border-default { border: 3px solid transparent; }
+.ui-list-add > div.mx-border-hover { border: 3px solid #ccff99; color: #555; }
+.ui-list-add > div.mx-content-hover { background-color: #ccff99; }
+
+
+.ui-list-editor ul.ui-list-item { border: none; }
+.ui-list-editor input { font-size: 100%; }
+
+.ui-list-blank { position: relative; visibility: hidden; border: 1px solid #aaa; margin: 5px; }
+.ui-list-blank > div { position: relative; top: 40%; text-align: center; font-size: 2em; }
+.ds-state-blank .ui-list-blank { visibility: visible; }
+
+.ui-list-loading { position: relative; visibility: hidden; border: 1px solid #aaa; margin: 5px; }
+.ui-list-loading > div { position: relative; top: 40%; text-align: center; font-size: 2em; }
+.ds-state-loading .ui-list-loading { visibility: visible; }
+
+.ui-list-content { visibility: hidden; }
+.ds-state-normal .ui-list-content { visibility: visible; }
+
+
+
+/* Overrides */
+input { vertical-align: middle; }
+textarea, input, select { outline: none; margin: 0; line-height: 0; font-size: 100%; }
+
+
+/* Form Rules */
+.ui-form-panel { display: inline; }
+.ui-form-panel field { display: inline-block; }
+
+.ui-form-panel h5.section { font-size: 1em; color: #555; border-bottom: 1px solid #aaa; margin: 0.4em 0; }
+
+.ui-form-panel ul { margin: 0; padding: 0; }
+.ui-form-panel li { margin: 0; padding: 0; list-style: none; vertical-align: middle; }
+
+.ui-form-panel ul.columns li { display: inline-block; margin: 0.3em; margin-bottom: 0.8em; }
+.ui-form-panel ul.columns label { display: block; }
+
+.ui-form-panel ul.rows li { margin: 0.3em; }
+.ui-form-panel ul.rows field { display: block; width: 100%; }
+.ui-form-panel ul.rows label { display: inline-block; text-align: right; width: 25%; }
+
+.ui-form-panel div.buttons { margin: 5px; text-align: right; }
+
+.ui-form-panel field input { background-color: transparent; }
+.ui-form-panel field.invalid input { box-shadow: 0 0 3px #f88 inset; }
+.ui-form-panel field.invalid input:focus { box-shadow: 0 0 3px #f88 inset; }
+.ui-form-panel field.valid input:focus { box-shadow: 0 0 3px #8f8 inset; }
+.ui-form-panel field input:focus { box-shadow: 0 0 3px #ccf inset; }
+
+.ui-form-panel field div.message { position: relative; white-space: nowrap; }
+.ui-form-panel field div.message span { position: absolute; font-size: 0.8em; color: #f00; margin-left: 3px; }
+
+.ui-form-panel ul.rows field div.message { display: inline-block; }
+.ui-form-panel ul.rows field div.message span { margin-top: -0.8em; }
+
+.ui-form-panel li .sort-handle { position: relative; background: none !important; width: 1.8em; height: 1.8em; }
+.ui-form-panel li .sort-handle a { position: absolute; cursor: move; top: 50%; left: 50%; margin-left: -8px; margin-top: -8px; }

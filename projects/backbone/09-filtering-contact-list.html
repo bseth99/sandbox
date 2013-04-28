@@ -1,0 +1,147 @@
+---
+layout: page
+title: Simple Contact List using Model-based Filtering to Search
+group: backbone-form
+tags : [backbone, collection, model, filtering, searching]
+---
+
+{% include JB/setup %}
+
+<!--
+Copyright (c) 2012 Ben Olson
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+-->
+
+<link rel="stylesheet" type="text/css" href="contact/list2.css">
+
+<script src="underscore.min.js"></script>
+<script src="backbone.min.js"></script>
+
+<script src="contact/moment.js"></script>
+<script src="contact/base.js"></script>
+
+<script src="contact/jquery-hoverIntent.js"></script>
+<script src="contact/bseth99-jquery-ui.js"></script>
+
+<script src="contact/backbone-autobind.js"></script>
+<script src="contact/backbone-widget.js"></script>
+
+<script src="contact/list2.js"></script>
+<script src="contact/contacts.js"></script>
+
+
+<style>
+
+.ui-widget {
+   font-family: Arial,Helvetica,Verdana,sans-serif;
+}
+
+.ui-border-box {
+   -webkit-box-sizing: border-box;
+   -moz-box-sizing: border-box;
+   box-sizing: border-box;
+ }
+
+.ui-fill-box { position: absolute; height: auto; top: 0; bottom: 0; left: 0; right: 0; overflow: hidden; }
+.ui-input-text { padding: 0.2em; }
+.ui-state-empty { font-style: italic; color: #aaa; }
+
+.ui-content-wrapper { position: relative; width: 100%; height: 500px; margin: auto; font-size: 1.1em; }
+
+.ds-search-scope { right: 0; }
+
+.ds-contact-list { width: 550px; }
+
+.ds-contact-list ul.ui-list-item { padding: 5px; cursor: pointer; }
+.ds-contact-list li.ui-list-column { margin: 1px; display: block; }
+.ds-contact-list span[column="display_name"] { font-weight: bold; }
+
+.ui-list-search > div { margin: 5px 0; }
+
+.ui-search-highlight { color: orange; }
+
+.ui-list-search { border-bottom: none; }
+.ui-list-rows { border-top: 2px solid #aaa; visibility: hidden; }
+
+.ui-list-content { visibility: visible !important; }
+.ds-state-normal .ui-list-rows { visibility: visible; }
+
+.ui-list-blank { border: none; }
+.ui-list-blank > div { font-size: 100%; }
+.ui-list-loading { border: none; }
+
+</style>
+
+<script id="contact-filter" type="text/template">
+
+   <div class="ui-list-search" bind="search_text">
+      <div>
+         <input type="text" class="ui-corner-all ui-widget ui-widget-content ui-input-text ui-border-box" name="search" placeholder="Search ..." />
+      </div>
+   </div>
+
+</script>
+
+<script id="contact-list" type="text/template">
+
+   <div class="ds-state-normal ui-list-content ui-corner-all ui-fill-box">
+
+
+      <div class="ui-list-options">
+         <h3 class="ui-list-title">Contacts</h3>
+      </div>
+
+   </div>
+</script>
+
+<script id="contact-item" type="text/template">
+   <li class="ui-list-column ui-list-data"><span column="display_name"><%= display_name %></span> (<span column="primary_email"><%= primary_email %></span>)</li>
+   <li class="ui-list-column ui-list-data"><span column="organization"><%= organization %></span></li>
+   <li class="ui-list-column ui-list-data"><span column="primary_phone"><%= primary_phone %></span></li>
+</script>
+
+<div class="discussion">
+This example explores how to leverage Backbone's built-in Collection/Model functionality to collect filter inputs from the user,
+apply them to a master datasource, and display the results on the screen.  The goal is to maintain the seperation of concerns
+the MVC pattern defines and provide the most flexibility to handle any filtering scenario.  The contents of the search box is
+used to find matches in any of the contact fields (name, org, email, phone).  Any matches are highlighted to identify how a row
+matched the search.
+</div>
+<br/>
+
+<div class="ui-content-wrapper">
+
+</div>
+
+<script>
+
+$(function() {
+
+   app = new App.Controller({ container: '.ui-content-wrapper' });
+
+   app.start();
+   app.applyFilters();
+
+
+});
+</script>
