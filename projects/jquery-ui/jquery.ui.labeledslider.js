@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2012 Ben Olson
+ * Copyright (c) 2012 Ben Olson (https://github.com/bseth99/jquery-ui-extensions)
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -87,7 +87,7 @@
          for (;i<=cnt;i++) {
             $('<div>').addClass( 'ui-slider-label-ticks' )
                .css( dir, (Math.round( i / cnt * 10000 ) / 100) + '%' )
-               .html( ( dir == 'left' ? '<span></span><br/>' : '<span></span> ' ) + ( labels[i*inr+min] ? labels[i*inr+min] : i*inr+min ) )
+               .html( '<span>'+( labels[i*inr+min] ? labels[i*inr+min] : i*inr+min )+'</span>' )
                .appendTo( $lbl );
          }
 
