@@ -1,0 +1,207 @@
+---
+layout: page
+title: Backbone Router-Friendly Tabs Widget
+group: backbone-form
+tags : [backbone, router, jquery, ui, tabs, widget]
+---
+
+{% include JB/setup %}
+
+<!--
+Copyright (c) 2013 Ben Olson
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+-->
+
+<link rel="stylesheet" type="text/css" href="tabs/backbone-simpletabs.css">
+
+<script src="underscore.min.js"></script>
+<script src="backbone.min.js"></script>
+
+<script src="tabs/htmlencode.js"></script>
+<script src="tabs/backbone-simpletabs.js"></script>
+<script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js?autoload=false"></script>
+
+<style>
+pre, code { margin: 0; padding: 0; border: none; background-color: transparent; }
+pre { white-space: pre; }
+</style>
+
+<div id="main">
+
+   <div id="tab-layout">
+      <ul>
+         <li><a href="#overview">Overview</a></li>
+         <li><a href="#usage">Usage</a></li>
+         <li><a href="#example">Example</a></li>
+         <li><a href="#lorum">Lorum Ipsum</a></li>
+      </ul>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+   </div>
+
+</div>
+
+<script id="tab-overview" type="text/plain">
+<p>
+Tabs are a basic page layout tool.  I discovered the jQuery UI Tabs widget did not bubble the
+click event on the tab anchors which did not allow me to use a router to react to tab changes.
+I could have just tossed the router idea and just hooked into the events to handle it, but I
+like having options.  The jQuery version has extra functionality for loading content via AJAX
+which is less useful in a Backbone app that will probably be doing that via the Backbone library.
+So I decided to create a light-weight version that did not interfere with the click event but
+had a similar look-and-feel that would match well with the other jQuery UI widgets I used.
+</p>
+</script>
+
+
+<script id="tab-usage" type="text/plain">
+
+/**
+*
+*  First, create some HTML for the widget.  This should look very similar to the
+*  jQuery UI version.  The order and number of DIVs after the UL much match the
+*  LI/A elements (ie Overview will show the first DIV, Usage the second, etc):
+*
+*      <div id="tab-layout">
+*         <ul>
+*            <li><a href="#overview">Overview</a></li>
+*            <li><a href="#usage">Usage</a></li>
+*            <li><a href="#example">Example</a></li>
+*            <li><a href="#lorum">Lorum Ipsum</a></li>
+*         </ul>
+*         <div></div>
+*         <div></div>
+*         <div></div>
+*         <div></div>
+*      </div>
+*
+*  Then, initialize the widget:
+*/
+
+   $('#tab-layout').simpletabs();
+
+/**
+*
+*  By default, the widget will ensure the hash in the URL match the tab
+*  and redirect the browser location if it does not.  This is nice
+*  if you have one main tab control or need to change the tab programically.
+*  However, several tab widgets might fight over the location or you may want
+*  to handle this yourself.  Use the forceHash option and set it to false to
+*  suppress this feature.
+*
+*/
+
+   $('#tab-layout').simpletabs({ forceHash: false });
+
+/**
+*
+*  The widget will trigger beforeActivate and activate events (same signature as
+*  the normal jQuery UI version).  You can use $.on or the callback in the options
+*  to listen to those events.
+*
+*/
+
+   $('#tab-layout').on({
+
+            'simpletabsbeforeactivate' : function ( event, ui ) {
+                  // Do something
+                  console.log( ui );
+               },
+
+            'simpletabsactivate' : function ( event, ui ) {
+                  // Do something
+                  console.log( ui );
+               }
+         });
+
+</script>
+
+
+<script id="tab-lorum" type="text/plain">
+
+<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus et nulla id tellus facilisis tempor. Mauris vel erat vitae nulla egestas blandit. Pellentesque ac placerat felis. Maecenas accumsan volutpat ultricies. Suspendisse ac augue adipiscing eros sodales mattis in vehicula nisl. Etiam tristique ultricies felis, eu ultrices turpis facilisis eget. Nulla pellentesque erat sed eros viverra, eu congue tortor ullamcorper. Suspendisse a nunc lacus. Nulla convallis tortor lorem, sit amet scelerisque nunc fringilla eget.
+</p>
+
+<p>Vivamus luctus posuere lectus eget euismod. Quisque ante dolor, egestas quis quam vel, dapibus tempus velit. Phasellus ac dui id orci aliquam mollis. Nam in scelerisque neque, nec rutrum turpis. Sed lacus libero, lacinia vitae nunc vestibulum, consequat porttitor odio. Morbi hendrerit ante non diam aliquet suscipit. Sed eget arcu nibh. Vestibulum imperdiet dui ac molestie varius. Etiam sed dui pretium, porttitor elit sit amet, aliquet ligula. Proin ac arcu augue. Duis quis nunc mi. In molestie vehicula diam tincidunt bibendum.
+</p>
+
+<p>Aliquam commodo tincidunt purus, ac aliquet lorem ornare at. Cras sit amet orci nec leo convallis ornare eu vitae tortor. Curabitur porttitor fermentum consequat. Quisque sem diam, mattis quis eros eu, convallis blandit dui. Nunc feugiat consectetur rhoncus. Cras malesuada nec libero vitae placerat. Nullam sagittis varius aliquet. Etiam porttitor diam id est condimentum, id lobortis ipsum dictum. Ut fermentum tortor a urna tempor, at hendrerit lectus congue. Maecenas euismod lacinia mollis. Aenean pulvinar vel dui et blandit. Etiam erat libero, cursus id metus eu, lacinia accumsan sapien. Duis bibendum ullamcorper sapien quis rutrum. Nunc eget iaculis nibh. Donec tincidunt consequat justo ac venenatis. Fusce gravida quis arcu nec elementum.
+</p>
+
+<p>Quisque malesuada nisi non enim iaculis sollicitudin. Vestibulum nec eros neque. Nullam blandit velit sit amet velit elementum ornare nec sed quam. Sed egestas, libero vitae placerat posuere, nisl ligula congue purus, et bibendum ante lacus in felis. Ut vitae nisi fermentum, interdum arcu porta, suscipit massa. Suspendisse sem lorem, laoreet a bibendum a, vestibulum eget lectus. Integer scelerisque porttitor augue eget bibendum. Suspendisse potenti. Nullam pretium tellus ornare aliquet bibendum. Pellentesque id est ut erat porta sollicitudin. Morbi suscipit sapien in adipiscing faucibus. Vestibulum pharetra sodales erat id vestibulum. Maecenas eu cursus eros. Ut elit sem, ullamcorper vel vulputate ut, congue sed eros.
+</p>
+
+<p>Praesent congue, tellus eget faucibus rutrum, sem erat sodales massa, vel aliquam arcu lacus vel nunc. Vestibulum lobortis nec lacus vitae tincidunt. Vestibulum id est fermentum, bibendum massa pellentesque, elementum libero. Integer sed orci at justo tempor lacinia. Sed vel imperdiet massa, eu mollis nibh. Duis auctor eget eros a posuere. Praesent eget malesuada turpis. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Nullam blandit pulvinar sapien, at dignissim est eleifend in. Etiam semper vulputate ipsum ac gravida.
+</p>
+</script>
+
+<script id="tab-example">
+
+/**
+*  This is the actual code that created this page.  Simply query the
+*  widget to access the active panel's jQuery object as well as
+*  the tab index, label, and hash value.  Its quite silly since its just
+*  loading static content over and over again.
+*
+*/
+
+$(function () {
+
+   var Router = Backbone.Router.extend({
+
+         routes: {
+
+            "overview" : "showAsText",
+            "usage" : "showAsCode",
+            "example" : "showAsCode",
+            "lorum" : "showAsText"
+
+         },
+
+         showAsText: function () {
+            var selected = $('#tab-layout').simpletabs('active');
+
+            selected.panel.html($('#tab-'+selected.tab.hash).html());
+         },
+
+         showAsCode: function () {
+            var selected = $('#tab-layout').simpletabs('active');
+
+            selected.panel.html('<pre><code class="prettyprint">'+htmlEncode($('#tab-'+selected.tab.hash).html())+'</code></pre>');
+
+            PR.prettyPrint();
+         }
+
+      });
+
+
+   $('#tab-layout').simpletabs();
+
+   var router = new Router();
+   Backbone.history.start();
+
+});
+
+</script>
