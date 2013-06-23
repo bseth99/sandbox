@@ -153,6 +153,8 @@
                   idx = tab;
                }
 
+               idx = idx < 0 ? 0 : idx;
+
                hash =
                   this.tabs.find( 'a' )
                      .removeClass( 'ui-state-active' )
@@ -162,10 +164,14 @@
 
                this.panels.hide().eq(idx).show();
 
-               if ( this.options.forceHash && location.hash.length == 0 )
-                  location.href += hash;
-               else if ( location.hash != hash )
-                  location.href = location.href.replace( /#.*$/, hash );
+               if ( this.options.forceHash ) {
+
+                  if ( location.hash.length == 0 )
+                     location.href += hash;
+                  else if ( location.hash != hash )
+                     location.href = location.href.replace( /#.*$/, hash );
+
+               }
 
 
             } else {
