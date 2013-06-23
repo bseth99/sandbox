@@ -99,7 +99,7 @@
          events: {
             'click li > a' : function ( event ) {
 
-               var idx = $( event.currentTarget ).index(),
+               var idx = $( event.currentTarget ).closest( 'li' ).index(),
 
                    oTab = this._getTabInfo(),
                    nTab = this._getTabInfo( idx ),
