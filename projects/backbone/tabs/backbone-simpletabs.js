@@ -1,16 +1,49 @@
+/*
+ * Copyright (c) 2013 Ben Olson (https://github.com/bseth99/)
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Dependancies: jquery, jquery-ui
+ *
+ */
+
 (function( $, undefined ) {
 
    $.widget( "bk.simpletabs", {
 
          options: {
 
-            forceHash: true,
+            forceHash: false,
 
             // callbacks
             activate: null,
             beforeActivate: null
          },
 
+         /**
+         *  Setup the widget.  A large chunk recreates jQuery UI buttons since those
+         *  widgets don't behave exactly how we need them to for tabs.
+         *
+         */
          _create: function () {
 
             this.element.addClass('bk-tabs ui-widget ui-widget-content ui-corner-all');
@@ -59,14 +92,20 @@
             this.panels.show();
          },
 
+         /**
+         *  Listen for clicks, trigger events, and use active to change the tab
+         *
+         */
          events: {
-            'click li' : function ( event ) {
+            'click li > a' : function ( event ) {
 
                var idx = $( event.currentTarget ).index(),
 
                    oTab = this._getTabInfo(),
                    nTab = this._getTabInfo( idx ),
 
+                   // Make normalized objects for the tab we're leaving
+                   // and the tab we're changing to
                    eventData = {
                       oldTab: oTab.tab,
                       oldPanel: oTab.panel,
@@ -74,25 +113,31 @@
                       newPanel: nTab.panel
                    };
 
-               if ( this.options.forceHash )
-                  event.preventDefault();
-
+               // Provide a way to cancel it
                if ( oTab.tab.index != nTab.tab.index && this._trigger( 'beforeActivate', event, eventData ) !== false ) {
+
+                  // Use the setting to change the tab
                   this.active( idx );
                   this._trigger( 'activate', event, nTab );
+               } else {
+                  event.preventDefault();
                }
 
             },
 
-            'mouseenter a' : function( event ) {
+            'mouseenter li > a' : function( event ) {
                $( event.currentTarget ).addClass( 'ui-state-hover' );
             },
 
-            'mouseleave a' : function( event ) {
+            'mouseleave li > a' : function( event ) {
                $( event.currentTarget ).removeClass( 'ui-state-hover' );
             }
          },
 
+         /**
+         *  Get/Set the current tab.  Accepts the index or string match the hash (less #)
+         *
+         */
          active: function ( tab ) {
 
             var idx, hash;
@@ -101,6 +146,7 @@
 
                idx = 0;
 
+               // Resolve the argument type and find the tab
                if ( typeof(tab) == 'string' && tab.length > 0 ) {
                   idx = this.tabs.index( this.tabs.find( '[href=#'+tab+']' ).closest( 'li' ) );
                } else if ( typeof(tab) == 'number' && tab >= 0 ) {
@@ -116,13 +162,11 @@
 
                this.panels.hide().eq(idx).show();
 
-               if ( this.options.forceHash ) {
+               if ( this.options.forceHash && location.hash.length == 0 )
+                  location.href += hash;
+               else if ( location.hash != hash )
+                  location.href = location.href.replace( /#.*$/, hash );
 
-                  if ( location.hash.length == 0 )
-                     location.href += hash;
-                  else if ( location.hash != hash )
-                     location.href = location.href.replace( /#.*$/, hash );
-               }
 
             } else {
 
@@ -131,6 +175,10 @@
             }
          },
 
+         /**
+         *  Assemble tab info object from the provided index
+         *
+         */
          _getTabInfo: function ( idx ) {
 
             var idx = arguments.length > 0 ? idx : this.tabs.find( 'a.ui-state-active' ).closest( 'li' ).index(),

@@ -44,6 +44,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 <style>
 pre, code { margin: 0; padding: 0; border: none; background-color: transparent; }
 pre { white-space: pre; }
+a { text-decoration: underline; }
 </style>
 
 <div id="main">
@@ -64,7 +65,7 @@ pre { white-space: pre; }
 </div>
 
 <script id="tab-overview" type="text/plain">
-<p>
+<div>
 Tabs are a basic page layout tool.  I discovered the jQuery UI Tabs widget did not bubble the
 click event on the tab anchors which did not allow me to use a router to react to tab changes.
 I could have just tossed the router idea and just hooked into the events to handle it, but I
@@ -72,7 +73,14 @@ like having options.  The jQuery version has extra functionality for loading con
 which is less useful in a Backbone app that will probably be doing that via the Backbone library.
 So I decided to create a light-weight version that did not interfere with the click event but
 had a similar look-and-feel that would match well with the other jQuery UI widgets I used.
-</p>
+<br/><br/>
+If you'd like to try this out in your project, you'll need both
+the <a href="https://raw.github.com/bseth99/sandbox/master/projects/backbone/tabs/backbone-simpletabs.js">JS</a> and
+<a href="https://raw.github.com/bseth99/sandbox/master/projects/backbone/tabs/backbone-simpletabs.css">CSS</a> files.
+<br/><br/>
+You'll also need to include the jQuery UI library.  Technically, this doesn't depend on Backbone or
+Underscore.  Its just been built with the intention that it will be used within a Backbone app.
+</div>
 </script>
 
 
@@ -197,7 +205,7 @@ $(function () {
       });
 
 
-   $('#tab-layout').simpletabs();
+   $('#tab-layout').simpletabs({ forceHash: true });
 
    var router = new Router();
    Backbone.history.start();
