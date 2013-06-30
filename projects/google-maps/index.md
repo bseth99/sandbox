@@ -5,7 +5,7 @@ group: projects
 ---
 {% include JB/setup %}
 
-You can read more about this these tests [on my blog]({{ site.blog_url}}/google-maps-api). 
+You can read more about this these tests [on my blog]({{ site.blog_url}}/category/projects/google-maps-api/). 
 
 #### Demo Pages  
   
