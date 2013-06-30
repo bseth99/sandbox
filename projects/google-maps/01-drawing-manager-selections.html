@@ -1,0 +1,244 @@
+---
+layout: page
+title: Using Google Maps Drawing Manager to Create User Selectable Areas
+group: google-maps
+tags : [google-maps-api, drawing-manager, circle, markers, events, radius]
+---
+
+{% include JB/setup %}
+
+<!--
+Copyright (c) 2012 Ben Olson
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+-->
+
+<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&libraries=drawing"></script>
+
+
+<style>
+#wrapper { position: relative; }
+#map-canvas { width: 600px; height: 500px; }
+#map-controls { width: 600px; margin-bottom: 3px;  }
+#map-selected { position: absolute; right: 20px; top: 40px; }
+img { max-width: none; }
+</style>
+
+<div id="discussion">
+An example of using the DrawingManager to handle drawing a selected area that will be used to
+show more details about the location markers contained within the region.  The manager is disabled
+after the initial drawing allowing interaction with both the map and selection object.  Click the
+"Select" button to draw/redraw the selection.
+</div>
+
+<div id="wrapper">
+   <div id="map-selected"></div>
+   <div id="map-controls">
+      <button>Select</button>
+   </div>
+   <div id="map-canvas"></div>
+</div>
+
+<script>
+
+
+var selectedArea = null,
+    selecting = false,
+    map, drawingManager;
+
+function initialize () {
+
+   var mapOptions = {
+     center: new google.maps.LatLng(28.5477795, -81.3864589),
+     zoom: 12,
+     mapTypeId: google.maps.MapTypeId.ROADMAP
+   };
+
+   map = new google.maps.Map(document.getElementById('map-canvas'),
+     mapOptions);
+
+   drawingManager = new google.maps.drawing.DrawingManager({
+
+     drawingMode: google.maps.drawing.OverlayType.CIRCLE,
+     drawingControl: false,
+
+     circleOptions: {
+       fillColor: '#ffff00',
+       fillOpacity: 0.3,
+       strokeWeight: 1,
+       clickable: false,
+       editable: true,
+       zIndex: 1
+     }
+
+   });
+
+   $('#map-canvas').on('mousedown', function() {
+
+      if ( !selecting ) return;
+
+      if ( selectedArea ) {
+         selectedArea.setMap(null);
+         google.maps.event.clearInstanceListeners(selectedArea);
+      }
+
+      selectedArea = null;
+   });
+
+
+   google.maps.event.addListener(drawingManager, 'circlecomplete', function( circle ) {
+
+      selectedArea = circle;
+
+      google.maps.event.addListener(circle, 'center_changed', listSelected);
+      google.maps.event.addListener(circle, 'radius_changed', listSelected);
+
+      listSelected();
+      toggleSelector();
+
+   });
+
+   $('#map-controls').children().button().click(toggleSelector);
+
+   plotMarkers();
+
+}
+
+function plotMarkers () {
+
+   $.each( sites, function () {
+
+      if ( this.marker ) this.marker.setMap(null);
+
+      this.position = new google.maps.LatLng(this.lat, this.lng);
+
+      this.marker = new google.maps.Marker({
+         position: this.position,
+         map: map,
+         title: this.location
+      });
+
+   });
+}
+
+function listSelected () {
+
+   var r = selectedArea.getRadius(),
+       c = selectedArea.getCenter();
+
+   var inside = $.map( sites, function ( s ) {
+
+      var d;
+
+      if ( ( (d = google.maps.geometry.spherical.computeDistanceBetween( s.position, c )) <= r ) )
+         return s.location + ' ('+(Math.round(d/100)/10)+' km)';
+
+   });
+
+   $('#map-selected').html( inside.sort().join('<br/>') );
+}
+
+function toggleSelector () {
+
+   var $el = $('#map-controls button');
+
+   if ( $el.button('option', 'label') == 'Select' ) {
+
+      $el.button('option', 'label', 'Interact');
+      drawingManager.setMap(map);
+   } else {
+
+      $el.button('option', 'label', 'Select');
+      drawingManager.setMap(null);
+   }
+
+   selecting = !selecting;
+}
+
+$(initialize);
+
+var sites = [
+{ location: 'Alfond Swimming Pool', lat: 28.5903, lng: -81.3484},
+{ location: 'Cahall Sandspur Field', lat: 28.5928, lng: -81.35},
+{ location: 'Cherry Tree Park', lat: 28.5397241, lng: -81.3475692},
+{ location: 'Christmas Park', lat: 28.5611107, lng: -81.0220052},
+{ location: 'Clear Lake park', lat: 28.5138919, lng: -81.4059039},
+{ location: 'Col Joe Kittinger Park', lat: 28.5397241, lng: -81.341458},
+{ location: 'Dartmouth Park', lat: 28.5677789, lng: -81.3922922},
+{ location: 'Delaney Street Playground', lat: 28.5311134, lng: -81.3736809},
+{ location: 'Demetree Park', lat: 28.5327799, lng: -81.3195131},
+{ location: 'Dickson Azalea Park', lat: 28.544724, lng: -81.3553471},
+{ location: 'Dr I Sylvester Hankins Park', lat: 28.5280581, lng: -81.4192374},
+{ location: 'Duckworth Park', lat: 28.5288913, lng: -81.3714587},
+{ location: 'El Dorado Park', lat: 28.5322243, lng: -81.3114574},
+{ location: 'Englewood Park', lat: 28.5350019, lng: -81.2997904},
+{ location: 'Festival Park', lat: 28.5488905, lng: -81.346458},
+{ location: 'George Baker Park', lat: 28.5308358, lng: -81.4067371},
+{ location: 'Gilbert McQueen Park', lat: 28.5336134, lng: -81.4095149},
+{ location: 'Grand Avenue Park', lat: 28.5266692, lng: -81.3914591},
+{ location: 'Guernsey Park', lat: 28.565279, lng: -81.3984034},
+{ location: 'Harry P Leu Gardens', lat: 28.5669455, lng: -81.355347},
+{ location: 'Irrgain Park', lat: 28.5616678, lng: -81.5795179},
+{ location: 'Ivanhoe Park', lat: 28.5641679, lng: -81.3867365},
+{ location: 'Jay Bergman Field', lat: 28.6099, lng: -81.1955},
+{ location: 'Kelly Park', lat: 28.7577724, lng: -81.5009049},
+{ location: 'La Costa Wetlands', lat: 28.5261134, lng: -81.3059017},
+{ location: 'Lake Adair Park', lat: 28.5613902, lng: -81.3920144},
+{ location: 'Lake Claire Recreational Area', lat: 28.6071, lng: -81.2033},
+{ location: 'Lake Como Park', lat: 28.5363909, lng: -81.3539583},
+{ location: 'Lake Eola Park', lat: 28.510003, lng: -81.3759033},
+{ location: 'Lake Eola Park', lat: 28.5438907, lng: -81.3697918},
+{ location: 'Lake Underhill Park', lat: 28.5352798, lng: -81.3367356},
+{ location: 'Lakemont Park', lat: 28.6099995, lng: -81.3297905},
+{ location: 'Lakeview Park', lat: 28.5777783, lng: -81.5850736},
+{ location: 'Lizzie Rogers Park', lat: 28.5350022, lng: -81.4089594},
+{ location: 'Lockhaven Park', lat: 28.5719454, lng: -81.3670138},
+{ location: 'Lorna Doone Park', lat: 28.5433353, lng: -81.4034036},
+{ location: 'Magnolia Park', lat: 28.6344431, lng: -81.5509063},
+{ location: 'Malibu Groves Rattlesnake Park', lat: 28.541391, lng: -81.4406266},
+{ location: 'Mathews Park', lat: 28.5794451, lng: -81.3786807},
+{ location: 'Mayor Carl Langford Park', lat: 28.5425018, lng: -81.3581249},
+{ location: 'Mead Garden', lat: 28.5838893, lng: -81.3584024},
+{ location: 'Mitchell L Nutter Park', lat: 28.5616678, lng: -81.3342353},
+{ location: 'Moss Park', lat: 28.3786185, lng: -81.1900664},
+{ location: 'Overbrook Park', lat: 28.5586125, lng: -81.3936811},
+{ location: 'Pflug Hall', lat: 28.5943, lng: -81.3464},
+{ location: 'Prince Hall Park', lat: 28.5227805, lng: -81.4345155},
+{ location: 'Princeton Park', lat: 28.5733343, lng: -81.3920143},
+{ location: 'Ravenall Park', lat: 28.5197251, lng: -81.4409045},
+{ location: 'Rock Springs Run State Reserve', lat: 28.7155517, lng: -81.4497927},
+{ location: 'Seaworld Orlando', lat: 28.411042, lng: -81.461294},
+{ location: 'Senator Beth Johnson Park', lat: 28.5608347, lng: -81.3781252},
+{ location: 'Sunshine Park', lat: 28.5477795, lng: -81.3864589},
+{ location: 'The Nature Park', lat: 28.5413907, lng: -81.3164574},
+{ location: 'Turkey Lake Park', lat: 28.5136143, lng: -81.4822943},
+{ location: 'Virginia S Nelson Rose Garden', lat: 28.5926, lng: -81.3492},
+{ location: 'Wadeview Park', lat: 28.5177805, lng: -81.3684031},
+{ location: 'Walt Disney World', lat: 28.4116733, lng: -81.5825738},
+{ location: 'Washington Shores Park', lat: 28.5252804, lng: -81.4192374},
+{ location: 'Wekiwa Springs State Park', lat: 28.7702719, lng: -81.5009048},
+{ location: 'West Underhill Park', lat: 28.5377798, lng: -81.3422913},
+{ location: 'William Beardall Tosohatchee State Preserve', lat: 28.4997233, lng: -80.9164472},
+{ location: 'Willie Mays Park', lat: 28.5172251, lng: -81.4364601}
+];
+</script>
+
