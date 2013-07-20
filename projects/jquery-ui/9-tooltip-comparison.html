@@ -1,0 +1,379 @@
+---
+layout: page
+title: A Comparison of Different jQuery Tooltip Plugin Libraries
+group: jquery-ui
+tags : [javascript, jquery, jquery-ui, twitter-bootstrap, qtip, powertip, tooltip, popover]
+---
+
+{% include JB/setup %}
+
+<script>
+  // Resolve name collision between jQuery UI and Twitter Bootstrap
+  $.widget.bridge('uitooltip', $.ui.tooltip);
+</script>
+
+<link href="/assets/twb-tooltip/css/bootstrap.min.css" rel="stylesheet">
+<script src="/assets/twb-tooltip/js/bootstrap.js"></script>
+
+<link href="http://cdnjs.cloudflare.com/ajax/libs/qtip2/2.1.1/jquery.qtip.min.css" rel="stylesheet">
+<script src="http://cdnjs.cloudflare.com/ajax/libs/qtip2/2.1.1/jquery.qtip.min.js"></script>
+
+<link href="http://cdnjs.cloudflare.com/ajax/libs/jquery-powertip/1.1.0/jquery.powertip.css" rel="stylesheet">
+<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery-powertip/1.2.0/jquery.powertip.min.js"></script>
+
+<style>
+
+ .docs-example:after {
+     background-color: #F5F5F5;
+     border: 1px solid #DDDDDD;
+     border-radius: 4px 0 4px 0;
+     color: #9DA0A4;
+     content: "Example";
+     font-size: 12px;
+     font-weight: bold;
+     left: -1px;
+     padding: 3px 7px;
+     position: absolute;
+     top: -1px;
+ }
+
+ .docs-example {
+     background-color: #FFFFFF;
+     border: 1px solid #DDDDDD;
+     border-radius: 4px 4px 4px 4px;
+     margin: 15px 0;
+     padding: 49px 19px 24px;
+     position: relative;
+ }
+</style>
+
+<div class="discussion">
+There are a lot of tooltip plugin libraries out there.  Find one that does what you need can be a challenge.  I evaluated four libraries:
+jQuery UI, Twitter Bootstrap, qTip, and Powertip based on several different features.  Below are some of the experiements I did to try out
+the capabilities of each library.  Check out my related blog post for a more in depth discussion.  I copied all the examples from the post to
+here so it was easier to view the source if you're interested.
+</div><br/>
+<br/>
+
+<h5>Basic Title Attribute</h5>
+
+Start with the basic - initialize the tooltip to use content defined on the title attribute.<br/>
+<br/>
+
+<style>
+#ex-basic-title a {
+   margin: 10px;
+   padding: 10px;
+   background-color: #efefef;
+   border: 1px solid #afafaf;
+   color: #000;
+   text-decoration: none;
+}
+</style>
+
+<div id="ex-basic-title" class="docs-example">
+   <a class="qtip2" href="#" title="This default qTip2 using the title attribute">Default qTip2</a>
+   <a class="jqui" href="#" title="This default jQueryUI using the title attribute">Default jQueryUI</a>
+   <a class="power" href="#" title="This default PowerTip using the title attribute">Default PowerTip</a>
+   <a class="twboot" href="#" title="This default Twitter Bootstrap using the title attribute">Default Twitter Bootstrap</a>
+</div>
+
+<script>
+   $('#ex-basic-title .qtip2').qtip();
+   $('#ex-basic-title .jqui').uitooltip();
+   $('#ex-basic-title .power').powerTip();
+   $('#ex-basic-title .twboot').tooltip();
+</script>
+
+
+<h5>Programmatic Content</h5>
+Statically setting content in the elements attribute is nice but what if you want to set it from code?<br/>
+<br/>
+
+<style>
+#ex-code-content a {
+   margin: 10px;
+   padding: 10px;
+   background-color: #efefef;
+   border: 1px solid #afafaf;
+   color: #000;
+   text-decoration: none;
+}
+</style>
+
+<div id="ex-code-content" class="docs-example">
+   <a class="qtip2" href="#">Code qTip2</a>
+   <a class="jqui" href="#">Code jQueryUI</a>
+   <a class="power" href="#">Code PowerTip</a>
+   <a class="twboot" href="#">Code Twitter Bootstrap</a>
+</div>
+
+<script>
+   $('#ex-code-content .qtip2').qtip({ content: 'This tooltip is set from code using the qTip2 content option' });
+   $('#ex-code-content .jqui').attr('title', 'This tooltip is set from code using $.attr("title")').uitooltip();
+   $('#ex-code-content .power').powerTip().data('powertip', 'This tooltip is set from code using $.data("powertip")');
+   $('#ex-code-content .twboot').tooltip({ title: 'This tooltip is set from code using the Twitter Bootstrap title option' });
+</script>
+
+
+
+<h5>Dynamic Content</h5>
+Which brings us to dynamically changing the content based on loading it from an AJAX call.  The biggest challenge is showing
+the tooltip with some kind of loading indicator and then properly repositioning it after the content loads.<br/>
+<br/>
+
+<style>
+#ex-ajax-content a {
+   margin: 10px;
+   padding: 10px;
+   background-color: #efefef;
+   border: 1px solid #afafaf;
+   color: #000;
+   text-decoration: none;
+}
+</style>
+
+<div id="ex-ajax-content" class="docs-example">
+   <a class="qtip2" href="#" title="...">AJAX qTip2</a>
+   <a class="jqui" href="#" title="...">AJAX jQueryUI</a>
+   <a class="power" href="#">AJAX PowerTip</a>
+   <a class="twboot" href="#" title="...">AJAX Twitter Bootstrap</a>
+</div>
+
+<script>
+
+   var spinnerImg = '<center><img src="http://i1345.photobucket.com/albums/p665/benknowscode/waitbutton-loading_zps1e22f026.gif" border="0"/></center>';
+
+   $('#ex-ajax-content .qtip2').qtip({
+      position: {
+         my: 'bottom left',
+         at: 'top center'
+      },
+      events: {
+         show: function(event, api) {
+            api.set( 'content.text', spinnerImg);
+
+            setTimeout(function() {
+               $.get('tips-ajax.html').done(function( html ) {
+                     api.set( 'content.text', html );
+                  });
+            }, 1000);
+         }
+      }
+   });
+
+
+   $('#ex-ajax-content .jqui').uitooltip({
+      position: { my: 'center bottom-15', at: 'center top' },
+      content: spinnerImg,
+      open: function ( event, ui ) {
+         $el = $(this),
+             pos = $el.uitooltip( 'option', 'position' );
+
+         pos.of = $el;
+
+         setTimeout(function() {
+            $.get('tips-ajax.html').done( function( html ) {
+
+               ui.tooltip.html( html );
+               ui.tooltip.position( pos );
+            });
+         }, 1000);
+      }
+   });
+
+
+   $('#ex-ajax-content .power')
+      .powerTip()
+      .on({
+         powerTipPreRender: function() {
+
+            $(this).data('powertip', spinnerImg);
+         },
+         powerTipOpen: function() {
+            var $el = $(this);
+
+            setTimeout(function() {
+               $.get('tips-ajax.html').done(function( html ) {
+                     $('#powerTip').html( html );
+                     $el.powerTip( 'reposition' );
+                  });
+            }, 1000);
+         }
+      });
+
+   $('#ex-ajax-content .twboot')
+      .tooltip({ html: true, trigger: 'manual' })
+      .on({
+         mouseenter: function() {
+            var $el = $(this);
+
+            $el.attr( 'data-original-title', spinnerImg ).tooltip( 'show' );
+
+            setTimeout(function() {
+               $.get('tips-ajax.html').done(function( html ) {
+
+                     if ( $el.data('tooltip').tip().is(':visible') )
+                       $el.attr( 'data-original-title', html ).tooltip( 'show' );
+
+                  });
+            }, 1000);
+         },
+         mouseleave: function() {
+            $(this).tooltip( 'hide' );
+         }
+      });
+</script>
+
+
+<h5>Custom Styling</h5>
+All of these libraries can have their CSS hacked.  Here's how to make jQuery UI's look more like Twitter Bootstrap.<br/>
+<br/>
+
+<style>
+
+#ex-jqui-twb-style a {
+   margin: 10px;
+   padding: 10px;
+   background-color: #efefef;
+   border: 1px solid #afafaf;
+   color: #000;
+   text-decoration: none;
+}
+
+.twb.ui-tooltip {
+  -webkit-border-radius: 0;
+  -moz-border-radius: 0;
+  background-color: transparent;
+  border-radius: 0;
+  font-family: inherit;
+  border: 0;
+  box-shadow: none;
+  position: absolute;
+  z-index: 1030;
+  display: block;
+  visibility: visible;
+  font-size: 11px;
+  line-height: 1.4;
+  opacity: 0.8;
+  filter: alpha(opacity=80);
+  margin-top: -3px;
+  padding: 5px 0;
+}
+
+.twb.ui-tooltip:after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  bottom: 0;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px 5px 0;
+  border-top-color: #000000;
+}
+
+.twb .ui-tooltip-content {
+  max-width: 200px;
+  padding: 8px;
+  color: #ffffff;
+  text-align: center;
+  text-decoration: none;
+  background-color: #000000;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+}
+
+</style>
+
+
+<div id="ex-jqui-twb-style" class="docs-example">
+   <a class="jqui" href="#" title="I look like Twitter Bootstrap!">jQueryUI</a>
+   <a class="twboot" href="#" title="I look like I always do">Twitter Bootstrap</a>
+</div>
+
+<script>
+$(function() {
+   $('#ex-jqui-twb-style .jqui').uitooltip({
+         tooltipClass: 'twb',
+         position: { my: 'center bottom', at: 'center top' },
+      });
+
+   $('#ex-jqui-twb-style .twboot').tooltip();
+});
+
+</script>
+
+
+<h5>Trigger Controls</h5>
+How easily can you take control of the show/hide timing and triggering.  Some libraries can do it better than others.  jQuery UI required
+the most hacking.<br/>
+<br/>
+
+<style>
+#ex-tigger-control > a {
+   margin: 10px;
+   padding: 10px;
+   background-color: #efefef;
+   border: 1px solid #afafaf;
+   color: #000;
+   text-decoration: none;
+}
+</style>
+
+<div id="ex-tigger-control" class="docs-example">
+   <a class="qtip2" href="#" title="Click the link <a href='#' class='alerter'>to alert you</a>">Code qTip2</a>
+   <a class="jqui" href="#" title="">Code jQueryUI</a>
+   <a class="power" href="#" title="Click the link <a href='#' class='alerter'>to alert you</a>">Code PowerTip</a>
+   <a class="twboot" href="#" title="Click the link <a href='#' class='alerter'>to alert you</a>">Code Twitter Bootstrap</a>
+</div>
+
+<script>
+   $('#ex-tigger-control .qtip2').qtip({
+         hide: {
+           fixed: true,
+           delay: 500
+      }
+   });
+
+   $('#ex-tigger-control .jqui').uitooltip({
+      content: 'Click the link <a href="#" class="alerter">to alert you</a>',
+      open: function( e, ui ) {
+            var $el = $(this);
+
+            setTimeout(function() { $el.off('mouseleave') }, 0);
+            $(document.body).one('click', function() {
+                  setTimeout(function() { $el.uitooltip('close'); }, 100);
+               });
+         }
+   });
+
+   $('#ex-tigger-control .power').powerTip({
+      mouseOnToPopup: true,
+      closeDelay: 500
+   });
+
+   $('#ex-tigger-control .twboot')
+      .tooltip({ html: true, trigger: 'manual' })
+      .on({
+         mouseenter: function() {
+            var $el = $(this);
+
+            $el.tooltip( 'show' );
+
+            $(document.body).one('click', function() {
+                  setTimeout(function() { $el.tooltip( 'hide' ); }, 100);
+               });
+         }
+      });
+
+   $(document.body).on('click', '.alerter', function( e ) {
+         alert('You clicked the link!');
+
+         e.preventDefault();
+      });
+</script>
+
