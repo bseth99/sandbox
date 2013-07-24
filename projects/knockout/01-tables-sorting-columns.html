@@ -1,0 +1,191 @@
+---
+layout: page
+title: Creating Sortable Table Data with Knockout
+group: knockout
+tags : [knockout,table,sort]
+---
+
+{% include JB/setup %}
+
+<!--
+Copyright (c) 2013 Ben Olson
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+-->
+
+<link rel="stylesheet" type="text/css" href="../backbone/table.css">
+
+<style>
+
+.wrapper { width: 800px; margin: auto; }
+
+#movies th { white-space: nowrap; cursor: pointer; }
+#movies th span { display: inline-block; margin-left: 5px; }
+
+#movies [data-column="rank"] { width: 50px; }
+#movies [data-column="title"] { width: 35%; }
+#movies [data-column="studio"] { width: 80px; }
+#movies [data-column="gross"] { width: 100px; }
+#movies [data-column="year"] { width: 80px; }
+
+</style>
+
+<table id="movies" data-bind="template: { name: 'movies-template', afterRender: rendered }">
+</table>
+
+<script type="text/html" id="movies-template">
+
+  <thead>
+    <tr>
+      <th data-column="rank"><div>Rank</div></th>
+      <th data-column="title"><div>Title</div></th>
+      <th data-column="studio"><div>Studio</div></th>
+      <th data-column="gross"><div>Gross</div></th>
+      <th data-column="year"><div>Year</div></th>
+     </tr>
+  </thead>
+
+  <tbody data-bind="foreach: movies">
+    <tr>
+      <td><div data-bind="html: rank"></div></td>
+      <td><div data-bind="html: title"></div></td>
+      <td><div data-bind="html: studio"></div></td>
+      <td><div data-bind="html: gross_fmt"></div></td>
+      <td><div data-bind="html: year"></div></td>
+    </tr>
+  </tbody>
+
+
+</script>
+
+<script src="globalize.js"></script>
+
+<script src="http://ajax.aspnetcdn.com/ajax/knockout/knockout-2.2.1.js"></script>
+<script src="knockout.mapping.js"></script>
+
+<script type="text/javascript">
+
+   function MovieModel( movie ) {
+
+       var self = this;
+       var model = ko.mapping.fromJS( movie, {}, self );
+
+       model.gross_fmt = ko.computed(function () {
+           return Globalize.format(self.gross(), 'C0');
+       });
+
+       return model;
+   }
+
+   MovieModel.mapping = {
+      create: function (options) {
+         return new MovieModel(options.data);
+      }
+   }
+
+   function MovieViewModel( movies ) {
+      var self = this;
+
+      this.movies = ko.mapping.fromJS( movies, MovieModel.mapping );
+
+      this.sortColumn = 'rank';
+      this.sortDir = 1;
+
+      this.sortMovies = function( e ) {
+
+         var $el = $(e.currentTarget),
+             ns = $el.attr('data-column'),
+             cs = this.sortColumn;
+
+         if (ns == cs) {
+            this.sortDir *= -1;
+         } else {
+            this.sortDir = 1;
+         }
+
+         this.sortColumn = ns;
+
+         $el.closest('thead').find('span').attr('class', 'ui-icon ui-icon-blank');
+
+         if (this.sortDir == 1) {
+            $el.find('span').removeClass('ui-icon-blank').addClass('ui-icon-triangle-1-n');
+         } else {
+            $el.find('span').removeClass('ui-icon-blank').addClass('ui-icon-triangle-1-s');
+         }
+
+         this.movies.sort( function(a, b) {
+            var a = a[self.sortColumn](),
+                b = b[self.sortColumn]();
+
+            if (a == b) return 0;
+
+            if (self.sortDir == 1) {
+               return a > b ? 1 : -1;
+            } else {
+               return a < b ? 1 : -1;
+            }
+         });
+      },
+
+      this.rendered = function( elements ) {
+         var $el = $(elements);
+
+         $el.filter('thead')
+            .on( 'click', 'th', $.proxy(self, 'sortMovies') )
+            .find( 'th div' )
+             .append( $('<span>') )
+             .closest( 'thead' )
+             .find( 'span' )
+               .addClass( 'ui-icon ui-icon-blank' )
+               .end()
+             .find( '[data-column="title"]' )
+               .click();
+      }
+   }
+
+
+   ko.applyBindings(new MovieViewModel([
+         {"title":"Avatar", "studio":"Fox", "gross":760507625, "year":2009, "rank":1},
+         {"title":"Titanic", "studio":"Par.", "gross":658672302, "year":1997, "rank":2},
+         {"title":"Marvel's The Avengers", "studio":"BV", "gross":623357910, "year":2012, "rank":3},
+         {"title":"The Dark Knight", "studio":"WB", "gross":534858444, "year":2008, "rank":4},
+         {"title":"Star Wars: Episode I - The Phantom Menace", "studio":"Fox", "gross":474544677, "year":1999, "rank":5},
+         {"title":"Star Wars", "studio":"Fox", "gross":460998007, "year":1977, "rank":6},
+         {"title":"The Dark Knight Rises", "studio":"WB", "gross":448139099, "year":2012, "rank":7},
+         {"title":"Shrek 2", "studio":"DW", "gross":441226247, "year":2004, "rank":8},
+         {"title":"E.T.: The Extra-Terrestrial", "studio":"Uni.", "gross":435110554, "year":1982, "rank":9},
+         {"title":"Pirates of the Caribbean: Dead Man's Chest", "studio":"BV", "gross":423315812, "year":2006, "rank":10},
+         {"title":"The Lion King", "studio":"BV", "gross":422783777, "year":1994, "rank":11},
+         {"title":"Toy Story 3", "studio":"BV", "gross":415004880, "year":2010, "rank":12},
+         {"title":"The Hunger Games", "studio":"LGF", "gross":408010692, "year":2012, "rank":13},
+         {"title":"Spider-Man", "studio":"Sony", "gross":403706375, "year":2002, "rank":14},
+         {"title":"Transformers: Revenge of the Fallen", "studio":"P/DW", "gross":402111870, "year":2009, "rank":15},
+         {"title":"Harry Potter and the Deathly Hallows Part 2", "studio":"WB", "gross":381011219, "year":2011, "rank":16},
+         {"title":"Finding Nemo", "studio":"BV", "gross":380812782, "year":2003, "rank":17},
+         {"title":"Star Wars: Episode III - Revenge of the Sith", "studio":"Fox", "gross":380270577, "year":2005, "rank":18},
+         {"title":"The Lord of the Rings: The Return of the King", "studio":"NL", "gross":377845905, "year":2003, "rank":19},
+         {"title":"Spider-Man 2", "studio":"Sony", "gross":373585825, "year":2004, "rank":20}
+      ]));
+
+
+</script>
+

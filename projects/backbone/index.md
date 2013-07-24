@@ -8,7 +8,7 @@ group: projects
 The project has various demos using Backbone to build different proof-of-concepts
 that can serve as a foundation for more elaborate applications.
 
-You can read more about this these tests [on my blog]({{ site.blog_url}}/backbone). 
+You can read more about this these tests [on my blog]({{ site.blog_url}}/search/label/backbone). 
 
 #### Tables, Sorting, and Analytical Reporting 
  

@@ -22,7 +22,7 @@ hosted GitHub Jekyll so I created a separate repo for the source and then push t
 content to my pages repo.
 
 * To see how I set this up in the source, [look at it in GitHub](https://github.com/bseth99/sandbox/).
-* To learn more about how I setup this site, [look at this blog post]({{ site.blog_url }}/2012/08/28/using-jekyll-to-create-a-site-on-github).
+* To learn more about how I setup this site, [look at this blog post]({{ site.blog_url }}/2012/08/using-jekyll-to-create-site-on-github_2028.html).
 
 #### Current Projects  
   
