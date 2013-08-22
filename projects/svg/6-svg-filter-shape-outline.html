@@ -1,0 +1,183 @@
+---
+layout: page
+title: Using SVG Filters to Create Outlines of Shapes
+group: svg
+tags : [svg, filter, outline]
+---
+{% include JB/setup %}
+
+<!--
+Copyright (c) 2013 Ben Olson
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+-->
+
+
+<script src="../canvas/colorpicker/jquery.colorpicker.js"></script>
+<link href="../canvas/colorpicker/jquery.colorpicker.css" rel="stylesheet" type="text/css"/>
+<script src="../canvas/colorpicker/i18n/jquery.ui.colorpicker-en.js"></script>
+
+<style>
+
+.colorbox {
+   border: 1px solid black;
+   display: inline-block;
+   height: 50px;
+   width: 50px;
+   cursor: pointer;
+}
+
+#colorpicker {
+   position: absolute;
+   z-index: 1000;
+   padding: 10px;
+   background-color: #fff;
+   border: 1px solid #aaa;
+}
+
+
+</style>
+
+<div class="discussion">
+Demo of a technique to add an outline to any SVG shape using filters.  Use the color picker to change the
+colors of the outline and shape.  The outline is a combination of several filter operations including
+feFlood, feMorphology, feColorMatrix, feComposite, feGaussianBlur, and feBlend.
+</div>
+<br/>
+
+<table>
+ <tr>
+  <td>
+   <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="300" height="300" xlink="http://www.w3.org/1999/xlink" style="position: relative; overflow: hidden; left: 0px; top: 0px;">
+   `
+      <defs>
+
+         <filter id="outline_selected">
+            <feFlood id="outline-color" flood-color="#ff0" result="base" />
+            <feMorphology result="bigger" in="SourceGraphic" operator="dilate" radius="2"/>
+            <feColorMatrix result="mask" in="bigger" type="matrix"
+               values="0 0 0 0 0
+                       0 0 0 0 0
+                       0 0 0 0 0
+                       0 0 0 1 0" />
+            <feComposite result="drop" in="base" in2="mask" operator="in" />
+            <feGaussianBlur result="blur" in="drop" stdDeviation="5" />
+            <feBlend in="SourceGraphic" in2="blur" mode="normal" />
+         </filter>
+
+      </defs>
+
+      <g id="shape1" fill="#00f" filter="url(#outline_selected)" >
+        <path d="M150 0 L75 200 L225 200 Z" transform="translate(10, 30)"/>
+        <ellipse rx="100" ry="40" cx="125" cy="150" />
+      </g>
+   </svg>
+  </td>
+
+  <td style="vertical-align: top">
+
+   <h3>Colors</h3>
+   <div id="colorpicker"></div>
+
+   <table>
+    <tr>
+     <td><strong>Outline</strong></td>
+     <td><strong>Shape</strong></div></td>
+    </tr>
+    <tr>
+     <td width="70px"><div class="colorbox" style="background-color: #ff0" data-target="filter"></div></td>
+     <td width="70px"><div class="colorbox" style="background-color: #00f" data-target="shape"></td>
+    </tr>
+   </table>
+
+   <br/>
+
+   <button id="outline_toggle1">Toggle Outline</button>
+  </td>
+ </tr>
+</table>
+
+<script>
+$(function() {
+   $( '#outline_toggle1' )
+      .button()
+      .click(function() {
+         var $shape = $( '#shape1' );
+
+         if ( $shape.attr( 'filter' ) )
+            $shape.removeAttr( 'filter' );
+         else
+            $shape.attr( 'filter', 'url(#outline_selected)' );
+      });
+
+   $('.colorbox').click(function() {
+
+      var $colorBox = $( this ),
+          $colorSelect = $( '#colorpicker' );
+
+      $colorSelect
+         .show()
+         .data( 'colorTarget', $colorBox )
+         .colorpicker('setColor', $colorBox.css( 'background-color' ) )
+         .position({
+              my: 'left+10, top',
+              at: 'right, top',
+              of: $colorBox
+           });
+
+      $(document).one( 'click', function() {
+
+         $colorSelect
+            .hide()
+            .data( 'colorTarget', null );
+      });
+
+      return false;
+
+   });
+
+   function updateColor( e, ui ) {
+
+      $colorBox = $( this ).data( 'colorTarget' );
+
+      $colorBox.css( 'background-color', ui.formatted );
+
+      if ( $colorBox.attr( 'data-target' ) == 'filter' )
+         $( '#outline-color' ).attr( 'flood-color', ui.formatted );
+      else
+         $( '#shape1' ).attr( 'fill', ui.formatted );
+
+   }
+
+   $( '#colorpicker' )
+        .hide()
+        .colorpicker({
+             colorFormat: 'RGB',
+             select: updateColor
+           })
+        .click( function (e) { e.stopPropagation(); } );
+
+});
+</script>
+
+</body>
+</html>
