@@ -1,6 +1,6 @@
 #!/bin/sh
 
-jekyll --no-auto
+jekyll build
 
 cp -R _site/* ../bseth99.github.com
 
