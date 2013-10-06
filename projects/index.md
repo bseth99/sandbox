@@ -30,7 +30,7 @@ browser-based technologies like jQuery, CSS, etc.
   
 <ul class="pages">
    <li><a href="https://github.com/bseth99/backbone-fiber">Backbone.Fiber Extends Backbone to Enable Building More Modular Application</a></li>
-   <li><a href="https://github.com/bseth99/backbone-fiber-demo">A Basic Demo Illustrating the Use of Backbone.Fiber</a></li>
+   <li><a href="http://bseth99.github.io/backbone-fiber-demo">A Basic Demo Illustrating the Use of Backbone.Fiber</a></li>
    <li><a href="https://github.com/bseth99/generator-backbone-fiber">A Yeoman Generator for Backbone.Fiber Projects</a></li>
 </ul>
   
