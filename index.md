@@ -24,10 +24,37 @@ content to my pages repo.
 * To see how I set this up in the source, [look at it in GitHub](https://github.com/bseth99/sandbox/).
 * To learn more about how I setup this site, [look at this blog post]({{ site.blog_url }}/2012/08/using-jekyll-to-create-site-on-github_2028.html).
 
-#### Current Projects  
+#### Sandbox Projects  
   
 <ul class="pages">
    {% assign pages_list = site.pages %}
    {% assign group = 'projects' %}
    {% include JB/pages_list %}
 </ul>
+
+#### jQueryUI Projects 
+
+<ul class="pages">
+   <li><a href="http://bseth99.github.io/jquery-ui-extensions/index.html">Extensions Collection Contains Enhancements to Existing jQuery UI Widgets</a></li>
+   <li><a href="http://bseth99.github.io/jquery-ui-scrollable/index.html">MultiSearch is a Flexible Item Lists with Type Ahead Search</a></li>
+   <li><a href="http://bseth99.github.io/jquery-ui-multisearch/index.html">Scrollable Enables Monitoring, Querying, or Changing a Target Element's Scroll Position</a></li>
+</ul>
+
+#### Backbone Projects 
+  
+<ul class="pages">
+   <li><a href="https://github.com/bseth99/backbone-fiber">Backbone.Fiber Extends Backbone to Enable Building More Modular Application</a></li>
+   <li><a href="https://github.com/bseth99/backbone-fiber-demo">A Basic Demo Illustrating the Use of Backbone.Fiber</a></li>
+   <li><a href="https://github.com/bseth99/generator-backbone-fiber">A Yeoman Generator for Backbone.Fiber Projects</a></li>
+</ul>
+  
+  
+#### Miscellaneous Projects 
+
+<ul class="pages">
+   <li><a href="http://bseth99.github.io/css-spinner/index.html">Sass/Compass Partial for Generating Several Pure CSS Spinners</a></li>
+   <li><a href="https://github.com/bseth99/basejs">BaseJS is a Helper Library for Prototyping Javascript Objects</a></li>
+   <li><a href="http://bseth99.github.io/pathjs/index.html">PathJS is a Javascript Library to Create Interpolated Paths</a></li>
+   <li><a href="https://github.com/bseth99/simple-oauth-js">Simple OAuth is Helper Library for Signing OAuth Requests in Client-side Javascript</a></li>
+</ul>
+  
