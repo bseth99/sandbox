@@ -36,8 +36,8 @@ content to my pages repo.
 
 <ul class="pages">
    <li><a href="http://bseth99.github.io/jquery-ui-extensions/index.html">Extensions Collection Contains Enhancements to Existing jQuery UI Widgets</a></li>
-   <li><a href="http://bseth99.github.io/jquery-ui-scrollable/index.html">MultiSearch is a Flexible Item Lists with Type Ahead Search</a></li>
-   <li><a href="http://bseth99.github.io/jquery-ui-multisearch/index.html">Scrollable Enables Monitoring, Querying, or Changing a Target Element's Scroll Position</a></li>
+   <li><a href="http://bseth99.github.io/jquery-ui-multisearch/index.html">MultiSearch is a Flexible Item Lists with Type Ahead Search</a></li>
+   <li><a href="http://bseth99.github.io/jquery-ui-scrollable/index.html">Scrollable Enables Monitoring, Querying, or Changing a Target Element's Scroll Position</a></li>
 </ul>
 
 #### Backbone Projects 
