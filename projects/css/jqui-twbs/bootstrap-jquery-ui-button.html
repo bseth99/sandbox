@@ -1,0 +1,137 @@
+<!Doctype html>
+<html lang="en">
+<head>
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+   <title>jQuery UI WaitButton Twitter Bootstrap Test</title>
+
+   <link rel="stylesheet" type="text/css" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
+   <link rel="stylesheet" type="text/css" href="waitbutton-bootstrap.css">
+
+   <script src="http://code.jquery.com/jquery.js"></script>
+   <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+   <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+   <script src="http://bseth99.github.io/jquery-ui-extensions/ui/jquery.ui.waitbutton.js"></script>
+
+</head>
+
+<script>
+$(function() {
+   $('.btn')
+      .waitbutton({ waitLabel: 'Saving ...' })
+      .on( 'buttonwaiting', function ( e, ui ) {
+
+            setTimeout(function () { ui.done(); }, 5000);
+         });
+
+});
+</script>
+
+<style>
+   body {
+      font-family: sans-serif,arial;
+   }
+
+   #main {
+      width: 900px;
+      margin: auto;
+      position: relative;
+   }
+</style>
+
+
+<div id="main">
+   <h3>jQuery UI WaitButton Twitter Bootstrap Test</h3>
+   <div style="position: absolute; top: 5px; right: 0; height: 30px">
+     <span><a href="../index.html">&lt; Back</a></span>&nbsp;&nbsp;
+     <span><a href="http://www.benknowscode.com">View Blog</a></span>&nbsp;&nbsp;
+     <span><a href="https://github.com/bseth99/sandbox/blob/master/projects/css/jqui-twbs/bootstrap-jquery-ui-button.html">View Source</a></span>&nbsp;&nbsp;
+     <div class="g-plusone" data-size="small"></div>
+   </div>
+
+   <!-- Place this tag after the last +1 button tag. -->
+   <script type="text/javascript">
+     (function() {
+       var po = document.createElement('script'); po.type = 'text/javascript'; po.async = false;
+       po.src = 'https://apis.google.com/js/plusone.js';
+       var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+     })();
+   </script>
+
+   <div class="panel panel-default">
+      <div class="panel-body">
+         This page is isolated from the rest of the sandbox since it uses a newer Bootstrap and does not use the entire
+         jQuery UI CSS Framework.  I wrote a <a href="http://bseth99.github.io/jquery-ui-extensions/index.html">WaitButton widget</a>
+         which, by default, uses the jQuery UI styling and themes.  However, now I use Bootstrap
+         as my base framework and cherry-pick what I need from jQuery UI.  For the WaitButton, it does everything I need
+         but does not work with the button styles in Bootstrap.  I used some of the work from
+         <a href="https://github.com/addyosmani/jquery-ui-bootstrap">addyosmani/jquery-ui-bootstrap</a> but started with
+         Bootstrap as the basis and simply integrated the necessary classes from jQuery UI Button to properly position
+         the icon and button text.  Since there are different color buttons, I created a spinner with a background to match
+         each one.  You can download the <a href="waitbutton-bootstrap.css">CSS</a>
+         by itself or zipped with the <a href="waitbutton-bootstrap.zip">animated GIFs</a>
+         for the spinners.
+      </div>
+   </div>
+
+   <h5>Options</h5>
+
+   <!-- Standard button -->
+   <button type="button" class="btn btn-default">Default</button>
+
+   <!-- Provides extra visual weight and identifies the primary action in a set of buttons -->
+   <button type="button" class="btn btn-primary">Primary</button>
+
+   <!-- Indicates a successful or positive action -->
+   <button type="button" class="btn btn-success">Success</button>
+
+   <!-- Contextual button for informational alert messages -->
+   <button type="button" class="btn btn-info">Info</button>
+
+   <!-- Indicates caution should be taken with this action -->
+   <button type="button" class="btn btn-warning">Warning</button>
+
+   <!-- Indicates a dangerous or potentially negative action -->
+   <button type="button" class="btn btn-danger">Danger</button>
+
+   <!-- Deemphasize a button by making it look like a link while maintaining button behavior -->
+   <button type="button" class="btn btn-link">Link</button>
+
+
+   <h5>Sizes</h5>
+
+   <p>
+     <button type="button" class="btn btn-primary btn-lg">Large button</button>
+     <button type="button" class="btn btn-default btn-lg">Large button</button>
+   </p>
+   <p>
+     <button type="button" class="btn btn-primary">Default button</button>
+     <button type="button" class="btn btn-default">Default button</button>
+   </p>
+   <p>
+     <button type="button" class="btn btn-primary btn-sm">Small button</button>
+     <button type="button" class="btn btn-default btn-sm">Small button</button>
+   </p>
+   <p>
+     <button type="button" class="btn btn-primary btn-xs">Extra small button</button>
+     <button type="button" class="btn btn-default btn-xs">Extra small button</button>
+   </p>
+
+
+</div>
+
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-34780028-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+</body>
+</html>

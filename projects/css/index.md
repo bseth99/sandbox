@@ -15,4 +15,5 @@ You can read more about this these tests [on my blog]({{ site.blog_url}}).
    {% assign pages_list = site.pages %}
    {% assign group = 'css' %}
    {% include JB/pages_list %}
+   <li><a href="jqui-twbs/bootstrap-jquery-ui-button.html"></a>jQuery UI WaitButton Twitter Bootstrap Test</li>
 </ul>
