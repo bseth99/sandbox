@@ -1,0 +1,123 @@
+/*!
+ * Copyright (c) 2013 Ben Olson (https://github.com/bseth99/jquery-ui-extensions)
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
+.ui-icon {
+   width: 16px;
+   height: 16px;
+}
+
+.ui-button-text-icon-primary
+.ui-button-icon-primary {
+    float:left;
+}
+
+.btn.ui-button-text-icon-primary .ui-button-icon-primary.ui-icon {
+    margin-top: 3px;
+}
+
+.btn-xs.ui-button-text-icon-primary .ui-button-icon-primary.ui-icon,
+.btn-sm.ui-button-text-icon-primary .ui-button-icon-primary.ui-icon {
+    margin-top: 1px;
+}
+
+.ui-button .ui-button-text {
+   display: block;
+}
+
+.ui-button-text-icon-primary .ui-button-text,
+.ui-button-text-icons .ui-button-text {
+   padding-left: 1.8em;
+   padding-right: 1em;
+}
+
+.ui-button-text-icon-secondary .ui-button-text,
+.ui-button-text-icons .ui-button-text {
+   padding-left: 1em;
+   padding-right: 1.8em;
+}
+
+.ui-button-text-icons .ui-button-text {
+   padding-left: 1.8em;
+   padding-right: 1.8em;
+}
+
+/*button icon element(s) */
+.ui-button-icon-only .ui-icon,
+.ui-button-text-icon-primary .ui-icon,
+.ui-button-text-icon-secondary .ui-icon,
+.ui-button-text-icons .ui-icon,
+.ui-button-icons-only .ui-icon {
+    margin-bottom: 0;
+    margin-top: 0;
+    top: 50%;
+}
+
+.ui-button-text-icon-primary .ui-button-icon-primary,
+.ui-button-text-icons .ui-button-icon-primary,
+.ui-button-icons-only .ui-button-icon-primary {
+   left: .5em;
+}
+
+.ui-button-text-icon-secondary .ui-button-icon-secondary,
+.ui-button-text-icons .ui-button-icon-secondary,
+.ui-button-icons-only .ui-button-icon-secondary {
+   right: .5em;
+}
+
+/* WaitButton spinner icon; Background color to match TWBS */
+.ui-wait-button .ui-icon-waiting {
+   background-position: 0 center;
+}
+
+.ui-button-text-icons .ui-button-icon-secondary,
+.ui-button-icons-only .ui-button-icon-secondary {
+   right: .5em;
+}
+
+.btn-link.ui-wait-button .ui-icon-waiting,
+.btn-default.ui-wait-button .ui-icon-waiting {
+   background-image: url("wait-default.gif");
+}
+
+.btn-primary.ui-wait-button .ui-icon-waiting {
+   background-image: url("wait-primary.gif");
+}
+
+.btn-success.ui-wait-button .ui-icon-waiting {
+   background-image: url("wait-success.gif");
+}
+
+.btn-info.ui-wait-button .ui-icon-waiting {
+   background-image: url("wait-info.gif");
+}
+
+.btn-warning.ui-wait-button .ui-icon-waiting {
+   background-image: url("wait-warning.gif");
+}
+
+.btn-danger.ui-wait-button .ui-icon-waiting {
+   background-image: url("wait-danger.gif");
+}
