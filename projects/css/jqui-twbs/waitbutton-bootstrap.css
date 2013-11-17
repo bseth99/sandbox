@@ -24,6 +24,10 @@
  *
  */
 
+.ui-button {
+   position: relative;
+}
+
 .ui-icon {
    width: 16px;
    height: 16px;
@@ -32,15 +36,6 @@
 .ui-button-text-icon-primary
 .ui-button-icon-primary {
     float:left;
-}
-
-.btn.ui-button-text-icon-primary .ui-button-icon-primary.ui-icon {
-    margin-top: 3px;
-}
-
-.btn-xs.ui-button-text-icon-primary .ui-button-icon-primary.ui-icon,
-.btn-sm.ui-button-text-icon-primary .ui-button-icon-primary.ui-icon {
-    margin-top: 1px;
 }
 
 .ui-button .ui-button-text {
@@ -64,15 +59,20 @@
    padding-right: 1.8em;
 }
 
-/*button icon element(s) */
+/* button icon element(s) */
 .ui-button-icon-only .ui-icon,
 .ui-button-text-icon-primary .ui-icon,
 .ui-button-text-icon-secondary .ui-icon,
 .ui-button-text-icons .ui-icon,
 .ui-button-icons-only .ui-icon {
-    margin-bottom: 0;
-    margin-top: 0;
-    top: 50%;
+   position: absolute;
+   top: 50%;
+   margin-top: -8px;
+}
+
+.ui-button-icon-only .ui-icon {
+   left: 50%;
+   margin-left: -8px;
 }
 
 .ui-button-text-icon-primary .ui-button-icon-primary,
@@ -90,11 +90,6 @@
 /* WaitButton spinner icon; Background color to match TWBS */
 .ui-wait-button .ui-icon-waiting {
    background-position: 0 center;
-}
-
-.ui-button-text-icons .ui-button-icon-secondary,
-.ui-button-icons-only .ui-button-icon-secondary {
-   right: .5em;
 }
 
 .btn-link.ui-wait-button .ui-icon-waiting,
