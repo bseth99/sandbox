@@ -1,0 +1,111 @@
+<!Doctype html>
+<html>
+<head>
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+   <title>Formatting Dates with Moment as Backbone Computed Fields</title>
+   <link rel="stylesheet" type="text/css" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
+
+   <script data-main="main" src="require.js"></script>
+
+</head>
+<body>
+
+<style>
+   body {
+      font-family: sans-serif,arial;
+   }
+
+   #main {
+      width: 900px;
+      margin: auto;
+      position: relative;
+   }
+</style>
+
+
+<script type="text/template" id="test-template">
+
+   <dl class="dl-horizontal">
+     <dt>when</dt>
+     <dd><%= when %></dd>
+
+     <dt>when_fmt_short</dt>
+     <dd><%= when_fmt_short %></dd>
+
+     <dt>when_fmt_long</dt>
+     <dd><%= when_fmt_long %></dd>
+
+     <dt>when_fmt_duration_ago</dt>
+     <dd><%= when_fmt_duration_ago %></dd>
+
+     <dt>when_fmt_ellapsed_seconds</dt>
+     <dd><%= when_fmt_ellapsed_seconds %></dd>
+   </dl>
+
+</script>
+
+<div id="main" class="container">
+   <h3>Computed Date Formats Test</h3>
+   <div style="position: absolute; top: 25px; right: 0; height: 30px">
+     <span><a href="../index.html">&lt; Back</a></span>&nbsp;&nbsp;
+     <span><a href="http://www.benknowscode.com/2013/11/formatting-dates-moment-backbone-computed-fields.html">View Blog</a></span>&nbsp;&nbsp;
+     <span><a href="https://github.com/bseth99/sandbox/blob/master/projects/backbone/computed">View Source</a></span>&nbsp;&nbsp;
+     <div class="g-plusone" data-size="small"></div>
+   </div>
+
+   <!-- Place this tag after the last +1 button tag. -->
+   <script type="text/javascript">
+     (function() {
+       var po = document.createElement('script'); po.type = 'text/javascript'; po.async = false;
+       po.src = 'https://apis.google.com/js/plusone.js';
+       var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+     })();
+   </script>
+
+   <div class="panel panel-default">
+      <div class="panel-body">
+         This is a simple test of using <a href="https://github.com/alexanderbeletsky/backbone-computedfields">alexanderbeletsky/backbone-computedfields</a>
+         with MomentJS to generate several different formats of a date field in a Backbone model.  This page uses RequireJS to load all the script to
+         avoid any reference to the global moment function.  The goal is to perform all the formatting in the model and make these fields available to
+         the view's template when rendering without including them in the JSON payload to the server.
+      </div>
+   </div>
+
+   <div class="row">
+      <div id="output" class="col-lg-12">
+         <h3>Rendered</h3>
+
+      </div>
+   </div>
+
+   <div class="row">
+      <div class="col-lg-6">
+         <h3>toJSON()</h3>
+         <div id="json-norm"></div>
+      </div>
+      <div class="col-lg-6">
+         <h3>toJSON({ computedFields: true })</h3>
+         <div id="json-computed"></div>
+      </div>
+   </div>
+
+
+</div>
+
+
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-34780028-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+</body>
+</html>

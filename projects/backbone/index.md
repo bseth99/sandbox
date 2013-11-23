@@ -34,4 +34,6 @@ how to integrate them and move data in and out of the form can be challenging.
    {% assign pages_list = site.pages %}
    {% assign group = 'backbone-form' %}
    {% include JB/pages_list %}
+   
+   <li><a href="computed"></a>Formatting Dates with Moment as Backbone Computed Fields</li>
 </ul>
