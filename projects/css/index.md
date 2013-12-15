@@ -16,4 +16,5 @@ You can read more about this these tests [on my blog]({{ site.blog_url}}).
    {% assign group = 'css' %}
    {% include JB/pages_list %}
    <li><a href="jqui-twbs/bootstrap-jquery-ui-button.html"></a>jQuery UI WaitButton Twitter Bootstrap Test</li>
+   <li><a href="jqui-twbs/variable-height-css-floats.html"></a>Variable Height CSS Floats</li>
 </ul>
