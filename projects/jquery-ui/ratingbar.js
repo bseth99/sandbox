@@ -31,7 +31,7 @@ var RatingBar = function( element, options ) {
 
    var $me = $( element ).addClass( 'star-ctr' );
 
-   var $bg, $fg, step, wd, cc,
+   var $bg, $fg, steps, wd, cc,
        sw, fw, cs, cw, ini;
 
    $bg = $me.children( 'ul' );
