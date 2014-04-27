@@ -1,0 +1,163 @@
+---
+layout: page
+title: Basic Star Rating Bar Widget
+group: jquery-ui
+tags : [css, rating, widget, jquery]
+blog: /2014/04/basic-star-rating-bar-widget/
+---
+
+{% include JB/setup %}
+
+<link rel="stylesheet" type="text/css" href="ratingbar.css">
+<script src="ratingbar.js"></script>
+
+<style>
+@font-face {
+  font-family: 'Glyphicons Halflings';
+
+  src: url('//netdna.bootstrapcdn.com/bootstrap/3.1.1/fonts/glyphicons-halflings-regular.eot');
+  src: url('//netdna.bootstrapcdn.com/bootstrap/3.1.1/fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('//netdna.bootstrapcdn.com/bootstrap/3.1.1/fonts/glyphicons-halflings-regular.woff') format('woff'), url('//netdna.bootstrapcdn.com/bootstrap/3.1.1/fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('//netdna.bootstrapcdn.com/bootstrap/3.1.1/fonts/glyphicons-halflings-regular.svg#glyphicons_halflingsregular') format('svg');
+}
+
+.glyphicon {
+  position: relative;
+  top: 1px;
+  display: inline-block;
+  font-family: 'Glyphicons Halflings';
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.glyphicon-star:before {
+  content: "\e006";
+}
+
+.glyphicon-heart:before {
+  content: "\e005";
+}
+
+.star-fg .glyphicon-heart {
+   color: red !important;
+}
+</style>
+
+<div class="discussion">
+A condensed demostration of the different variations of the rating bar developed in the blog post.  This is not an actual jQuery UI widget.
+It seemed simple enough to make a simple jQuery plugin.  However, I didn't want to start a separate category for it.  Get the widget
+<a href="ratingbar.js">JS</a> |
+<a href="ratingbar.css">CSS</a>
+</div>
+<br/>
+
+
+<h5>Continuous Mode</h5>
+<br/>
+
+<div data-role="ratingbar" data-steps="0">
+  <ul>
+    <li><a href="#"><span class="glyphicon glyphicon-star"></span></a></li>
+    <li><a href="#"><span class="glyphicon glyphicon-star"></span></a></li>
+    <li><a href="#"><span class="glyphicon glyphicon-star"></span></a></li>
+    <li><a href="#"><span class="glyphicon glyphicon-star"></span></a></li>
+    <li><a href="#"><span class="glyphicon glyphicon-star"></span></a></li>
+  </ul>
+</div><br/>
+<br/>
+
+
+<h5>Full-Step</h5>
+<br/>
+
+<div data-role="ratingbar" data-steps="1">
+  <ul>
+    <li><a href="#"><span class="glyphicon glyphicon-star"></span></a></li>
+    <li><a href="#"><span class="glyphicon glyphicon-star"></span></a></li>
+    <li><a href="#"><span class="glyphicon glyphicon-star"></span></a></li>
+    <li><a href="#"><span class="glyphicon glyphicon-star"></span></a></li>
+    <li><a href="#"><span class="glyphicon glyphicon-star"></span></a></li>
+  </ul>
+</div><br/>
+<br/>
+
+
+<h5>Half-Steps</h5>
+<br/>
+
+<div data-role="ratingbar" data-steps="2">
+  <ul>
+    <li><a href="#"><span class="glyphicon glyphicon-star"></span></a></li>
+    <li><a href="#"><span class="glyphicon glyphicon-star"></span></a></li>
+    <li><a href="#"><span class="glyphicon glyphicon-star"></span></a></li>
+    <li><a href="#"><span class="glyphicon glyphicon-star"></span></a></li>
+    <li><a href="#"><span class="glyphicon glyphicon-star"></span></a></li>
+  </ul>
+</div><br/>
+<br/>
+
+
+<h5>Hearts with variable sizes and spacing</h5>
+<br/>
+
+<div data-role="ratingbar" data-steps="2">
+  <ul>
+    <li><a href="#"><span class="glyphicon glyphicon-heart" style="font-size: 1.5em"></span></a></li>
+    <li><a href="#"><span class="glyphicon glyphicon-heart" style="font-size: 2em; padding-left: 0.1em;"></span></a></li>
+    <li><a href="#"><span class="glyphicon glyphicon-heart" style="font-size: 2.5em; padding-left: 0.2em;"></span></a></li>
+    <li><a href="#"><span class="glyphicon glyphicon-heart" style="font-size: 3em; padding-left: 0.3em;"></span></a></li>
+    <li><a href="#"><span class="glyphicon glyphicon-heart" style="font-size: 3.5em; padding-left: 0.4em;"></span></a></li>
+  </ul>
+</div><br/>
+<br/>
+
+<h5>10 Stars with 3 steps per star</h5>
+<br/>
+
+<div data-role="ratingbar" data-steps="3" style="font-size: 10px">
+  <ul>
+    <li><a href="#"><span class="glyphicon glyphicon-star"></span></a></li>
+    <li><a href="#"><span class="glyphicon glyphicon-star"></span></a></li>
+    <li><a href="#"><span class="glyphicon glyphicon-star"></span></a></li>
+    <li><a href="#"><span class="glyphicon glyphicon-star"></span></a></li>
+    <li><a href="#"><span class="glyphicon glyphicon-star"></span></a></li>
+    <li><a href="#"><span class="glyphicon glyphicon-star"></span></a></li>
+    <li><a href="#"><span class="glyphicon glyphicon-star"></span></a></li>
+    <li><a href="#"><span class="glyphicon glyphicon-star"></span></a></li>
+    <li><a href="#"><span class="glyphicon glyphicon-star"></span></a></li>
+    <li><a href="#"><span class="glyphicon glyphicon-star"></span></a></li>
+  </ul>
+</div><br/>
+<br/>
+
+<h5>3 Really big stars with 10 steps per star</h5>
+<br/>
+
+<div data-role="ratingbar" data-steps="10" style="font-size: 24px">
+  <ul>
+    <li><a href="#"><span class="glyphicon glyphicon-star"></span></a></li>
+    <li><a href="#"><span class="glyphicon glyphicon-star"></span></a></li>
+    <li><a href="#"><span class="glyphicon glyphicon-star"></span></a></li>
+  </ul>
+</div><br/>
+<br/>
+
+
+
+<script>
+$(function() {
+
+   $( '[data-role="ratingbar"]' )
+      .ratingbar()
+      .click(function() {
+
+       // Grab value
+       alert( $( this ).attr( 'data-value' ) );
+
+       return false;
+   });
+
+});
+</script>
